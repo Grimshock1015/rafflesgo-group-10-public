@@ -1,0 +1,198 @@
+\documentclass[11pt]{article}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{setspace}
+
+\setstretch{1.1}
+
+\title{Langur Protection Web Application\\
+\large Requirements Specification}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Background}
+
+The Raffles' Banded Langur is a critically endangered primate species.
+Its protection relies heavily on long-term, systematic field observations conducted by trained volunteers.
+These volunteers regularly walk along predefined survey routes and report sightings, behaviors, and incidents encountered during the walk.
+
+At present, information collection and coordination are conducted using a combination of Google Sheets and email communication.
+While functional, this workflow introduces several serious issues:
+\begin{itemize}
+    \item High manual overhead in data collection, cleaning, and summarization
+    \item Fragmented communication and coordination of volunteer survey walks
+    \item Insufficient access control, creating risks of sensitive data leakage
+\end{itemize}
+
+In particular, the uncontrolled dissemination of location-based sighting data poses a real threat, as such information could be misused by poachers or other malicious actors.
+These limitations motivate the development of a dedicated system that enables secure, structured, and low-friction collaboration among volunteers and administrators.
+
+\section{Overview}
+
+This project develops a \textbf{cross-platform web application} to support volunteer-based protection of the endangered Raffles' Banded Langur. The system replaces the current workflow based on Google Sheets and email communication, which incurs high manual overhead, complicates coordination, and poses risks to data confidentiality. Its primary purpose is to provide a unified and secure platform for organizing survey walks, collecting observational reports, and maintaining controlled access to sensitive information. Volunteers use the system to register for scheduled walks, record sightings and incidents encountered during the walk, and review their own participation history, while administrators maintain global visibility, oversee participation, and export collected data for external analysis, reporting, and long-term archival.
+
+The application is designed for use across devices and contexts. Volunteers are expected to interact with the system primarily on mobile phones during survey walks, whereas laptops and desktop computers are also used, especially for those who prefer to use cameras to record. As survey walks often take place in areas with limited or no network connectivity, \textbf{offline usability} is treated as a core requirement rather than an optional enhancement. Volunteers must be able to record reports in \textbf{offline mode} and reliably submit them once connectivity is restored, without data loss or manual intervention.
+
+From a functional perspective, the minimum viable product prioritizes three capabilities. First, the system must support structured and secure reporting of sightings and incidents, including location information and media evidence. Second, it must support the organization of survey walks through a slot-based registration mechanism. Third, it must enforce strict access control to ensure that sensitive data is visible only to authorized users. These capabilities form the foundation of the system and are developed before any advanced administrative or analytical features.
+
+The system is intentionally scoped to balance realism and feasibility. It supports meaningful conservation work while remaining sufficiently lightweight to serve as a course project reference. Features such as advanced dashboards, automated volunteer evaluation, or long-term analytics are considered out of scope for the initial version, but the system is designed to allow incremental extension in future iterations.
+
+
+\section{Requirements}
+
+\subsection{Users, Roles, and Identity}
+
+\paragraph{Registration}
+All users must authenticate using a registered email address. Upon registration, each user is assigned a unique and persistent system identifier. All actions performed within the system, including walk registration, report submission, and statistics generation, are associated with this identifier. Anonymous usage and anonymous reporting are not supported, as explicit identity is required to ensure accountability, access control, and data confidentiality.
+
+\paragraph{Roles}
+The system distinguishes between two primary user roles with clearly defined responsibilities and access privileges.
+
+\begin{itemize}
+    \item \textbf{Volunteers}: Volunteers are registered users who participate in survey walks and contribute observational data. Each volunteer interacts with the system under a persistent identity, which is used to associate walk participation, report submissions, and personal statistics. Volunteers are expected to use the system primarily for operational tasks such as registering for walks and reporting sightings.
+    \item \textbf{Administrators}: Administrators are trusted coordinators responsible for overseeing survey activities and maintaining global visibility of the system. They have access to all reports and participation records and are authorized to export collected data for analysis and archival purposes. Administrators are not required to curate individual reports but serve as supervisors and data stewards.
+
+\end{itemize}
+
+
+\subsection{Survey Walk Management}
+
+\subsubsection{Walk Structure and Rounds}
+
+\begin{itemize}
+    \item Survey walks take place at two predefined locations.
+    \item Each location has multiple scheduled walk slots per day.
+    \item Walks are grouped into survey rounds, typically spanning six months.
+\end{itemize}
+
+Survey rounds provide a natural unit for participation tracking, statistics, and long-term planning.
+
+\subsubsection{Volunteer Participation}
+
+Volunteers may:
+\begin{itemize}
+    \item Browse upcoming walk slots
+    \item Register for a walk slot
+    \item Withdraw from a walk slot prior to the scheduled time (it happens, though not encouraged)
+\end{itemize}
+
+Participation in a walk establishes a temporary collaboration group among the volunteers of that walk.
+This grouping directly affects data visibility and sharing.
+
+\subsubsection{Coordination and Notifications}
+
+\begin{itemize}
+    \item Volunteers receive automated reminders prior to their scheduled walks.
+    \item If a volunteer withdraws close to the walk time:
+    \begin{itemize}
+        \item Other volunteers registered for the same walk are notified
+        \item The administrator is notified
+    \end{itemize}
+\end{itemize}
+
+These notifications are intended to reduce coordination overhead and ensure situational awareness.
+
+\subsection{Sighting and Incident Reporting}
+
+\subsubsection{Association with Walks}
+
+\begin{itemize}
+    \item Every report must be associated with exactly one survey walk.
+    \item Only volunteers registered for the same walk may access each other’s reports.
+\end{itemize}
+
+Reports submitted outside of a registered walk context are not permitted.
+
+\subsubsection{Report Categories and Semantics}
+
+The system supports multiple categories of reports, each representing a different observational intent.
+Examples include:
+\begin{itemize}
+    \item Raffles' Banded Langur sightings
+    \item Other wildlife sightings
+    \item Illegal activities
+    \item Traps or environmental hazards
+\end{itemize}
+
+Each category defines its own set of required and optional fields. Please refer to the video recording with Andie at 15 December for detailed specifications of each report type.
+This ensures that collected data is structured, interpretable, and suitable for downstream analysis.
+
+\subsubsection{Media Evidence}
+
+\begin{itemize}
+    \item Reports may include photos and videos as supporting evidence.
+    \item The number of media attachments is limited to encourage selectivity and reduce unnecessary exposure.
+\end{itemize}
+
+Media attachments are considered sensitive data and inherit the same access restrictions as the report itself.
+
+\subsubsection{Spatial Reporting}
+
+\begin{itemize}
+    \item Report locations are specified by manually placing a marker on a map.
+    \item The marker represents the observed subject or incident, not the reporter’s physical position.
+\end{itemize}
+
+This design avoids misleading spatial data when observations are made at a distance.
+
+\subsection{Offline Operation}
+
+\begin{itemize}
+    \item Volunteers must be able to create reports without network connectivity.
+    \item Reports created offline are stored locally until connectivity is restored.
+    \item Once connectivity is available, stored reports are submitted to the system.
+\end{itemize}
+
+Offline operation is a core functional requirement, reflecting the conditions under which survey walks are conducted.
+
+\subsection{Statistics, History, and Feedback}
+
+\begin{itemize}
+    \item Volunteers may view their own participation history and submitted reports.
+    \item The system may provide statistics such as the number of completed walks within a survey round.
+    \item Volunteers may earn badges for completing specific milestones, such as a certain number of walks.
+    \item Statistical summaries are optional.
+\end{itemize}
+
+This design respects differing volunteer preferences regarding performance visibility.
+
+\section{Key Points}
+
+\subsection{Data Security and Confidentiality}
+
+Data confidentiality is a central design constraint.
+
+\begin{itemize}
+    \item Reports are private by default.
+    \item Volunteers may access:
+    \begin{itemize}
+        \item Reports they personally submitted
+        \item Reports submitted by other volunteers from the same walk
+    \end{itemize}
+    \item Volunteers may not access:
+    \begin{itemize}
+        \item Reports from other walks
+        \item System-wide statistics or global maps
+    \end{itemize}
+    \item Administrators may access all reports and participation records.
+\end{itemize}
+
+These restrictions are essential to prevent unauthorized dissemination of sensitive location-based information.
+
+\subsection{Export and Backup}
+
+\begin{itemize}
+    \item Administrators may export all reports and associated metadata into spreadsheet-compatible formats.
+    \item Exported data is intended for external analysis, reporting, and long-term archival.
+    \item The system does not rely on external tools such as Google Sheets as its primary data store.
+\end{itemize}
+
+Export and backup functionality ensures continuity of conservation work beyond the system itself.
+
+
+\end{document}

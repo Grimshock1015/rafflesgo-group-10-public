@@ -1,0 +1,23 @@
+echo "Running pre-commit checks..."
+
+echo "=== Running lint ==="
+make lint || exit 1
+
+echo "=== Running typecheck ==="
+make typecheck || exit 1
+
+echo "=== Running build ==="
+make build || exit 1
+
+echo "=== Running tests ==="
+make test || exit 1
+
+echo "=== Verifying OpenAPI spec is up to date ==="
+cd backend && npm run generate-spec
+git diff --exit-code ../openapi/spec.json || {
+  echo "❌ OpenAPI spec is out of date. Run 'npm run generate-spec' in backend/ and commit the changes."
+  exit 1
+}
+cd ..
+
+echo "✅ Pre-commit checks passed!"
