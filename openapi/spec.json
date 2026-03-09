@@ -310,6 +310,73 @@
           }
         }
       }
+    },
+    "/api/surveyPeriods": {
+      "get": {
+        "operationId": "listSurveyPeriods",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "List all survey periods (admin only)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "surveyPeriods"
+                  ],
+                  "properties": {
+                    "surveyPeriods": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "uid",
+                          "name",
+                          "startDate",
+                          "endDate",
+                          "isFinished",
+                          "minWalks"
+                        ],
+                        "properties": {
+                          "uid": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "startDate": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "endDate": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "isFinished": {
+                            "type": "boolean"
+                          },
+                          "minWalks": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "servers": [

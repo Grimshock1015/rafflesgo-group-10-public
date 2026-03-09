@@ -30,7 +30,7 @@ export const config = {
    */
   // Add your email here to bootstrap the first admin account.
   // See the usage instructions above for the full flow.
-  adminEmails: [] as string[],
+  adminEmails: ['garyaxelmuliyono@gmail.com'] as string[],
 
   roles: ['user', 'admin'] as const,
 };
