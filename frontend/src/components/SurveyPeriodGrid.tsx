@@ -46,7 +46,7 @@ function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPer
                         <Dialog.Header>
                             <Dialog.Title>Confirm Delete</Dialog.Title>
                         </Dialog.Header>
-                        <Dialog.Body>
+                        <Dialog.Body color={"black"}>
                             Are you sure you want to delete this survey period? This action cannot be undone.
                         </Dialog.Body>
                         <Dialog.Footer>
