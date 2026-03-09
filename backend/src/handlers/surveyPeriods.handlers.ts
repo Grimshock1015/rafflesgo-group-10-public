@@ -1,7 +1,15 @@
 import { FastifyRequestTypeBox, FastifyReplyTypeBox } from '../types/fastify';
-import { ListSurveyPeriodsResponseSchema } from '../schemas/surveyPeriod.schema';
-import { db } from '../lib/firebase-admin';
-import { FIRESTORE_COLLECTIONS } from '../lib/firestore-collections';
+import {
+    CreateSurveyPeriodBodySchema,
+    DeleteSurveyPeriodResponseSchema,
+    ListSurveyPeriodsResponseSchema,
+    SurveyPeriodParamsSchema,
+    UpdateSurveyPeriodBodySchema,
+    surveyPeriodSchema,
+} from '../schemas/surveyPeriod.schema';
+import { getContainer } from '../container';
+import { SurveyPeriodEntity } from '../entities/surveyPeriod.entity';
+import { BadRequestError } from '../lib/errors';
 
 const ListSurveyPeriodsSchema = {
     response: {
@@ -9,26 +17,110 @@ const ListSurveyPeriodsSchema = {
     },
 };
 
+const GetSurveyPeriodSchema = {
+    params: SurveyPeriodParamsSchema,
+    response: {
+        200: surveyPeriodSchema,
+    },
+};
+
+const CreateSurveyPeriodSchema = {
+    body: CreateSurveyPeriodBodySchema,
+    response: {
+        201: surveyPeriodSchema,
+    },
+};
+
+const UpdateSurveyPeriodSchema = {
+    params: SurveyPeriodParamsSchema,
+    body: UpdateSurveyPeriodBodySchema,
+    response: {
+        200: surveyPeriodSchema,
+    },
+};
+
+const DeleteSurveyPeriodSchema = {
+    params: SurveyPeriodParamsSchema,
+    response: {
+        200: DeleteSurveyPeriodResponseSchema,
+    },
+};
+
+function toDto(surveyPeriod: SurveyPeriodEntity) {
+    return {
+        uid: surveyPeriod.uid,
+        name: surveyPeriod.name,
+        startDate: surveyPeriod.startDate.toISOString(),
+        endDate: surveyPeriod.endDate.toISOString(),
+        isFinished: surveyPeriod.isFinished,
+        minWalks: surveyPeriod.minWalks,
+    };
+}
+
+function parseDateString(value: string, field: 'startDate' | 'endDate'): Date {
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+        throw new BadRequestError(`${field} must be a valid date-time`);
+    }
+    return parsed;
+}
+
 export async function listSurveyPeriodsHandler(
     _request: FastifyRequestTypeBox<typeof ListSurveyPeriodsSchema>,
     _reply: FastifyReplyTypeBox<typeof ListSurveyPeriodsSchema>
 ) {
-    const snapshot = await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).get();
+    const { surveyPeriodService } = getContainer();
+    const surveyPeriods = await surveyPeriodService.getAllSurveyPeriods();
+    return { surveyPeriods: surveyPeriods.map(toDto) };
+}
 
-    const surveyPeriods = snapshot.docs.map((doc) => {
-        const data = doc.data();
-        const startDateValue = data.startDate;
-        const endDateValue = data.endDate;
+export async function getSurveyPeriodHandler(
+    request: FastifyRequestTypeBox<typeof GetSurveyPeriodSchema>,
+    _reply: FastifyReplyTypeBox<typeof GetSurveyPeriodSchema>
+) {
+    const { surveyPeriodService } = getContainer();
+    const surveyPeriod = await surveyPeriodService.getSurveyPeriod(request.params.uid);
 
-        return {
-            uid: doc.id,
-            name: String(data.name ?? ''),
-            startDate: startDateValue?.toDate?.() ?? new Date(startDateValue),
-            endDate: endDateValue?.toDate?.() ?? new Date(endDateValue),
-            isFinished: Boolean(data.isFinished),
-            minWalks: Number(data.minWalks ?? 0),
-        };
+    return toDto(surveyPeriod);
+}
+
+export async function createSurveyPeriodHandler(
+    request: FastifyRequestTypeBox<typeof CreateSurveyPeriodSchema>,
+    reply: FastifyReplyTypeBox<typeof CreateSurveyPeriodSchema>
+) {
+    const { surveyPeriodService } = getContainer();
+    const created = await surveyPeriodService.createSurveyPeriod({
+        name: request.body.name,
+        startDate: parseDateString(request.body.startDate, 'startDate'),
+        endDate: parseDateString(request.body.endDate, 'endDate'),
+        isFinished: request.body.isFinished,
+        minWalks: request.body.minWalks,
     });
 
-    return { surveyPeriods };
+    return reply.code(201).send(toDto(created));
+}
+
+export async function updateSurveyPeriodHandler(
+    request: FastifyRequestTypeBox<typeof UpdateSurveyPeriodSchema>,
+    _reply: FastifyReplyTypeBox<typeof UpdateSurveyPeriodSchema>
+) {
+    const { surveyPeriodService } = getContainer();
+
+    const updated = await surveyPeriodService.updateSurveyPeriod(request.params.uid, {
+        name: request.body.name,
+        startDate: request.body.startDate ? parseDateString(request.body.startDate, 'startDate') : undefined,
+        endDate: request.body.endDate ? parseDateString(request.body.endDate, 'endDate') : undefined,
+        isFinished: request.body.isFinished,
+        minWalks: request.body.minWalks,
+    });
+
+    return toDto(updated);
+}
+
+export async function deleteSurveyPeriodHandler(
+    request: FastifyRequestTypeBox<typeof DeleteSurveyPeriodSchema>,
+    _reply: FastifyReplyTypeBox<typeof DeleteSurveyPeriodSchema>
+) {
+    const { surveyPeriodService } = getContainer();
+    return surveyPeriodService.deleteSurveyPeriod(request.params.uid);
 }
