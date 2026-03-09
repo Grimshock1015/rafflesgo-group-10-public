@@ -7,6 +7,7 @@ import { ThemeProvider } from './contexts/ThemeContext.tsx'
 
 // Import unified theme system
 import './assets/style/main.css'
+import { Provider } from './components/ui/provider.tsx'
 
 // Configure API client to include Firebase auth tokens
 configureApiAuth()
@@ -15,7 +16,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ThemeProvider>
       <BrowserRouter>
-        <App />
+        <Provider>
+          <App />
+        </Provider>
       </BrowserRouter>
     </ThemeProvider>
   </React.StrictMode>

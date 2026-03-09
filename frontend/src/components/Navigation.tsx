@@ -1,24 +1,26 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { signOut } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import type { User } from 'firebase/auth'
+import { Button } from '@chakra-ui/react'
 
 interface NavigationProps {
   user: User
 }
 
 export function Navigation({ user }: NavigationProps) {
-  const location = useLocation()
+  // const location = useLocation()
+  const navigate = useNavigate()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const handleLogout = async () => {
     await signOut(auth)
   }
 
-  const isActive = (path: string) => {
-    return location.pathname === path ? 'nav-link active' : 'nav-link'
-  }
+  // const isActive = (path: string) => {
+  //   return location.pathname === path ? 'nav-link active' : 'nav-link'
+  // }
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
@@ -90,7 +92,17 @@ export function Navigation({ user }: NavigationProps) {
 
         <div className={`nav-menu-wrapper ${isMobileMenuOpen ? 'open' : ''}`}>
           <ul className="nav-menu">
-            <li><Link to="/dashboard" className={isActive('/dashboard')} onClick={closeMobileMenu}>Dashboard</Link></li>
+            <li>
+              <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/survey-periods');}} px={2}>
+                Survey Periods
+              </Button>
+            </li>
+            <li>
+              <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/dashboard');}} px={2}>
+                Dashboard
+              </Button>
+              {/* <Link to="/dashboard" className={isActive('/dashboard')} onClick={closeMobileMenu}>Dashboard</Link> */}
+            </li>
           </ul>
 
           <div className="nav-actions">
