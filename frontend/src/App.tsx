@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage'
 import Dashboard from './pages/Dashboard'
 
 import type { ReactNode } from 'react'
+import SubmitSightingPage from './pages/SubmitSighting'
 
 function RequireAuth({ user, children }: { user: User | null; children: ReactNode }) {
   const location = useLocation()
@@ -48,6 +49,15 @@ export default function App() {
         element={
           <RequireAuth user={user}>
             <Dashboard user={user!} />
+          </RequireAuth>
+        }
+      />
+
+      <Route
+        path="/submit-sighting"
+        element={
+          <RequireAuth user={user}>
+            <SubmitSightingPage user={user!} />
           </RequireAuth>
         }
       />

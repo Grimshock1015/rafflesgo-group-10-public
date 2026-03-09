@@ -12,6 +12,7 @@ import loggingPlugin from './plugins/logging.plugin';
 import { healthRoutes } from './routes/health.routes';
 import { helloRoutes } from './routes/hello.routes';
 import { usersRoutes } from './routes/users.routes';
+import { sightingRoutes } from './routes/sighting.route';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -84,6 +85,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await fastify.register(healthRoutes);
   await fastify.register(helloRoutes);
   await fastify.register(usersRoutes);
+  await fastify.register(sightingRoutes)
 
   // SPA Fallback
   fastify.setNotFoundHandler((request, reply) => {
