@@ -1,10 +1,69 @@
 import { RafflesGoService } from "@/api";
+import { toaster } from "@/components/ui/toaster";
 import { Badge, Button, Card, CloseButton, Dialog, Grid, GridItem, Portal, Stack, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { MdDelete, MdModeEdit } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 
 type SurveyPeriod = Awaited<ReturnType<typeof RafflesGoService.listSurveyPeriods>>["surveyPeriods"][number];
+
+type DeleteSurveyPeriodButtonProps = {
+    surveyPeriodId: string;
+    onDeleted: () => Promise<void>;
+};
+
+function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPeriodButtonProps) {
+    const [open, setOpen] = useState(false);
+
+    const handleDelete = async () => {
+        try {
+            await RafflesGoService.deleteSurveyPeriod(surveyPeriodId);
+            setOpen(false);
+            await onDeleted();
+        } catch (error) {
+            console.error("Failed to delete survey period:", error);
+            toaster.create({
+                type: "error",
+                title: "Delete failed",
+                description: "Unable to delete survey period. Please try again.",
+                closable: true,
+            });
+        }
+    };
+
+    return (
+        <Dialog.Root size={"sm"} open={open} onOpenChange={(event) => setOpen(event.open)}>
+            <Dialog.Trigger asChild>
+                <Button variant="outline" size={"sm"} px={2}>
+                    <MdDelete />
+                    Delete
+                </Button>
+            </Dialog.Trigger>
+            <Portal>
+                <Dialog.Backdrop />
+                <Dialog.Positioner position="fixed" inset={0} display="flex" alignItems="center" justifyContent="center">
+                    <Dialog.Content p={5}>
+                        <Dialog.Header>
+                            <Dialog.Title>Confirm Delete</Dialog.Title>
+                        </Dialog.Header>
+                        <Dialog.Body>
+                            Are you sure you want to delete this survey period? This action cannot be undone.
+                        </Dialog.Body>
+                        <Dialog.Footer>
+                            <Dialog.ActionTrigger asChild>
+                                <Button variant="outline" px={2}>Cancel</Button>
+                            </Dialog.ActionTrigger>
+                            <Button px={2} onClick={handleDelete}>Delete</Button>
+                        </Dialog.Footer>
+                        <Dialog.CloseTrigger asChild>
+                            <CloseButton size="sm" />
+                        </Dialog.CloseTrigger>
+                    </Dialog.Content>
+                </Dialog.Positioner>
+            </Portal>
+        </Dialog.Root>
+    );
+}
 
 export default function SurveyPeriodGrid() {
     const [surveyPeriods, setSurveyPeriods] = useState<SurveyPeriod[]>([]);
@@ -17,53 +76,16 @@ export default function SurveyPeriodGrid() {
             setSurveyPeriods(response.surveyPeriods);
         } catch (error) {
             console.error("Failed to fetch survey periods:", error);
+            toaster.create({
+                type: "error",
+                title: "Fetch failed",
+                description: "Unable to fetch survey periods. Please try again.",
+                closable: true,
+            });
         } finally {
             setIsLoading(false);
         }
     };
-
-    const deleteButton = (surveyPeriodId: string) => {
-        const handleDelete = async (id: string) => {
-            try {
-                await RafflesGoService.deleteSurveyPeriod(id);
-                fetchSurveyPeriods();
-            } catch (error) {
-                console.error("Failed to delete survey period:", error);
-            }
-        }
-        return (
-            <Dialog.Root size={"sm"}>
-            <Dialog.Trigger asChild>
-              <Button variant="outline" size={"sm"} px={2}>
-                <MdDelete />
-                Delete
-              </Button>
-            </Dialog.Trigger>
-            <Portal>
-              <Dialog.Backdrop />
-              <Dialog.Positioner position="fixed" inset={0} display="flex" alignItems="center" justifyContent="center">
-                <Dialog.Content p={5}>
-                  <Dialog.Header>
-                    <Dialog.Title>Confirm Delete</Dialog.Title>
-                  </Dialog.Header>
-                  <Dialog.Body>
-                    Are you sure you want to delete this survey period? This action cannot be undone.
-                  </Dialog.Body>
-                  <Dialog.Footer>
-                    <Dialog.ActionTrigger asChild>
-                      <Button variant="outline" px={2}>Cancel</Button>
-                    </Dialog.ActionTrigger>
-                    <Button px={2} onClick={() => handleDelete(surveyPeriodId)}>Delete</Button>
-                  </Dialog.Footer>
-                  <Dialog.CloseTrigger asChild >
-                    <CloseButton size="sm" />
-                  </Dialog.CloseTrigger>
-                </Dialog.Content>
-              </Dialog.Positioner>
-            </Portal>
-          </Dialog.Root>
-        );
-    }
 
     useEffect(() => {
         fetchSurveyPeriods();
@@ -109,7 +131,7 @@ export default function SurveyPeriodGrid() {
                             </Stack>
                         </Card.Body>
                         <Card.Footer justifyContent={"flex-end"}>
-                            {deleteButton(sp.uid)}
+                            <DeleteSurveyPeriodButton surveyPeriodId={sp.uid} onDeleted={fetchSurveyPeriods} />
                             <Button px={2} onClick={() => navigate('/edit-survey-period/' + sp.uid)}><MdModeEdit />Edit</Button>
                         </Card.Footer>
                     </Card.Root>

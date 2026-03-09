@@ -10,17 +10,12 @@ interface NavigationProps {
 }
 
 export function Navigation({ user }: NavigationProps) {
-  // const location = useLocation()
   const navigate = useNavigate()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const handleLogout = async () => {
     await signOut(auth)
   }
-
-  // const isActive = (path: string) => {
-  //   return location.pathname === path ? 'nav-link active' : 'nav-link'
-  // }
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)

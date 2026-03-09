@@ -49,11 +49,12 @@ export class SurveyPeriodRepository {
             await ref.update(safePayload);
         }
 
-        const current = this.toEntity(existing.id, existing.data() ?? {});
-        return {
-            ...current,
-            ...safePayload,
-        };
+        const updated = await ref.get();
+        if (!updated.exists) {
+            return null;
+        }
+
+        return this.toEntity(updated.id, updated.data() ?? {});
     }
 
     async delete(uid: string): Promise<boolean> {

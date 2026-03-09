@@ -137,13 +137,11 @@ fastify.get('/api/users', {
 
 ### Admin Configuration
 
-The `adminEmails` list in `config.ts` provides **bootstrap admin access**:
+The `BOOTSTRAP_ADMIN_EMAILS` environment variable provides **bootstrap admin access**.
+Set it as a comma-separated list in `backend/.env`:
 
-```typescript
-export const config = {
-  adminEmails: ['admin@example.com'],
-  // ...
-};
+```env
+BOOTSTRAP_ADMIN_EMAILS=admin@example.com
 ```
 
 #### Why is this needed?
@@ -159,7 +157,7 @@ This solves the chicken-and-egg problem: *How does the first admin get admin rol
 
 #### Bootstrapping your first admin
 
-1. Add your email to `adminEmails` in `config.ts`
+1. Add your email to `BOOTSTRAP_ADMIN_EMAILS` in `backend/.env`
 2. Sign in to the app
 3. Call `POST /api/users/change-role` with:
    ```json
@@ -183,6 +181,7 @@ This solves the chicken-and-egg problem: *How does the first admin get admin rol
    - Create `backend/.env`:
      ```
      GOOGLE_APPLICATION_CREDENTIALS=./svc-account-key.json
+  BOOTSTRAP_ADMIN_EMAILS=your-email@example.com
      ```
 
 3. Run in development mode:
