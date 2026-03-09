@@ -23,7 +23,7 @@ export default function Dashboard({ user }: { user: User }) {
       try {
         const response = await RafflesGoService.getCurrentUser();
         console.log(response)
-        setUserEmail(response.email);
+        setUserEmail(response.email || "");
       } catch (error) {
         console.error('Failed to fetch user email:', error);
       }
