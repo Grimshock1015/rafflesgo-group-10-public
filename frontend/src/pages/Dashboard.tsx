@@ -5,6 +5,7 @@ import { RafflesGoService } from '../api';
 
 export default function Dashboard({ user }: { user: User }) {
   const [helloMessage, setHelloMessage] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchHello = async () => {
@@ -17,7 +18,19 @@ export default function Dashboard({ user }: { user: User }) {
         console.error('Failed to fetch hello message:', error);
       }
     };
+
+    const fetchEmail = async () => {
+      try {
+        const response = await RafflesGoService.getCurrentUser();
+        console.log(response)
+        setUserEmail(response.email);
+      } catch (error) {
+        console.error('Failed to fetch user email:', error);
+      }
+    };
+
     fetchHello();
+    fetchEmail();
   }, [user.displayName]);
 
   return (
@@ -36,6 +49,7 @@ export default function Dashboard({ user }: { user: User }) {
               Langur conservation volunteer platform
             </p>
             {helloMessage && <p className="hello-message">{helloMessage}</p>}
+            {userEmail || ""}
           </header>
 
           <section className="quick-actions">

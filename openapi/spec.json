@@ -13,7 +13,20 @@
         "bearerFormat": "JWT"
       }
     },
-    "schemas": {}
+    "schemas": {
+      "def-0": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "string"
+          }
+        },
+        "title": "MyResponse"
+      }
+    }
   },
   "paths": {
     "/api/health": {
@@ -304,6 +317,26 @@
                       ]
                     }
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/my-endpoint": {
+      "get": {
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "My endpoint description",
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
                 }
               }
             }

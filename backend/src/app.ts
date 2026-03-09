@@ -96,5 +96,28 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
     }
   });
 
+  // Add schema
+const MyResponseSchema = {
+  $id: 'MyResponse',
+  type: 'object',
+  required: ['data'],
+  properties: { data: { type: 'string' } },
+} as const;
+
+// Register schema
+fastify.addSchema(MyResponseSchema);
+
+// Add route
+fastify.get('/api/my-endpoint', {
+  schema: {
+    description: 'My endpoint description',
+    tags: ['RafflesGo'],
+    response: { 200: { $ref: 'MyResponse#' } },
+  },
+}, async () => {
+  return { data: 'bingus' };
+});
+
   return fastify;
 }
+
