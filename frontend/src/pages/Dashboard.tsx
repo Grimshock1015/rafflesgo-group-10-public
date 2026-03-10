@@ -55,7 +55,6 @@ export default function Dashboard({ user }: { user: User }) {
           <section className="quick-actions">
             <h2>Quick Actions</h2>
             <div className="action-buttons">
-              {/* Add your feature links here */}
             </div>
           </section>
         </div>

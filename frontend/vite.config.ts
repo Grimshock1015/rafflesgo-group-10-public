@@ -1,5 +1,6 @@
 /// <reference types="vitest/config" />
 import { defineConfig, loadEnv, type PluginOption, type UserConfig, type ConfigEnv } from 'vite'
+import tsconfigPaths from "vite-tsconfig-paths";
 import react from '@vitejs/plugin-react'
 import { readFileSync } from 'fs'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -40,6 +41,7 @@ function validateEnv(): PluginOption {
 export default defineConfig({
   plugins: [
     react(),
+    tsconfigPaths(),
     validateEnv(),
     VitePWA({
       registerType: 'autoUpdate',
