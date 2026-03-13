@@ -357,7 +357,8 @@
                           "startDate",
                           "endDate",
                           "isFinished",
-                          "minWalks"
+                          "minWalks",
+                          "volunteerUids"
                         ],
                         "properties": {
                           "uid": {
@@ -379,6 +380,12 @@
                           },
                           "minWalks": {
                             "type": "integer"
+                          },
+                          "volunteerUids": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
                           }
                         }
                       }
@@ -452,7 +459,8 @@
                     "startDate",
                     "endDate",
                     "isFinished",
-                    "minWalks"
+                    "minWalks",
+                    "volunteerUids"
                   ],
                   "properties": {
                     "uid": {
@@ -474,6 +482,12 @@
                     },
                     "minWalks": {
                       "type": "integer"
+                    },
+                    "volunteerUids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     }
                   }
                 }
@@ -518,7 +532,8 @@
                     "startDate",
                     "endDate",
                     "isFinished",
-                    "minWalks"
+                    "minWalks",
+                    "volunteerUids"
                   ],
                   "properties": {
                     "uid": {
@@ -540,6 +555,12 @@
                     },
                     "minWalks": {
                       "type": "integer"
+                    },
+                    "volunteerUids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     }
                   }
                 }
@@ -612,7 +633,8 @@
                     "startDate",
                     "endDate",
                     "isFinished",
-                    "minWalks"
+                    "minWalks",
+                    "volunteerUids"
                   ],
                   "properties": {
                     "uid": {
@@ -634,6 +656,12 @@
                     },
                     "minWalks": {
                       "type": "integer"
+                    },
+                    "volunteerUids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     }
                   }
                 }
@@ -680,6 +708,69 @@
                     },
                     "uid": {
                       "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveyPeriods/{uid}/join": {
+      "post": {
+        "operationId": "joinSurveyPeriod",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Volunteer joins a survey period",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "volunteerUid"
+                ],
+                "properties": {
+                  "volunteerUid": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
                     }
                   }
                 }
