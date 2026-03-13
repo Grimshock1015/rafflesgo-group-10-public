@@ -19,7 +19,7 @@ export default function SurveyPeriodList({ user }: { user: User }) {
             <Button px={3} onClick={() => navigate('/create-survey-period')}>Create New<IoMdAdd/></Button>
           </Container>
 
-          <SurveyPeriodGrid />
+          <SurveyPeriodGrid user={user} />
         </div>
       </main>
     </>

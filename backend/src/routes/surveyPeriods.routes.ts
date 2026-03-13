@@ -7,6 +7,8 @@ import {
     SurveyPeriodParamsSchema,
     UpdateSurveyPeriodBodySchema,
     surveyPeriodSchema,
+    JoinSurveyPeriodBodySchema,
+    JoinSurveyPeriodResponseSchema,
 } from '../schemas/surveyPeriod.schema';
 import {
     createSurveyPeriodHandler,
@@ -14,6 +16,7 @@ import {
     getSurveyPeriodHandler,
     listSurveyPeriodsHandler,
     updateSurveyPeriodHandler,
+    joinSurveyPeriodHandler,
 } from '../handlers/surveyPeriods.handlers';
 
 export const surveyPeriodRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
@@ -92,4 +95,20 @@ export const surveyPeriodRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
             },
         },
     }, deleteSurveyPeriodHandler);
+
+    // Volunteer joins a survey period
+    fastify.post('/api/surveyPeriods/:uid/join', {
+        preHandler: [verifyToken],
+        schema: {
+            operationId: 'joinSurveyPeriod',
+            description: 'Volunteer joins a survey period',
+            tags: ['RafflesGo'],
+            security: [{ bearerAuth: [] }],
+            params: SurveyPeriodParamsSchema,
+            body: JoinSurveyPeriodBodySchema,
+            response: {
+                200: JoinSurveyPeriodResponseSchema,
+            },
+        },
+    }, joinSurveyPeriodHandler);
 }
