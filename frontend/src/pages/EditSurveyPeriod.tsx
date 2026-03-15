@@ -63,8 +63,8 @@ export default function EditSurveyPeriod() {
                     setMinWalks(response.minWalks);
                     setIsFinished(response.isFinished);
                     setDateRange([
-                        parseDate(new Date(response.startDate).toISOString().split('T')[0]),
-                        parseDate(new Date(response.endDate).toISOString().split('T')[0])
+                        parseDate(response.startDate.split('T')[0]),
+                        parseDate(response.endDate.split('T')[0])
                     ]);
                 }
             } catch (error) {

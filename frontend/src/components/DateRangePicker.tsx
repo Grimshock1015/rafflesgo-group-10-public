@@ -24,6 +24,7 @@ export function DateRangePicker({
             value={value}
             required={required}
             disabled={disabled}
+            locale="en-SG"
         >
             <DatePicker.Label>{label}</DatePicker.Label>
             <DatePicker.Control>

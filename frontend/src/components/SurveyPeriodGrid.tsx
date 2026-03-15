@@ -194,10 +194,10 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
 
                                 <Stack gap={0}>
                                     <Text lineHeight={0.5}>
-                                        Start: {new Date(sp.startDate).toLocaleDateString()}
+                                        Start: {new Date(sp.startDate).toLocaleDateString("en-SG", { timeZone: "UTC" })}
                                     </Text>
                                     <Text lineHeight={0.5}>
-                                        End: {new Date(sp.endDate).toLocaleDateString()}
+                                        End: {new Date(sp.endDate).toLocaleDateString("en-SG", { timeZone: "UTC" })}
                                     </Text>
                                     <Text lineHeight={0.5}>
                                         Min. walks: {sp.minWalks}
