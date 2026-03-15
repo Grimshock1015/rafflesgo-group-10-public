@@ -1,6 +1,6 @@
 import { RafflesGoService } from "@/api";
 import { toaster } from "@/components/ui/toaster";
-import { Badge, Button, Card, CloseButton, Dialog, Grid, GridItem, Portal, Stack, Text } from "@chakra-ui/react";
+import { Badge, Button, Card, CloseButton, Container, Dialog, Grid, GridItem, Portal, Stack, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { MdDelete, MdModeEdit } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
@@ -23,12 +23,20 @@ type JoinSurveyPeriodButtonProps = {
 
 function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPeriodButtonProps) {
     const [open, setOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDelete = async () => {
         try {
+            setIsDeleting(true);
             await RafflesGoService.deleteSurveyPeriod(surveyPeriodId);
             setOpen(false);
             await onDeleted();
+            toaster.create({
+                type: "success",
+                title: "Deleted successfully!",
+                description: "The survey period has been deleted.",
+                closable: true,
+            });
         } catch (error) {
             console.error("Failed to delete survey period:", error);
             toaster.create({
@@ -37,6 +45,8 @@ function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPer
                 description: "Unable to delete survey period. Please try again.",
                 closable: true,
             });
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -60,9 +70,13 @@ function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPer
                         </Dialog.Body>
                         <Dialog.Footer>
                             <Dialog.ActionTrigger asChild>
-                                <Button variant="outline" px={2}>Cancel</Button>
+                                <Button variant="outline" px={2} disabled={isDeleting}>
+                                    Cancel
+                                </Button>
                             </Dialog.ActionTrigger>
-                            <Button px={2} onClick={handleDelete}>Delete</Button>
+                            <Button px={2} onClick={handleDelete} loading={isDeleting}>
+                                Delete
+                            </Button>
                         </Dialog.Footer>
                         <Dialog.CloseTrigger asChild>
                             <CloseButton size="sm" />
@@ -113,6 +127,7 @@ function JoinSurveyPeriodButton({ surveyPeriodId, volunteerUids, onJoined, user 
     return (
         <Button 
             px={2} 
+            size={"sm"}
             colorPalette="blue" 
             variant={hasJoined ? "outline" : "solid"}
             onClick={handleJoin}
@@ -152,11 +167,15 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
     }, []);
 
     if (isLoading) {
-        return <Text>Loading survey periods...</Text>;
+        return <Container centerContent mt={10}>
+            <Text>Loading survey periods...</Text>
+        </Container>;
     }
 
     if (surveyPeriods.length === 0) {
-        return <Text>No survey periods found.</Text>;
+        return <Container centerContent mt={10}>
+            <Text>No survey periods found.</Text>
+        </Container>;
     }
 
     return (
@@ -192,7 +211,7 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                         </Card.Body>
                         <Card.Footer justifyContent={"flex-end"}>
                             <DeleteSurveyPeriodButton surveyPeriodId={sp.uid} onDeleted={fetchSurveyPeriods} />
-                            <Button px={2} onClick={() => navigate('/edit-survey-period/' + sp.uid)}><MdModeEdit />Edit</Button>
+                            <Button size={"sm"} px={2} onClick={() => navigate('/edit-survey-period/' + sp.uid)}><MdModeEdit />Edit</Button>
                             <JoinSurveyPeriodButton 
                                 surveyPeriodId={sp.uid} 
                                 volunteerUids={sp.volunteerUids || []} 
