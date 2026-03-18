@@ -357,6 +357,24 @@
                   "location": {
                     "type": "string"
                   },
+                  "species": {
+                    "type": "string"
+                  },
+                  "latitude": {
+                    "type": "number"
+                  },
+                  "longitude": {
+                    "type": "number"
+                  },
+                  "adults": {
+                    "type": "number"
+                  },
+                  "juveniles": {
+                    "type": "number"
+                  },
+                  "behaviour": {
+                    "type": "string"
+                  },
                   "notes": {
                     "type": "string"
                   },
@@ -409,6 +427,24 @@
                           "type": "string"
                         },
                         "location": {
+                          "type": "string"
+                        },
+                        "species": {
+                          "type": "string"
+                        },
+                        "latitude": {
+                          "type": "number"
+                        },
+                        "longitude": {
+                          "type": "number"
+                        },
+                        "adults": {
+                          "type": "number"
+                        },
+                        "juveniles": {
+                          "type": "number"
+                        },
+                        "behaviour": {
                           "type": "string"
                         },
                         "notes": {

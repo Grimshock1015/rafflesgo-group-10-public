@@ -6,6 +6,12 @@ type CreateSightingInput = {
   date: string;
   time: string;
   location: string;
+  species?: string;
+  latitude?: number;
+  longitude?: number;
+  adults?: number;
+  juveniles?: number;
+  behaviour?: string;
   notes?: string;
   mediaUrl?: string;
   submittedBy: string;
@@ -20,6 +26,12 @@ export async function createSighting(input: CreateSightingInput) {
     date: input.date,
     time: input.time,
     location: input.location,
+    species: input.species ?? null,
+    latitude: input.latitude ?? null,
+    longitude: input.longitude ?? null,
+    adults: input.adults ?? null,
+    juveniles: input.juveniles ?? null,
+    behaviour: input.behaviour ?? null,
     notes: input.notes || '',
     mediaUrl: input.mediaUrl || '',
     submittedBy: input.submittedBy,

@@ -6,11 +6,17 @@ export async function createSightingHandler(
   reply: FastifyReply,
 ) {
   try {
-    const { result, date, time, location, notes, mediaUrl } = request.body as {
+    const { result, date, time, location, species, latitude, longitude, adults, juveniles, behaviour, notes, mediaUrl } = request.body as {
       result: 'sighted' | 'not_sighted';
       date: string;
       time: string;
       location: string;
+      species?: string;
+      latitude?: number;
+      longitude?: number;
+      adults?: number;
+      juveniles?: number;
+      behaviour?: string;
       notes?: string;
       mediaUrl?: string;
     };
@@ -22,6 +28,12 @@ export async function createSightingHandler(
       date,
       time,
       location,
+      species,
+      latitude,
+      longitude,
+      adults,
+      juveniles,
+      behaviour,
       notes,
       mediaUrl,
       submittedBy: user?.email || 'unknown',
