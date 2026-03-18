@@ -6,6 +6,7 @@ type DateRangePickerProps = {
     onChange: (value: DateValue[]) => void;
     label?: string;
     required?: boolean;
+    disabled?: boolean;
 };
 
 export function DateRangePicker({
@@ -13,6 +14,7 @@ export function DateRangePicker({
     onChange,
     label = "Select date range",
     required = false,
+    disabled = false
 }: DateRangePickerProps) {
     return (
         <DatePicker.Root
@@ -21,6 +23,8 @@ export function DateRangePicker({
             onValueChange={(event) => onChange(event.value ?? [])}
             value={value}
             required={required}
+            disabled={disabled}
+            locale="en-SG"
         >
             <DatePicker.Label>{label}</DatePicker.Label>
             <DatePicker.Control>
