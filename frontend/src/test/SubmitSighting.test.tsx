@@ -142,7 +142,7 @@ describe('SubmitSightingPage', () => {
             sighting: {} as never
         });
 
-        fireEvent.click(screen.getByRole('button', { name: /Zero Sightings/i }));
+        fireEvent.click(screen.getByRole('button', { name: /No sighting/i }));
 
         fireEvent.change(screen.getByLabelText(/Date/i), { target: { value: '2023-10-11' } });
         fireEvent.change(screen.getByLabelText(/Time/i), { target: { value: '09:00' } });

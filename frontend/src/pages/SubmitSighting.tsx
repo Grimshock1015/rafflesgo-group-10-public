@@ -166,14 +166,14 @@ export default function SubmitSightingPage({ user }: { user: User }) {
       <main className="main-content" style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto' }}>
         <header className="welcome-header" style={{ marginBottom: '2rem' }}>
           <h1>Log an Observation</h1>
-          <p className="welcome-subtitle">Report a sighting or a zero-catch walk</p>
+          <p className="welcome-subtitle">What did you see on a walk?</p>
         </header>
 
         <form onSubmit={handleSubmit}>
 
           {/* SECTION 1: OBSERVATION TYPE */}
           <div className="card section-container" style={{ marginBottom: '1.5rem', padding: '1rem', border: '1px solid #ccc', borderRadius: '8px' }}>
-            <h3>Observation Status</h3>
+            <h3>Did you see anything?</h3>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
               <button
                 type="button"
@@ -187,7 +187,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
                 style={{ flex: 1, padding: '1rem', backgroundColor: result === 'not_sighted' ? '#c53030' : '#edf2f7', color: result === 'not_sighted' ? 'white' : 'black', borderRadius: '6px', border: 'none' }}
                 onClick={() => setResult('not_sighted')}
               >
-                ❌ Zero Sightings
+                ❌ No Sighting
               </button>
             </div>
           </div>
@@ -220,7 +220,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
               {/* SECTION 3: MEDIA UPLOAD (Plural) */}
               <div className="card section-container" style={{ marginBottom: '1.5rem', padding: '1rem', border: '1px solid #ccc', borderRadius: '8px' }}>
                 <h3>Photos / Videos</h3>
-                <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>Select multiple files. GPS will be auto-extracted if available.</p>
+                <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>Select files. Location information will be added automatically when available.</p>
                 <input
                   id="mediaFiles"
                   ref={fileInputRef}
@@ -264,11 +264,11 @@ export default function SubmitSightingPage({ user }: { user: User }) {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
                     <div>
                       <label htmlFor="adults">Adults</label>
-                      <input id="adults" type="number" min="0" value={adults} onChange={(e) => setAdults(e.target.value === '' ? '' : Number(e.target.value))} style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
+                      <input id="adults" type="number" min="0" placeholder={"2"} value={adults} onChange={(e) => setAdults(e.target.value === '' ? '' : Number(e.target.value))} style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
                     </div>
                     <div>
                       <label htmlFor="juveniles">Juveniles</label>
-                      <input id="juveniles" type="number" min="0" value={juveniles} onChange={(e) => setJuveniles(e.target.value === '' ? '' : Number(e.target.value))} style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
+                      <input id="juveniles" type="number" min="0" placeholder={"1"} value={juveniles} onChange={(e) => setJuveniles(e.target.value === '' ? '' : Number(e.target.value))} style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
                     </div>
                     <div style={{ gridColumn: 'span 2' }}>
                       <label htmlFor="behaviour">Behaviour</label>
