@@ -9,12 +9,12 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import exifr from 'exifr';
-import { saveDraft, getDraft, deleteDraft } from '../api/services/draftStorage';
+import { saveDraft, getDraft, deleteDraft } from '../services/SightingDraftsService';
 import type { DraftMedia, SightingDraftFormData } from '../types/sightingDrafts';
 import { buildDraft } from '../utils/buildDraft';
 
 // Fix leaflet icon issue in react-leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -89,7 +89,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
             setPosition(new L.LatLng(gps.latitude, gps.longitude));
             break; // Stop after finding the first valid GPS coordinate
           }
-        } catch (err) {
+        } catch {
           console.log(`No GPS data in ${file.name}`);
         }
       }

@@ -19,8 +19,9 @@ vi.mock('../api', async (importOriginal) => {
 });
 
 // Mock leaflet since it uses window objects and doesn't work well in JSDOM out of the box
+
 vi.mock('react-leaflet', () => ({
-    MapContainer: ({ children }: any) => <div data-testid="map-container">{children}</div>,
+    MapContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="map-container">{children}</div>,
     TileLayer: () => <div data-testid="tile-layer" />,
     Marker: () => <div data-testid="marker" />,
     useMapEvents: () => ({ flyTo: vi.fn(), getZoom: () => 10 }),
@@ -48,7 +49,7 @@ const mockUser = {
     uid: 'test-user-123',
     email: 'test@example.com',
     getIdToken: vi.fn().mockResolvedValue('fake-token'),
-} as any;
+} as unknown as import('firebase/auth').User;
 
 describe('SubmitSightingPage', () => {
     beforeEach(() => {
@@ -104,7 +105,21 @@ describe('SubmitSightingPage', () => {
 
         vi.mocked(SightingsService.postApiSightings).mockResolvedValueOnce({
             message: 'Success',
-            sighting: {} as any
+            sighting: {id: 'mock-sighting-1',
+                        result: 'sighted',
+                        date: '2023-10-10',
+                        time: '14:00',
+                        location: 'Thomson Nature Park Route A',
+                        notes: '',
+                        submittedBy: 'test@example.com',
+                        species: "Raffles' Banded Langur",
+                        adults: 2,
+                        juveniles: 1,
+                        behaviour: 'Feeding',
+                        latitude: undefined,
+                        longitude: undefined,
+                        mediaUrl: undefined,
+                    },
         });
 
         fireEvent.change(screen.getByLabelText(/Date/i), { target: { value: '2023-10-10' } });
@@ -137,7 +152,22 @@ describe('SubmitSightingPage', () => {
 
         vi.mocked(SightingsService.postApiSightings).mockResolvedValueOnce({
             message: 'Success',
-            sighting: {} as any
+            sighting: {
+                id: 'mock-sighting-2',
+                result: 'not_sighted',
+                date: '2023-10-11',
+                time: '09:00',
+                location: 'Springleaf Route C',
+                notes: 'Raining',
+                submittedBy: 'test@example.com',
+                species: undefined,
+                adults: undefined,
+                juveniles: undefined,
+                behaviour: undefined,
+                latitude: undefined,
+                longitude: undefined,
+                mediaUrl: undefined,
+            },
         });
 
         fireEvent.click(screen.getByRole('button', { name: /Zero Sightings/i }));

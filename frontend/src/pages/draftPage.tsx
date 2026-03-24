@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navigation } from '../components/Navigation';
-import { getAllDrafts, deleteDraft } from '../api/services/draftStorage';
+import { getAllDrafts, deleteDraft } from '../services/SightingDraftsService';
 import type { SightingDraft } from '../types/sightingDrafts';
 import type { User } from 'firebase/auth';
 
@@ -9,25 +9,36 @@ export default function DraftsPage({ user }: { user: User }) {
   const [drafts, setDrafts] = useState<SightingDraft[]>([]);
   const navigate = useNavigate();
 
-  async function loadDrafts() {
-    const allDrafts = await getAllDrafts();
-
-    // Optional: filter by user
-    const userDrafts = allDrafts.filter(d => d.userId === user.uid);
-
-    // sort newest first
-    userDrafts.sort((a, b) => b.updatedAt - a.updatedAt);
-
-    setDrafts(userDrafts);
-  }
-
   useEffect(() => {
-    loadDrafts();
-  }, []);
+    let cancelled = false;
+
+    const run = async () => {
+      const allDrafts = await getAllDrafts();
+      const userDrafts = allDrafts
+        .filter((d: SightingDraft) => d.userId === user.uid)
+        .sort((a: SightingDraft, b: SightingDraft) => b.updatedAt - a.updatedAt);
+
+      if (!cancelled) {
+        setDrafts(userDrafts);
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user.uid]);
 
   const handleDelete = async (id: string) => {
     await deleteDraft(id);
-    await loadDrafts();
+
+    const allDrafts = await getAllDrafts();
+    const userDrafts = allDrafts
+      .filter((d: SightingDraft) => d.userId === user.uid)
+      .sort((a: SightingDraft, b: SightingDraft) => b.updatedAt - a.updatedAt);
+
+    setDrafts(userDrafts);
   };
 
   const handleOpen = (id: string) => {
