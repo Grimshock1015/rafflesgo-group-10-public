@@ -12,6 +12,7 @@ import SurveyPeriodList from './pages/SurveyPeriodList'
 import CreateSurveyPeriod from './pages/CreateSurveyPeriod'
 import EditSurveyPeriod from './pages/EditSurveyPeriod'
 import { Navigation } from './components/Navigation'
+import SurveyWalkList from './pages/SurveyWalkList'
 
 function RequireAuth({ user, children }: { user: User | null; children: ReactNode }) {
   const location = useLocation()
@@ -77,6 +78,7 @@ export default function App() {
         <Route path="/survey-periods" element={<SurveyPeriodList user={user!} />} />
         <Route path="/create-survey-period" element={<CreateSurveyPeriod />} />
         <Route path="/edit-survey-period/:surveyPeriodId" element={<EditSurveyPeriod />} />
+        <Route path="/survey-walks" element={<SurveyWalkList user={user!} />} />
       </Route>
 
       {/* fallback */}

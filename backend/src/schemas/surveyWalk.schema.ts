@@ -1,13 +1,27 @@
 import { Type, Static } from '@sinclair/typebox';
 
+const volunteerSchema = Type.Object({
+    uid: Type.String(),
+    name: Type.String(),
+});
+
+const leaderSchema = Type.Object({
+    uid: Type.String(),
+    name: Type.String(),
+});
+
 export const surveyWalkSchema = Type.Object({
     uid: Type.String(),
     surveyPeriodUid: Type.String(),
+    surveyPeriodName: Type.String(),
     name: Type.String(),
     date: Type.String({ format: 'date-time' }),
+    startTime: Type.String({ pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]$' }),
+    endTime: Type.String({ pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]$' }),
+    capacity: Type.Integer({ minimum: 1 }),
     isFinished: Type.Boolean(),
-    volunteerUids: Type.Array(Type.String()),
-    leader: Type.String()
+    volunteers: Type.Array(volunteerSchema),
+    leader: leaderSchema
 });
 
 export const SurveyWalkParamsSchema = Type.Object({
@@ -26,6 +40,9 @@ export const CreateSurveyWalkBodySchema = Type.Object({
     surveyPeriodUid: Type.String({ minLength: 1 }),
     name: Type.String({ minLength: 1 }),
     date: Type.String({ format: 'date-time' }),
+    startTime: Type.String({ pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]$' }),
+    endTime: Type.String({ pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]$' }),
+    capacity: Type.Integer({ minimum: 1 }),
     isFinished: Type.Optional(Type.Boolean()),
     leader: Type.Optional(Type.String()),
 });

@@ -26,6 +26,11 @@ export class SurveyPeriodRepository {
         return this.toEntity(doc.id, doc.data() ?? {});
     }
 
+    async findByVolunteerUid(volunteerUid: string): Promise<SurveyPeriodEntity[]> {
+        const snapshot = await this.collection().where('volunteerUids', 'array-contains', volunteerUid).get();
+        return snapshot.docs.map((doc) => this.toEntity(doc.id, doc.data()));
+    }
+
     async create(payload: SurveyPeriodWrite): Promise<SurveyPeriodEntity> {
         const ref = this.collection().doc();
         await ref.set(payload);

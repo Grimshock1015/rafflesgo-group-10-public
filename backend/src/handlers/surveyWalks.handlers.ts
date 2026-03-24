@@ -1,6 +1,7 @@
 import { getContainer } from "../container";
 import { SurveyWalkEntity } from "../entities/surveyWalk.entity";
 import { BadRequestError } from "../lib/errors";
+import { auth } from "../lib/firebase-admin";
 import {
     CreateSurveyWalkBodySchema,
     DeleteSurveyWalkResponseSchema,
@@ -72,15 +73,25 @@ const ReassignLeaderSchema = {
     },
 };
 
-function toDto(surveyWalk: SurveyWalkEntity) {
+type UserSummary = {
+    uid: string;
+    name: string;
+};
+
+function toDto(surveyWalk: SurveyWalkEntity, surveyPeriodName: string, volunteersData: UserSummary[], leaderData?: UserSummary) {
     return {
         uid: surveyWalk.uid,
         surveyPeriodUid: surveyWalk.surveyPeriodUid,
+        surveyPeriodName,
         name: surveyWalk.name,
         date: surveyWalk.date.toISOString(),
+        startTime: surveyWalk.startTime,
+        endTime: surveyWalk.endTime,
+        capacity: surveyWalk.capacity,
         isFinished: surveyWalk.isFinished,
         volunteerUids: surveyWalk.volunteerUids,
-        leader: surveyWalk.leader,
+        volunteers: volunteersData,
+        leader: leaderData || { uid: "", name: "" },
     };
 }
 
@@ -92,13 +103,60 @@ function parseDateString(value: string): Date {
     return parsed;
 }
 
+async function getUserDisplayName(uid: string): Promise<string | undefined> {
+    if (!uid) {
+        return undefined;
+    }
+
+    try {
+        const user = await auth.getUser(uid);
+        return user.displayName || user.email || undefined;
+    } catch {
+        return undefined;
+    }
+}
+
+async function getVolunteersData(volunteerUids: string[]): Promise<UserSummary[]> {
+    const volunteersData = await Promise.all(
+        volunteerUids.map(async (uid) => ({
+            uid,
+            name: (await getUserDisplayName(uid)) || "",
+        }))
+    );
+    return volunteersData;
+}
+
+async function getLeaderData(leaderUid: string): Promise<UserSummary | undefined> {
+    if (!leaderUid) {
+        return undefined;
+    }
+    return {
+        uid: leaderUid,
+        name: (await getUserDisplayName(leaderUid)) || "",
+    };
+}
+
+async function getSurveyPeriodName(surveyPeriodUid: string): Promise<string> {
+    const { surveyPeriodRepository } = getContainer();
+    const surveyPeriod = await surveyPeriodRepository.findById(surveyPeriodUid);
+    return surveyPeriod?.name || 'Unknown';
+}
+
 export async function listSurveyWalksHandler(
     _request: FastifyRequestTypeBox<typeof ListSurveyWalksSchema>,
     _reply: FastifyReplyTypeBox<typeof ListSurveyWalksSchema>
 ) {
     const { surveyWalkService } = getContainer();
     const surveyWalks = await surveyWalkService.getAllSurveyWalks();
-    return { surveyWalks: surveyWalks.map(toDto) };
+    const enrichedWalks = await Promise.all(
+        surveyWalks.map(async (walk) => {
+            const periodName = await getSurveyPeriodName(walk.surveyPeriodUid);
+            const volunteersData = await getVolunteersData(walk.volunteerUids);
+            const leaderData = await getLeaderData(walk.leader);
+            return toDto(walk, periodName, volunteersData, leaderData);
+        })
+    );
+    return { surveyWalks: enrichedWalks };
 }
 
 export async function getSurveyWalkHandler(
@@ -107,7 +165,10 @@ export async function getSurveyWalkHandler(
 ) {
     const { surveyWalkService } = getContainer();
     const surveyWalk = await surveyWalkService.getSurveyWalk(request.params.uid);
-    return toDto(surveyWalk);
+    const periodName = await getSurveyPeriodName(surveyWalk.surveyPeriodUid);
+    const volunteersData = await getVolunteersData(surveyWalk.volunteerUids);
+    const leaderData = await getLeaderData(surveyWalk.leader);
+    return toDto(surveyWalk, periodName, volunteersData, leaderData);
 }
 
 export async function listSurveyWalksBySurveyPeriodHandler(
@@ -116,7 +177,36 @@ export async function listSurveyWalksBySurveyPeriodHandler(
 ) {
     const { surveyWalkService } = getContainer();
     const surveyWalks = await surveyWalkService.getSurveyWalksBySurveyPeriodUid(request.params.surveyPeriodUid);
-    return { surveyWalks: surveyWalks.map(toDto) };
+    const periodName = await getSurveyPeriodName(request.params.surveyPeriodUid);
+    const enrichedWalks = await Promise.all(
+        surveyWalks.map(async (walk) => {
+            const volunteersData = await getVolunteersData(walk.volunteerUids);
+            const leaderData = await getLeaderData(walk.leader);
+            return toDto(walk, periodName, volunteersData, leaderData);
+        })
+    );
+    return { surveyWalks: enrichedWalks };
+}
+
+export async function listSurveyWalksForCurrentUserHandler(
+    request: FastifyRequestTypeBox<typeof ListSurveyWalksSchema>,
+    _reply: FastifyReplyTypeBox<typeof ListSurveyWalksSchema>
+) {
+    if (!request.user) {
+        throw new Error('User not found in request');
+    }
+
+    const { surveyWalkService } = getContainer();
+    const surveyWalks = await surveyWalkService.getSurveyWalksForJoinedPeriods(request.user.uid);
+    const enrichedWalks = await Promise.all(
+        surveyWalks.map(async (walk) => {
+            const periodName = await getSurveyPeriodName(walk.surveyPeriodUid);
+            const volunteersData = await getVolunteersData(walk.volunteerUids);
+            const leaderData = await getLeaderData(walk.leader);
+            return toDto(walk, periodName, volunteersData, leaderData);
+        })
+    );
+    return { surveyWalks: enrichedWalks };
 }
 
 export async function createSurveyWalkHandler(
@@ -128,12 +218,18 @@ export async function createSurveyWalkHandler(
         surveyPeriodUid: request.body.surveyPeriodUid,
         name: request.body.name,
         date: parseDateString(request.body.date),
+        startTime: request.body.startTime,
+        endTime: request.body.endTime,
+        capacity: request.body.capacity,
         isFinished: request.body.isFinished ?? false,
         volunteerUids: [],
         leader: request.body.leader ?? '',
     });
 
-    return reply.code(201).send(toDto(created));
+    const periodName = await getSurveyPeriodName(created.surveyPeriodUid);
+    const volunteersData = await getVolunteersData(created.volunteerUids);
+    const leaderData = await getLeaderData(created.leader);
+    return reply.code(201).send(toDto(created, periodName, volunteersData, leaderData));
 }
 
 export async function updateSurveyWalkHandler(
@@ -145,11 +241,17 @@ export async function updateSurveyWalkHandler(
         surveyPeriodUid: request.body.surveyPeriodUid,
         name: request.body.name,
         date: request.body.date ? parseDateString(request.body.date) : undefined,
+        startTime: request.body.startTime,
+        endTime: request.body.endTime,
+        capacity: request.body.capacity,
         isFinished: request.body.isFinished,
         leader: request.body.leader,
     });
 
-    return toDto(updated);
+    const periodName = await getSurveyPeriodName(updated.surveyPeriodUid);
+    const volunteersData = await getVolunteersData(updated.volunteerUids);
+    const leaderData = await getLeaderData(updated.leader);
+    return toDto(updated, periodName, volunteersData, leaderData);
 }
 
 export async function deleteSurveyWalkHandler(
@@ -170,7 +272,10 @@ export async function joinSurveyWalkHandler(
 
     const { surveyWalkService } = getContainer();
     const surveyWalk = await surveyWalkService.joinSurveyWalk(request.params.uid, request.user.uid);
-    return { success: true, surveyWalk: toDto(surveyWalk) };
+    const periodName = await getSurveyPeriodName(surveyWalk.surveyPeriodUid);
+    const volunteersData = await getVolunteersData(surveyWalk.volunteerUids);
+    const leaderData = await getLeaderData(surveyWalk.leader);
+    return { success: true, surveyWalk: toDto(surveyWalk, periodName, volunteersData, leaderData) };
 }
 
 export async function quitSurveyWalkHandler(
@@ -183,7 +288,10 @@ export async function quitSurveyWalkHandler(
 
     const { surveyWalkService } = getContainer();
     const surveyWalk = await surveyWalkService.quitSurveyWalk(request.params.uid, request.user.uid);
-    return { success: true, surveyWalk: toDto(surveyWalk) };
+    const periodName = await getSurveyPeriodName(surveyWalk.surveyPeriodUid);
+    const volunteersData = await getVolunteersData(surveyWalk.volunteerUids);
+    const leaderData = await getLeaderData(surveyWalk.leader);
+    return { success: true, surveyWalk: toDto(surveyWalk, periodName, volunteersData, leaderData) };
 }
 
 export async function reassignSurveyWalkLeaderHandler(
@@ -201,5 +309,8 @@ export async function reassignSurveyWalkLeaderHandler(
         request.body.newLeaderUid,
     );
 
-    return { success: true, surveyWalk: toDto(surveyWalk) };
+    const periodName = await getSurveyPeriodName(surveyWalk.surveyPeriodUid);
+    const volunteersData = await getVolunteersData(surveyWalk.volunteerUids);
+    const leaderData = await getLeaderData(surveyWalk.leader);
+    return { success: true, surveyWalk: toDto(surveyWalk, periodName, volunteersData, leaderData) };
 }

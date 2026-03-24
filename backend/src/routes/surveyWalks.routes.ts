@@ -19,6 +19,7 @@ import {
     joinSurveyWalkHandler,
     listSurveyWalksBySurveyPeriodHandler,
     listSurveyWalksHandler,
+    listSurveyWalksForCurrentUserHandler,
     quitSurveyWalkHandler,
     reassignSurveyWalkLeaderHandler,
     updateSurveyWalkHandler,
@@ -38,6 +39,19 @@ export const surveyWalkRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
                 },
             },
     }, listSurveyWalksHandler);
+
+    fastify.get('/api/surveyWalks/joined', {
+        preHandler: [verifyToken],
+        schema: {
+            operationId: 'listSurveyWalksForCurrentUser',
+            description: 'List survey walks for periods the current user has joined',
+            tags: ['RafflesGo'],
+            security: [{ bearerAuth: [] }],
+            response: {
+                200: ListSurveyWalksResponseSchema,
+            },
+        },
+    }, listSurveyWalksForCurrentUserHandler);
 
     fastify.get('/api/surveyWalks/:uid', {
         preHandler: [verifyToken, requireAdminEmail],

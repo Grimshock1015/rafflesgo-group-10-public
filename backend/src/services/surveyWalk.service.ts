@@ -25,6 +25,17 @@ export class SurveyWalkService {
         return this.surveyWalkRepository.findBySurveyPeriodUid(surveyPeriodUid);
     }
 
+    async getSurveyWalksForJoinedPeriods(volunteerUid: string): Promise<SurveyWalkEntity[]> {
+        const joinedPeriods = await this.surveyPeriodRepository.findByVolunteerUid(volunteerUid);
+        const periodUids = joinedPeriods.map((period) => period.uid);
+
+        if (periodUids.length === 0) {
+            return [];
+        }
+
+        return this.surveyWalkRepository.findBySurveyPeriodUids(periodUids);
+    }
+
     async getSurveyWalk(uid: string): Promise<SurveyWalkEntity> {
         const surveyWalk = await this.surveyWalkRepository.findById(uid);
         if (!surveyWalk) {

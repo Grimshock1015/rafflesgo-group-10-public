@@ -3,6 +3,9 @@ export interface SurveyWalkEntity {
     surveyPeriodUid: string;
     name: string;
     date: Date;
+    startTime: string;
+    endTime: string;
+    capacity: number;
     isFinished: boolean;
     volunteerUids: string[];
     leader: string;

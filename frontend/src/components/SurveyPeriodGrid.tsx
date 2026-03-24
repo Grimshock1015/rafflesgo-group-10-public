@@ -21,7 +21,7 @@ type JoinSurveyPeriodButtonProps = {
     user: User;
 };
 
-function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPeriodButtonProps) {
+export function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPeriodButtonProps) {
     const [open, setOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -88,7 +88,7 @@ function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPer
     );
 }
 
-function JoinSurveyPeriodButton({ surveyPeriodId, volunteerUids, onJoined, user }: JoinSurveyPeriodButtonProps) {
+export function JoinSurveyPeriodButton({ surveyPeriodId, volunteerUids, onJoined, user }: JoinSurveyPeriodButtonProps) {
     const [isJoining, setIsJoining] = useState(false);
 
     // Check if the current user has already joined this survey period
@@ -143,7 +143,22 @@ function JoinSurveyPeriodButton({ surveyPeriodId, volunteerUids, onJoined, user 
 export default function SurveyPeriodGrid({ user }: { user: User }) {
     const [surveyPeriods, setSurveyPeriods] = useState<SurveyPeriod[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [role, setRole] = useState<string>("user");
+
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchRole = async () => {
+            try {
+                const response = await RafflesGoService.getCurrentUser()
+                setRole(response.role)
+            } catch (error) {
+                console.error('Failed to fetch current user role:', error)
+                setRole('user')
+            }
+        }
+        fetchRole();
+    }, [user.uid]);
     
     const fetchSurveyPeriods = async () => {
         try {
@@ -210,8 +225,14 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                             </Stack>
                         </Card.Body>
                         <Card.Footer justifyContent={"flex-end"}>
-                            <DeleteSurveyPeriodButton surveyPeriodId={sp.uid} onDeleted={fetchSurveyPeriods} />
-                            <Button size={"sm"} px={2} onClick={() => navigate('/edit-survey-period/' + sp.uid)}><MdModeEdit />Edit</Button>
+                            {
+                                role === "admin" && (
+                                    <>
+                                        <DeleteSurveyPeriodButton surveyPeriodId={sp.uid} onDeleted={fetchSurveyPeriods} />
+                                        <Button size={"sm"} px={2} onClick={() => navigate('/edit-survey-period/' + sp.uid)}><MdModeEdit />Edit</Button>
+                                    </>
+                                )
+                            }
                             <JoinSurveyPeriodButton 
                                 surveyPeriodId={sp.uid} 
                                 volunteerUids={sp.volunteerUids || []} 

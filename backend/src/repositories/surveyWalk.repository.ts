@@ -29,6 +29,15 @@ export class SurveyWalkRepository {
         return snapshot.docs.map((doc) => this.toEntity(doc.id, doc.data()));
     }
 
+    async findBySurveyPeriodUids(surveyPeriodUids: string[]): Promise<SurveyWalkEntity[]> {
+        if (surveyPeriodUids.length === 0) {
+            return [];
+        }
+
+        const snapshot = await this.collection().where('surveyPeriodUid', 'in', surveyPeriodUids).get();
+        return snapshot.docs.map((doc) => this.toEntity(doc.id, doc.data()));
+    }
+
     async create(payload: SurveyWalkWrite): Promise<SurveyWalkEntity> {
         const ref = this.collection().doc();
         await ref.set(payload);
@@ -78,6 +87,9 @@ export class SurveyWalkRepository {
             surveyPeriodUid: String(data.surveyPeriodUid ?? ''),
             name: String(data.name ?? ''),
             date: this.toDate(data.date),
+            startTime: String(data.startTime ?? ''),
+            endTime: String(data.endTime ?? ''),
+            capacity: Number(data.capacity ?? 0),
             isFinished: Boolean(data.isFinished),
             volunteerUids: Array.isArray(data.volunteerUids) ? data.volunteerUids.map((volunteerUid) => String(volunteerUid)) : [],
             leader: String(data.leader ?? ''),
