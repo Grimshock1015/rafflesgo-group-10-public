@@ -1,6 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
+import type { User } from 'firebase/auth';
+import type React from 'react';
 import SubmitSightingPage from '../pages/SubmitSighting';
 import { SightingsService } from '../api';
 
@@ -20,7 +22,7 @@ vi.mock('../api', async (importOriginal) => {
 
 // Mock leaflet since it uses window objects and doesn't work well in JSDOM out of the box
 vi.mock('react-leaflet', () => ({
-    MapContainer: ({ children }: any) => <div data-testid="map-container">{children}</div>,
+    MapContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="map-container">{children}</div>,
     TileLayer: () => <div data-testid="tile-layer" />,
     Marker: () => <div data-testid="marker" />,
     useMapEvents: () => ({ flyTo: vi.fn(), getZoom: () => 10 }),
@@ -48,7 +50,7 @@ const mockUser = {
     uid: 'test-user-123',
     email: 'test@example.com',
     getIdToken: vi.fn().mockResolvedValue('fake-token'),
-} as any;
+} as unknown as User;
 
 describe('SubmitSightingPage', () => {
     beforeEach(() => {
@@ -104,7 +106,7 @@ describe('SubmitSightingPage', () => {
 
         vi.mocked(SightingsService.postApiSightings).mockResolvedValueOnce({
             message: 'Success',
-            sighting: {} as any
+            sighting: {} as never
         });
 
         fireEvent.change(screen.getByLabelText(/Date/i), { target: { value: '2023-10-10' } });
@@ -137,7 +139,7 @@ describe('SubmitSightingPage', () => {
 
         vi.mocked(SightingsService.postApiSightings).mockResolvedValueOnce({
             message: 'Success',
-            sighting: {} as any
+            sighting: {} as never
         });
 
         fireEvent.click(screen.getByRole('button', { name: /Zero Sightings/i }));

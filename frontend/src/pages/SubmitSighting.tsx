@@ -10,7 +10,10 @@ import L from 'leaflet';
 import exifr from 'exifr';
 
 // Fix leaflet icon issue in react-leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+interface DefaultIcon extends L.Icon.Default {
+  _getIconUrl?: string;
+}
+delete (L.Icon.Default.prototype as DefaultIcon)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -79,7 +82,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
             setPosition(new L.LatLng(gps.latitude, gps.longitude));
             break; // Stop after finding the first valid GPS coordinate
           }
-        } catch (err) {
+        } catch {
           console.log(`No GPS data in ${file.name}`);
         }
       }
