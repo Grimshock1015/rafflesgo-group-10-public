@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import type { User } from 'firebase/auth';
-import { Navigation } from '../components/Navigation';
 import { RafflesGoService } from '../api';
 import { Link } from 'react-router-dom';
 
@@ -45,8 +44,6 @@ export default function Dashboard({ user }: { user: User }) {
 
   return (
     <>
-      <Navigation user={user} />
-
       {/* Main Dashboard Content */}
       <main className="main-content">
         <div className="container">

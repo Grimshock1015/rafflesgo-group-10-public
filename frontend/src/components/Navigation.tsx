@@ -1,23 +1,22 @@
 import { useState, useEffect } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { signOut } from 'firebase/auth'
 import { auth } from '../lib/firebase'
+import { RafflesGoService } from '../api'
 import type { User } from 'firebase/auth'
+import { Button } from '@chakra-ui/react'
 
 interface NavigationProps {
   user: User
 }
 
 export function Navigation({ user }: NavigationProps) {
-  const location = useLocation()
+  const navigate = useNavigate()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [role, setRole] = useState<'user' | 'admin' | null>(null)
 
   const handleLogout = async () => {
     await signOut(auth)
-  }
-
-  const isActive = (path: string) => {
-    return location.pathname === path ? 'nav-link active' : 'nav-link'
   }
 
   const toggleMobileMenu = () => {
@@ -39,6 +38,20 @@ export function Navigation({ user }: NavigationProps) {
       document.body.style.overflow = ''
     }
   }, [isMobileMenuOpen])
+
+  useEffect(() => {
+    const fetchRole = async () => {
+      try {
+        const response = await RafflesGoService.getCurrentUser()
+        setRole(response.role)
+      } catch (error) {
+        console.error('Failed to fetch current user role:', error)
+        setRole('user')
+      }
+    }
+
+    fetchRole()
+  }, [user.uid])
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -90,7 +103,22 @@ export function Navigation({ user }: NavigationProps) {
 
         <div className={`nav-menu-wrapper ${isMobileMenuOpen ? 'open' : ''}`}>
           <ul className="nav-menu">
-            <li><Link to="/dashboard" className={isActive('/dashboard')} onClick={closeMobileMenu}>Dashboard</Link></li>
+            <li>
+              {
+                 role === 'admin' && (
+                   <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/survey-periods');}} px={2}>
+                      Survey Periods
+                   </Button>
+                )
+              }
+              
+            </li>
+            <li>
+              <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/dashboard');}} px={2}>
+                Dashboard
+              </Button>
+              {/* <Link to="/dashboard" className={isActive('/dashboard')} onClick={closeMobileMenu}>Dashboard</Link> */}
+            </li>
           </ul>
 
           <div className="nav-actions">

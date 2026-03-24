@@ -7,6 +7,11 @@ export const RoleSchema = Type.Union([
 
 export type Role = Static<typeof RoleSchema>;
 
+const adminEmails = (process.env.BOOTSTRAP_ADMIN_EMAILS || '')
+  .split(',')
+  .map((email) => email.trim())
+  .filter(Boolean);
+
 export const config = {
   /**
    * Bootstrap admin emails.
@@ -28,9 +33,8 @@ export const config = {
    * For other admin endpoints (like GET /api/users), they still need
    * the actual 'admin' role set in their Firebase custom claims.
    */
-  // Add your email here to bootstrap the first admin account.
-  // See the usage instructions above for the full flow.
-  adminEmails: [] as string[],
+  // Comma-separated list from env, e.g. "admin1@example.com,admin2@example.com".
+  adminEmails,
 
   roles: ['user', 'admin'] as const,
 };

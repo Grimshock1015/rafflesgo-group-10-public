@@ -44,7 +44,7 @@ describe('Dashboard', () => {
   });
 
   // Test 1: Basic rendering and querying DOM elements
-  it('renders welcome message with user name', () => {
+  it('renders welcome message with user name', async () => {
     vi.mocked(RafflesGoService.sayHello).mockResolvedValue({ message: 'Hello!' });
 
     render(
@@ -53,9 +53,10 @@ describe('Dashboard', () => {
       </BrowserRouter>
     );
 
-    expect(screen.getByText(/welcome back,/i)).toBeInTheDocument();
-    expect(screen.getByText(/John Doe/i)).toBeInTheDocument(); // Name is in a <span>
-    expect(screen.getByTestId('navigation')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/welcome back,/i)).toBeInTheDocument();
+      expect(screen.getByText('John Doe')).toBeInTheDocument(); // Name is in a <span>
+    }, { timeout: 300 });
   });
 
   // Test 2: Async API calls with waitFor
