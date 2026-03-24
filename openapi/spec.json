@@ -780,6 +780,745 @@
         }
       }
     },
+    "/api/surveyWalks": {
+      "get": {
+        "operationId": "listSurveyWalks",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "List all survey walks (admin only)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "surveyWalks"
+                  ],
+                  "properties": {
+                    "surveyWalks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "uid",
+                          "surveyPeriodUid",
+                          "name",
+                          "date",
+                          "isFinished",
+                          "volunteerUids",
+                          "leader"
+                        ],
+                        "properties": {
+                          "uid": {
+                            "type": "string"
+                          },
+                          "surveyPeriodUid": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "date": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "isFinished": {
+                            "type": "boolean"
+                          },
+                          "volunteerUids": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "leader": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createSurveyWalk",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Create a survey walk (admin only)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "surveyPeriodUid",
+                  "name",
+                  "date"
+                ],
+                "properties": {
+                  "surveyPeriodUid": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "name": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "date": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "isFinished": {
+                    "type": "boolean"
+                  },
+                  "leader": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "uid",
+                    "surveyPeriodUid",
+                    "name",
+                    "date",
+                    "isFinished",
+                    "volunteerUids",
+                    "leader"
+                  ],
+                  "properties": {
+                    "uid": {
+                      "type": "string"
+                    },
+                    "surveyPeriodUid": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "isFinished": {
+                      "type": "boolean"
+                    },
+                    "volunteerUids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "leader": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveyWalks/{uid}": {
+      "get": {
+        "operationId": "getSurveyWalk",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Get one survey walk by uid (admin only)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "uid",
+                    "surveyPeriodUid",
+                    "name",
+                    "date",
+                    "isFinished",
+                    "volunteerUids",
+                    "leader"
+                  ],
+                  "properties": {
+                    "uid": {
+                      "type": "string"
+                    },
+                    "surveyPeriodUid": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "isFinished": {
+                      "type": "boolean"
+                    },
+                    "volunteerUids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "leader": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateSurveyWalk",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Update a survey walk by uid (admin only)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "surveyPeriodUid": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "name": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "date": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "isFinished": {
+                    "type": "boolean"
+                  },
+                  "leader": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "uid",
+                    "surveyPeriodUid",
+                    "name",
+                    "date",
+                    "isFinished",
+                    "volunteerUids",
+                    "leader"
+                  ],
+                  "properties": {
+                    "uid": {
+                      "type": "string"
+                    },
+                    "surveyPeriodUid": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "isFinished": {
+                      "type": "boolean"
+                    },
+                    "volunteerUids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "leader": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteSurveyWalk",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Delete a survey walk by uid (admin only)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "uid"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "uid": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveyPeriods/{surveyPeriodUid}/surveyWalks": {
+      "get": {
+        "operationId": "listSurveyWalksBySurveyPeriod",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "List survey walks for a survey period",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "surveyPeriodUid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "surveyWalks"
+                  ],
+                  "properties": {
+                    "surveyWalks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "uid",
+                          "surveyPeriodUid",
+                          "name",
+                          "date",
+                          "isFinished",
+                          "volunteerUids",
+                          "leader"
+                        ],
+                        "properties": {
+                          "uid": {
+                            "type": "string"
+                          },
+                          "surveyPeriodUid": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "date": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "isFinished": {
+                            "type": "boolean"
+                          },
+                          "volunteerUids": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "leader": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveyWalks/{uid}/join": {
+      "post": {
+        "operationId": "joinSurveyWalk",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Join a survey walk as the current user",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "surveyWalk"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "surveyWalk": {
+                      "type": "object",
+                      "required": [
+                        "uid",
+                        "surveyPeriodUid",
+                        "name",
+                        "date",
+                        "isFinished",
+                        "volunteerUids",
+                        "leader"
+                      ],
+                      "properties": {
+                        "uid": {
+                          "type": "string"
+                        },
+                        "surveyPeriodUid": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "isFinished": {
+                          "type": "boolean"
+                        },
+                        "volunteerUids": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "leader": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveyWalks/{uid}/quit": {
+      "post": {
+        "operationId": "quitSurveyWalk",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Quit a survey walk as the current user",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "surveyWalk"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "surveyWalk": {
+                      "type": "object",
+                      "required": [
+                        "uid",
+                        "surveyPeriodUid",
+                        "name",
+                        "date",
+                        "isFinished",
+                        "volunteerUids",
+                        "leader"
+                      ],
+                      "properties": {
+                        "uid": {
+                          "type": "string"
+                        },
+                        "surveyPeriodUid": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "isFinished": {
+                          "type": "boolean"
+                        },
+                        "volunteerUids": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "leader": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveyWalks/{uid}/reassign-leader": {
+      "post": {
+        "operationId": "reassignSurveyWalkLeader",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Reassign survey walk leader (current leader only)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "newLeaderUid"
+                ],
+                "properties": {
+                  "newLeaderUid": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "surveyWalk"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "surveyWalk": {
+                      "type": "object",
+                      "required": [
+                        "uid",
+                        "surveyPeriodUid",
+                        "name",
+                        "date",
+                        "isFinished",
+                        "volunteerUids",
+                        "leader"
+                      ],
+                      "properties": {
+                        "uid": {
+                          "type": "string"
+                        },
+                        "surveyPeriodUid": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "isFinished": {
+                          "type": "boolean"
+                        },
+                        "volunteerUids": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "leader": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/my-endpoint": {
       "get": {
         "tags": [

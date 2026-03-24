@@ -13,6 +13,7 @@ import { healthRoutes } from './routes/health.routes';
 import { helloRoutes } from './routes/hello.routes';
 import { usersRoutes } from './routes/users.routes';
 import { surveyPeriodRoutes } from './routes/surveyPeriods.routes';
+import { surveyWalkRoutes } from './routes/surveyWalks.routes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -86,6 +87,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await fastify.register(helloRoutes);
   await fastify.register(usersRoutes);
   await fastify.register(surveyPeriodRoutes);
+  await fastify.register(surveyWalkRoutes);
 
   // SPA Fallback
   fastify.setNotFoundHandler((request, reply) => {

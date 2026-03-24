@@ -1,0 +1,95 @@
+import { SurveyWalkEntity } from "../entities/surveyWalk.entity";
+import { db } from "../lib/firebase-admin";
+import { FIRESTORE_COLLECTIONS } from "../lib/firestore-collections";
+
+type SurveyWalkWrite = Omit<SurveyWalkEntity, 'uid'>;
+type SurveyWalkUpdate = Partial<SurveyWalkWrite>;
+
+export class SurveyWalkRepository {
+    private collection() {
+        return db.collection(FIRESTORE_COLLECTIONS.SURVEYWALKS);
+    }
+
+    async findAll(): Promise<SurveyWalkEntity[]> {
+        const snapshot = await this.collection().get();
+        return snapshot.docs.map((doc) => this.toEntity(doc.id, doc.data()));
+    }
+
+    async findById(uid: string): Promise<SurveyWalkEntity | null> {
+        const doc = await this.collection().doc(uid).get();
+        if (!doc.exists) {
+            return null;
+        }
+
+        return this.toEntity(doc.id, doc.data() ?? {});
+    }
+
+    async findBySurveyPeriodUid(surveyPeriodUid: string): Promise<SurveyWalkEntity[]> {
+        const snapshot = await this.collection().where('surveyPeriodUid', '==', surveyPeriodUid).get();
+        return snapshot.docs.map((doc) => this.toEntity(doc.id, doc.data()));
+    }
+
+    async create(payload: SurveyWalkWrite): Promise<SurveyWalkEntity> {
+        const ref = this.collection().doc();
+        await ref.set(payload);
+        return {
+            uid: ref.id,
+            ...payload,
+        };
+    }
+
+    async update(uid: string, payload: SurveyWalkUpdate): Promise<SurveyWalkEntity | null> {
+        const ref = this.collection().doc(uid);
+        const existing = await ref.get();
+        if (!existing.exists) {
+            return null;
+        }
+
+        const safePayload = Object.fromEntries(
+            Object.entries(payload).filter(([, value]) => value !== undefined),
+        ) as SurveyWalkUpdate;
+
+        if (Object.keys(safePayload).length > 0) {
+            await ref.update(safePayload);
+        }
+
+        const updated = await ref.get();
+        if (!updated.exists) {
+            return null;
+        }
+
+        return this.toEntity(updated.id, updated.data() ?? {});
+    }
+
+    async delete(uid: string): Promise<boolean> {
+        const ref = this.collection().doc(uid);
+        const existing = await ref.get();
+        if (!existing.exists) {
+            return false;
+        }
+
+        await ref.delete();
+        return true;
+    }
+
+    private toEntity(uid: string, data: Record<string, unknown>): SurveyWalkEntity {
+        return {
+            uid,
+            surveyPeriodUid: String(data.surveyPeriodUid ?? ''),
+            name: String(data.name ?? ''),
+            date: this.toDate(data.date),
+            isFinished: Boolean(data.isFinished),
+            volunteerUids: Array.isArray(data.volunteerUids) ? data.volunteerUids.map((volunteerUid) => String(volunteerUid)) : [],
+            leader: String(data.leader ?? ''),
+        };
+    }
+
+    private toDate(value: unknown): Date {
+        if (value && typeof value === 'object' && 'toDate' in (value as Record<string, unknown>)) {
+            return (value as { toDate: () => Date }).toDate();
+        }
+
+        const parsed = new Date(String(value));
+        return Number.isNaN(parsed.getTime()) ? new Date(0) : parsed;
+    }
+}
