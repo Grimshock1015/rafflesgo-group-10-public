@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import type { User } from 'firebase/auth';
 import { Navigation } from '../components/Navigation';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SightingsService, OpenAPI } from '../api';
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../lib/firebase";
@@ -8,6 +9,9 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import exifr from 'exifr';
+import { saveDraft, getDraft, deleteDraft } from '../api/services/draftStorage';
+import type { DraftMedia, SightingDraftFormData } from '../types/sightingDrafts';
+import { buildDraft } from '../utils/buildDraft';
 
 // Fix leaflet icon issue in react-leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -57,12 +61,18 @@ export default function SubmitSightingPage({ user }: { user: User }) {
   const [juveniles, setJuveniles] = useState<number | ''>('');
   const [behaviour, setBehaviour] = useState('');
 
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const [createdAt, setCreatedAt] = useState<number | null>(null);
+  const [searchParams] = useSearchParams();
+
   // Multiple Media State
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
 
   const [message, setMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const navigate = useNavigate();
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -88,6 +98,119 @@ export default function SubmitSightingPage({ user }: { user: User }) {
     // Clear input so same files can be selected again if needed
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
+
+  function buildFormDataFromState(): SightingDraftFormData {
+    const finalSpecies = speciesSelect === 'Other' ? otherSpecies : speciesSelect;
+
+    return {
+      result,
+      date,
+      time,
+      location: route,
+      species: result === 'sighted' ? finalSpecies : '',
+      latitude: result === 'sighted' ? position?.lat ?? null : null,
+      longitude: result === 'sighted' ? position?.lng ?? null : null,
+      adults: result === 'sighted' && typeof adults === 'number' ? adults : null,
+      juveniles: result === 'sighted' && typeof juveniles === 'number' ? juveniles : null,
+      behaviour: result === 'sighted' ? behaviour : '',
+      notes,
+      mediaUrl: '',
+    };
+  }
+
+  function buildDraftMediaFromFiles(files: File[]): DraftMedia[] {
+    return files.map((file) => ({
+      id: crypto.randomUUID(),
+      name: file.name,
+      type: file.type,
+      blob: file,
+    }));
+  }
+
+  function buildFilesFromDraftMedia(media: DraftMedia[]): File[] {
+    return media.map(
+      (item) =>
+        new File([item.blob], item.name, {
+          type: item.type,
+        })
+    );
+  }
+
+  async function handleSaveDraft() {
+    try {
+      const formData = buildFormDataFromState();
+      const draftMedia = buildDraftMediaFromFiles(mediaFiles);
+
+      const draft = buildDraft({
+        draftId: draftId ?? undefined,
+        userId: user.uid,
+        formData,
+        media: draftMedia,
+        status: 'draft',
+        createdAt: createdAt ?? undefined,
+      });
+
+      await saveDraft(draft);
+
+      setDraftId(draft.id);
+      setCreatedAt(draft.createdAt);
+      setMessage('Draft saved locally.');
+      setTimeout(() => navigate('/dashboard'), 1000);
+    } catch (error) {
+      console.error('Failed to save draft:', error);
+      setMessage('Failed to save draft.');
+    }
+  }
+
+  async function loadDraftById(id: string) {
+    try {
+      const draft = await getDraft(id);
+
+      if (!draft) {
+        setMessage('Draft not found.');
+        return;
+      }
+
+      setDraftId(draft.id);
+      setCreatedAt(draft.createdAt);
+
+      setResult(draft.formData.result ?? 'sighted');
+      setRoute(draft.formData.location || ROUTE_OPTIONS[0]);
+      setDate(draft.formData.date);
+      setTime(draft.formData.time);
+      setNotes(draft.formData.notes);
+
+      const savedSpecies = draft.formData.species || SPECIES_OPTIONS[0];
+      if (SPECIES_OPTIONS.includes(savedSpecies)) {
+        setSpeciesSelect(savedSpecies);
+        setOtherSpecies('');
+      } else {
+        setSpeciesSelect('Other');
+        setOtherSpecies(savedSpecies);
+      }
+
+      if (
+        draft.formData.latitude !== null &&
+        draft.formData.longitude !== null
+      ) {
+        setPosition(new L.LatLng(draft.formData.latitude, draft.formData.longitude));
+      } else {
+        setPosition(null);
+      }
+
+      setAdults(draft.formData.adults ?? '');
+      setJuveniles(draft.formData.juveniles ?? '');
+      setBehaviour(draft.formData.behaviour);
+
+      const restoredFiles = buildFilesFromDraftMedia(draft.media);
+      setMediaFiles(restoredFiles);
+
+      setMessage('Draft loaded.');
+    } catch (error) {
+      console.error('Failed to load draft:', error);
+      setMessage('Failed to load draft.');
+    }
+  }
 
   const removeFile = (indexToRemove: number) => {
     setMediaFiles(prev => prev.filter((_, index) => index !== indexToRemove));
@@ -134,6 +257,10 @@ export default function SubmitSightingPage({ user }: { user: User }) {
         })
       });
 
+      if (draftId) {
+        await deleteDraft(draftId);
+      }
+
       setMessage('Observation submitted successfully!');
 
       // Reset form
@@ -148,6 +275,10 @@ export default function SubmitSightingPage({ user }: { user: User }) {
       setJuveniles('');
       setBehaviour('');
       setMediaFiles([]);
+      setDraftId(null);
+      setCreatedAt(null);
+      setTimeout(() => navigate('/dashboard'), 1000);
+
     } catch (error) {
       console.error('Failed to submit sighting:', error);
       setMessage('Failed to submit report.');
@@ -155,7 +286,12 @@ export default function SubmitSightingPage({ user }: { user: User }) {
       setSubmitting(false);
     }
   };
-
+  useEffect(() => {
+    const existingDraftId = searchParams.get('draftId');
+    if (existingDraftId) {
+      void loadDraftById(existingDraftId);
+    }
+  }, [searchParams]);
   return (
     <>
       <Navigation user={user} />
@@ -311,7 +447,23 @@ export default function SubmitSightingPage({ user }: { user: User }) {
           <button type="submit" className="btn-primary" disabled={submitting} style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', fontWeight: 'bold', backgroundColor: '#3182ce', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
             {submitting ? 'Submitting...' : 'Submit Report'}
           </button>
-
+          <button
+            type="button"
+            onClick={handleSaveDraft}
+            disabled={submitting}
+            style={{
+              width: '100%',
+              padding: '1rem',
+              fontSize: '1.1rem',   // match size
+              fontWeight: 'bold',   // match weight
+              backgroundColor: '#718096', // grey = secondary action
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+            }}>
+            Save Draft
+          </button>
           {message && <p style={{ textAlign: 'center', marginTop: '1rem', color: '#2f855a', fontWeight: 'bold' }}>{message}</p>}
         </form>
       </main>

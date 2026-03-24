@@ -8,6 +8,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 
 import LoginPage from './pages/LoginPage'
 import Dashboard from './pages/Dashboard'
+import DraftsPage from './pages/draftPage'
 
 import type { ReactNode } from 'react'
 import SubmitSightingPage from './pages/SubmitSighting'
@@ -49,6 +50,14 @@ export default function App() {
         element={
           <RequireAuth user={user}>
             <Dashboard user={user!} />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/drafts"
+        element={
+          <RequireAuth user={user}>
+            <DraftsPage user={user!} />
           </RequireAuth>
         }
       />
