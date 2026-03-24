@@ -1,8 +1,8 @@
 import { RafflesGoService } from "@/api";
-import { Grid, GridItem, Stack, Badge, Text, Button, Card, Collapsible } from "@chakra-ui/react";
+import { Grid, GridItem, Stack, Badge, Text, Button, Card, Collapsible, Box } from "@chakra-ui/react";
 // import type { User } from "firebase/auth";
 import { useEffect, useState } from "react";
-import { MdGroupAdd } from "react-icons/md";
+import { MdGroupAdd, MdGroupRemove } from "react-icons/md";
 // import { useNavigate } from "react-router-dom";
 import { FaEye } from "react-icons/fa";
 import { FaEyeSlash } from "react-icons/fa6";
@@ -38,6 +38,28 @@ function SurveyWalkCard({ sw, onJoin, user }: { sw: SurveyWalk; onJoin: () => vo
         });
     }
 
+    function handleQuit() {
+        setIsLoading(true);
+        RafflesGoService.quitSurveyWalk(sw.uid).then(() => {
+            toaster.create({
+                type: "success",
+                title: "Quit successfully!",
+                description: "You have quit the survey walk.",
+                closable: true,
+            });
+            onJoin();
+        }).catch((error) => {
+            console.error("Failed to quit survey walk:", error);
+            toaster.create({
+                type: "error",
+                title: "Quit failed",
+                description: "Unable to quit. Please try again.",
+                closable: true,
+            })
+        }).finally(() => {
+            setIsLoading(false);
+        });
+    }
     
     return (
         <GridItem key={sw.uid}>
@@ -47,9 +69,17 @@ function SurveyWalkCard({ sw, onJoin, user }: { sw: SurveyWalk; onJoin: () => vo
                     <Stack>
                         <Stack direction="row" justify="space-between" align="center">
                             <Card.Title>{sw.name}</Card.Title>
-                            <Badge colorPalette={sw.isFinished ? "green" : "orange"} p={1}>
-                                {sw.isFinished ? "Finished" : "Upcoming"}
-                            </Badge>
+                            <Box display="flex" gap={2}>
+                                <Badge colorPalette={sw.isFinished ? "green" : "orange"} p={1}>
+                                    {sw.isFinished ? "Finished" : "Upcoming"}
+                                </Badge>
+                                {sw.volunteers.some(v => v.uid === user.uid) &&
+                                <Badge colorPalette={sw.volunteers.some(v => v.uid === user.uid) ? "green" : "orange"} p={1}>
+                                    Joined
+                                </Badge>
+                                }
+                            </Box>
+                            
                         </Stack>
 
                         <Stack gap={0}>
@@ -82,11 +112,10 @@ function SurveyWalkCard({ sw, onJoin, user }: { sw: SurveyWalk; onJoin: () => vo
                     <Button 
                         size={"sm"} 
                         px={2} 
-                        onClick={handleJoin} 
-                        disabled={sw.isFinished || sw.volunteers.length >= sw.capacity || sw.volunteers.some(v => v.uid === user.uid)}
+                        onClick={sw.volunteers.some(v => v.uid === user.uid) ? handleQuit : handleJoin}
+                        disabled={sw.isFinished}
                         loading={isLoading}>
-                        <MdGroupAdd />
-                        {sw.volunteers.some(v => v.uid === user.uid) ? "Joined" : "Join"}
+                        {sw.volunteers.some(v => v.uid === user.uid) ? <><MdGroupRemove /> Quit</> : <><MdGroupAdd /> Join</>}
                     </Button>
                 </Card.Footer>
             </Card.Root>
