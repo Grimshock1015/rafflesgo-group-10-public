@@ -84,6 +84,20 @@ export class SurveyPeriodRepository {
         return true;
     }
 
+    async unjoin(uid: string, volunteerUid: string): Promise<boolean> {
+        const ref = this.collection().doc(uid);
+        const existing = await ref.get();
+        
+        if (!existing.exists) {
+            return false;
+        }
+
+        await ref.update({
+            volunteerUids: FieldValue.arrayRemove(volunteerUid) 
+        });
+        return true;
+    }
+
     private toEntity(uid: string, data: Record<string, unknown>): SurveyPeriodEntity {
         return {
             uid,
