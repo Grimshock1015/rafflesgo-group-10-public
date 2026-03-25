@@ -200,12 +200,20 @@ export async function listSurveyWalksForCurrentUserHandler(
     const surveyWalks = await surveyWalkService.getSurveyWalksForJoinedPeriods(request.user.uid);
     const enrichedWalks = await Promise.all(
         surveyWalks.map(async (walk) => {
-            const periodName = await getSurveyPeriodName(walk.surveyPeriodUid);
-            const volunteersData = await getVolunteersData(walk.volunteerUids);
-            const leaderData = await getLeaderData(walk.leader);
+            const [periodName, volunteersData] = await Promise.all([
+                getSurveyPeriodName(walk.surveyPeriodUid),
+                getVolunteersData(walk.volunteerUids),
+            ]);
+
+            const leaderFromVolunteers = walk.leader
+                ? volunteersData.find((volunteer) => volunteer.uid === walk.leader)
+                : undefined;
+            const leaderData = leaderFromVolunteers || (await getLeaderData(walk.leader));
+
             return toDto(walk, periodName, volunteersData, leaderData);
         })
     );
+
     return { surveyWalks: enrichedWalks };
 }
 

@@ -82,6 +82,10 @@ export class SurveyWalkService {
             return surveyWalk;
         }
 
+        if (surveyWalk.volunteerUids.length >= surveyWalk.capacity) {
+            throw new BadRequestError('Survey walk is already at full capacity');
+        }
+
         const leader = surveyWalk.leader || volunteerUid;
         const updated = await this.surveyWalkRepository.update(uid, {
             volunteerUids: [...surveyWalk.volunteerUids, volunteerUid],
