@@ -161,8 +161,6 @@ export default function SubmitSightingPage({ user }: { user: User }) {
 
   return (
     <>
-      <Navigation user={user} />
-
       <main className="main-content" style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto' }}>
         <header className="welcome-header" style={{ marginBottom: '2rem' }}>
           <h1>Log an Observation</h1>

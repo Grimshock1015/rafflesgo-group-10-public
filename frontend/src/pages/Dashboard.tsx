@@ -45,7 +45,6 @@ export default function Dashboard({ user }: { user: User }) {
 
   return (
     <>
-      <Navigation user={user} />
 
       {/* Main Dashboard Content */}
       <main className="main-content">
