@@ -56,7 +56,6 @@ describe('Dashboard', () => {
     await waitFor(() => {
       expect(screen.getByText(/welcome back,/i)).toBeInTheDocument();
       expect(screen.getByText(/John Doe/i)).toBeInTheDocument(); // Name is in a <span>
-      expect(screen.getByTestId('navigation')).toBeInTheDocument();
     }, { timeout: 300 });
 
   });

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import type { User } from 'firebase/auth';
-import { Navigation } from '../components/Navigation';
 import { RafflesGoService } from '../api';
 import { Link } from 'react-router-dom';
 

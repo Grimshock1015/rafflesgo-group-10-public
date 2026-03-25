@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import type { User } from 'firebase/auth';
-import { Navigation } from '../components/Navigation';
 import { SightingsService, OpenAPI } from '../api';
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../lib/firebase";
