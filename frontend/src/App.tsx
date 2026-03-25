@@ -8,6 +8,7 @@ import LoginPage from './pages/LoginPage'
 import Dashboard from './pages/Dashboard'
 
 import type { ReactNode } from 'react'
+import SubmitSightingPage from './pages/SubmitSighting'
 import SurveyPeriodList from './pages/SurveyPeriodList'
 import CreateSurveyPeriod from './pages/CreateSurveyPeriod'
 import EditSurveyPeriod from './pages/EditSurveyPeriod'
@@ -74,6 +75,9 @@ export default function App() {
       {/* protected */}
       <Route element={<ProtectedLayout user={user} />}>
         <Route path="/dashboard" element={<Dashboard user={user!} />} />
+        <Route path="/submit-sighting" element={ <RequireAuth user={user}>
+          <SubmitSightingPage user={user!} />
+        </RequireAuth>} />
         <Route path="/survey-periods" element={<SurveyPeriodList user={user!} />} />
         <Route path="/create-survey-period" element={<CreateSurveyPeriod />} />
         <Route path="/edit-survey-period/:surveyPeriodId" element={<EditSurveyPeriod />} />
