@@ -71,6 +71,18 @@ export class SurveyPeriodService {
         return true;
     }
 
+    async unjoinSurveyPeriod(uid: string, volunteerUid: string): Promise<boolean> {
+        await this.getSurveyPeriod(uid);
+
+        const unjoined = await this.surveyPeriodRepository.unjoin(uid, volunteerUid);
+        
+        if (!unjoined) {
+            throw new NotFoundError('Fail to unjoin Survey Period', uid);
+        }
+
+        return true;
+    }
+
     private validateDates(startDate: Date, endDate: Date): void {
         if (endDate < startDate) {
             throw new BadRequestError('endDate must be greater than or equal to startDate');
