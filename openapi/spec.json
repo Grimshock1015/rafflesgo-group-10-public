@@ -466,6 +466,525 @@
         }
       }
     },
+    "/api/surveyPeriods": {
+      "get": {
+        "operationId": "listSurveyPeriods",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "List all survey periods (admin only)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "surveyPeriods"
+                  ],
+                  "properties": {
+                    "surveyPeriods": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "uid",
+                          "name",
+                          "startDate",
+                          "endDate",
+                          "isFinished",
+                          "minWalks",
+                          "volunteerUids"
+                        ],
+                        "properties": {
+                          "uid": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "startDate": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "endDate": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "isFinished": {
+                            "type": "boolean"
+                          },
+                          "minWalks": {
+                            "type": "integer"
+                          },
+                          "volunteerUids": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createSurveyPeriod",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Create a survey period (admin only)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "startDate",
+                  "endDate",
+                  "isFinished",
+                  "minWalks"
+                ],
+                "properties": {
+                  "name": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "startDate": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "endDate": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "isFinished": {
+                    "type": "boolean"
+                  },
+                  "minWalks": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "uid",
+                    "name",
+                    "startDate",
+                    "endDate",
+                    "isFinished",
+                    "minWalks",
+                    "volunteerUids"
+                  ],
+                  "properties": {
+                    "uid": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "startDate": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "endDate": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "isFinished": {
+                      "type": "boolean"
+                    },
+                    "minWalks": {
+                      "type": "integer"
+                    },
+                    "volunteerUids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveyPeriods/{uid}": {
+      "get": {
+        "operationId": "getSurveyPeriod",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Get one survey period by uid (admin only)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "uid",
+                    "name",
+                    "startDate",
+                    "endDate",
+                    "isFinished",
+                    "minWalks",
+                    "volunteerUids"
+                  ],
+                  "properties": {
+                    "uid": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "startDate": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "endDate": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "isFinished": {
+                      "type": "boolean"
+                    },
+                    "minWalks": {
+                      "type": "integer"
+                    },
+                    "volunteerUids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateSurveyPeriod",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Update a survey period by uid (admin only)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "startDate": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "endDate": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "isFinished": {
+                    "type": "boolean"
+                  },
+                  "minWalks": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "uid",
+                    "name",
+                    "startDate",
+                    "endDate",
+                    "isFinished",
+                    "minWalks",
+                    "volunteerUids"
+                  ],
+                  "properties": {
+                    "uid": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "startDate": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "endDate": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "isFinished": {
+                      "type": "boolean"
+                    },
+                    "minWalks": {
+                      "type": "integer"
+                    },
+                    "volunteerUids": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteSurveyPeriod",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Delete a survey period by uid (admin only)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "uid"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "uid": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveyPeriods/{uid}/join": {
+      "post": {
+        "operationId": "joinSurveyPeriod",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Volunteer joins a survey period",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "volunteerUid"
+                ],
+                "properties": {
+                  "volunteerUid": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveyPeriods/{uid}/unjoin": {
+      "post": {
+        "operationId": "unjoinSurveyPeriod",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Volunteer unjoins a survey period",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "volunteerUid"
+                ],
+                "properties": {
+                  "volunteerUid": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/my-endpoint": {
       "get": {
         "tags": [

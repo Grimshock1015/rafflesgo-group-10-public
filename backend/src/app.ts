@@ -10,6 +10,7 @@ import authPlugin from './plugins/auth.plugin';
 import loggingPlugin from './plugins/logging.plugin';
 
 import { healthRoutes } from './routes/health.routes';
+import { surveyPeriodRoutes } from './routes/surveyPeriods.routes'
 import { helloRoutes } from './routes/hello.routes';
 import { usersRoutes } from './routes/users.routes';
 import { sightingRoutes } from './routes/sighting.route';
@@ -45,7 +46,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
         description: 'RafflesGo backend API',
         version: '1.0.0',
       },
-      servers: [{ url: 'http://localhost:3000' }, 
+      servers: [{ url: 'http://localhost:3000' },
       ],
       tags: [
         { name: 'RafflesGo', description: 'RafflesGo API endpoints' },
@@ -86,6 +87,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await fastify.register(helloRoutes);
   await fastify.register(usersRoutes);
   await fastify.register(sightingRoutes)
+  await fastify.register(surveyPeriodRoutes)
 
   // SPA Fallback
   fastify.setNotFoundHandler((request, reply) => {

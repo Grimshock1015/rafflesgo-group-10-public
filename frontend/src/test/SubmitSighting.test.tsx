@@ -5,6 +5,7 @@ import type { User } from 'firebase/auth';
 import type React from 'react';
 import SubmitSightingPage from '../pages/SubmitSighting';
 import { SightingsService } from '../api';
+import { Provider } from '../components/ui/provider';
 
 // Mock the openapi client to prevent actual network calls
 vi.mock('../api', async (importOriginal) => {
@@ -57,13 +58,15 @@ describe('SubmitSightingPage', () => {
         vi.clearAllMocks();
     });
 
-    const renderComponent = () => {
-        return render(
-            <BrowserRouter>
-                <SubmitSightingPage user={mockUser} />
-            </BrowserRouter>
-        );
-    };
+  const renderComponent = () => {
+    return render(
+      <Provider>
+        <BrowserRouter>
+          <SubmitSightingPage user={mockUser} />
+        </BrowserRouter>
+      </Provider>
+    );
+  };
 
     it('renders correctly and shows additional primate fields when a primate is selected', async () => {
         renderComponent();

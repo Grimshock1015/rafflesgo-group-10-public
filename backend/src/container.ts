@@ -1,21 +1,29 @@
 import { UserRepository } from './repositories/user.repository';
 import { UserService } from './services/user.service';
+import { SurveyPeriodRepository } from './repositories/surveyPeriod.repository';
+import { SurveyPeriodService } from './services/surveyPeriod.service';
 
 export interface Container {
   userRepository: UserRepository;
   userService: UserService;
+  surveyPeriodRepository: SurveyPeriodRepository;
+  surveyPeriodService: SurveyPeriodService;
 }
 
 export function createContainer(): Container {
   // Repositories
   const userRepository = new UserRepository();
+  const surveyPeriodRepository = new SurveyPeriodRepository();
 
   // Services
   const userService = new UserService(userRepository);
+  const surveyPeriodService = new SurveyPeriodService(surveyPeriodRepository);
 
   return {
     userRepository,
     userService,
+    surveyPeriodRepository,
+    surveyPeriodService,
   };
 }
 
