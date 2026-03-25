@@ -8,6 +8,8 @@ import {
     surveyPeriodSchema,
     JoinSurveyPeriodBodySchema,
     JoinSurveyPeriodResponseSchema,
+    UnjoinSurveyPeriodBodySchema,
+    UnjoinSurveyPeriodResponseSchema
 } from '../schemas/surveyPeriod.schema';
 import { getContainer } from '../container';
 import { SurveyPeriodEntity } from '../entities/surveyPeriod.entity';
@@ -53,6 +55,14 @@ const JoinSurveyPeriodSchema = {
     body: JoinSurveyPeriodBodySchema,
     response: {
         200: JoinSurveyPeriodResponseSchema,
+    },
+};
+
+const UnjoinSurveyPeriodSchema = {
+    params: SurveyPeriodParamsSchema,
+    body: UnjoinSurveyPeriodBodySchema,
+    response: {
+        200: UnjoinSurveyPeriodResponseSchema,
     },
 };
 
@@ -145,6 +155,20 @@ export async function joinSurveyPeriodHandler(
 
     // Call joinSurveyPeriod
     await surveyPeriodService.joinSurveyPeriod(
+        request.params.uid,
+        request.body.volunteerUid
+    );
+
+    return { success: true };
+}
+
+export async function unjoinSurveyPeriodHandler(
+    request: FastifyRequestTypeBox<typeof UnjoinSurveyPeriodSchema>,
+    _reply: FastifyReplyTypeBox<typeof UnjoinSurveyPeriodSchema>
+) {
+    const { surveyPeriodService } = getContainer();
+
+    await surveyPeriodService.unjoinSurveyPeriod(
         request.params.uid,
         request.body.volunteerUid
     );
