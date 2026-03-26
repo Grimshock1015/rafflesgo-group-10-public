@@ -6,6 +6,7 @@ import { Routes, Route, Navigate, useLocation, useOutlet } from 'react-router-do
 
 import LoginPage from './pages/LoginPage'
 import Dashboard from './pages/Dashboard'
+import DraftsPage from './pages/draftPage'
 
 import type { ReactNode } from 'react'
 import SubmitSightingPage from './pages/SubmitSighting'
@@ -79,7 +80,9 @@ export default function App() {
           <SubmitSightingPage user={user!} />
         </RequireAuth>} />
         <Route path="/survey-periods" element={<SurveyPeriodList user={user!} />} />
+        <Route path="/submit-sighting" element={<SubmitSightingPage user={user!} />} />
         <Route path="/create-survey-period" element={<CreateSurveyPeriod />} />
+        <Route path="/drafts" element={<DraftsPage user={user!} />} />
         <Route path="/edit-survey-period/:surveyPeriodId" element={<EditSurveyPeriod />} />
       </Route>
 
