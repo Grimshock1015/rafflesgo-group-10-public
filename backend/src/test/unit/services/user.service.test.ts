@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { UserService } from '../services/user.service';
-import type { UserRepository } from '../repositories/user.repository';
-import type { User } from '../schemas/user.schema';
+import { UserService } from '../../../services/user.service';
+import type { UserRepository } from '../../../repositories/user.repository';
+import type { User } from '../../../schemas/user.schema';
 
 /**
  * UserService Unit Tests

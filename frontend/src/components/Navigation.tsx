@@ -90,18 +90,25 @@ export function Navigation({ user }: NavigationProps) {
             <li>
                 <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/survey-periods');}} px={2}>
                   Survey Periods
-                </Button> 
+                </Button>
             </li>
+
             <li>
                 <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/survey-walks');}} px={2}>
                   Survey Walks
-                </Button> 
+                </Button>
             </li>
+
+            <li>
+              <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/submit-sighting');}} px={2}>
+                Submit Sighting
+              </Button>
+            </li>
+
             <li>
               <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/dashboard');}} px={2}>
                 Dashboard
               </Button>
-              {/* <Link to="/dashboard" className={isActive('/dashboard')} onClick={closeMobileMenu}>Dashboard</Link> */}
             </li>
           </ul>
 

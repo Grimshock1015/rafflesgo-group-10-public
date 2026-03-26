@@ -1,11 +1,9 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
-import type { User } from 'firebase/auth';
-import type React from 'react';
 import SubmitSightingPage from '../pages/SubmitSighting';
-import { SightingsService } from '../api';
-import { Provider } from '../components/ui/provider';
+import { SightingsService, RafflesGoService} from '../api';
+import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
 
 // Mock the openapi client to prevent actual network calls
 vi.mock('../api', async (importOriginal) => {
@@ -15,6 +13,10 @@ vi.mock('../api', async (importOriginal) => {
         SightingsService: {
             postApiSightings: vi.fn(),
         },
+        RafflesGoService: {
+            ...actual.RafflesGoService,
+            getCurrentUser: vi.fn(),
+        },
         OpenAPI: {
             HEADERS: {},
         },
@@ -22,6 +24,7 @@ vi.mock('../api', async (importOriginal) => {
 });
 
 // Mock leaflet since it uses window objects and doesn't work well in JSDOM out of the box
+
 vi.mock('react-leaflet', () => ({
     MapContainer: ({ children }: { children: React.ReactNode }) => <div data-testid="map-container">{children}</div>,
     TileLayer: () => <div data-testid="tile-layer" />,
@@ -51,22 +54,28 @@ const mockUser = {
     uid: 'test-user-123',
     email: 'test@example.com',
     getIdToken: vi.fn().mockResolvedValue('fake-token'),
-} as unknown as User;
+} as unknown as import('firebase/auth').User;
 
 describe('SubmitSightingPage', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+
+        vi.mocked(RafflesGoService.getCurrentUser).mockResolvedValue({
+            uid: 'test-user-123',
+            email: 'test@example.com',
+            role: 'user',
+        });
     });
 
-  const renderComponent = () => {
+    const renderComponent = () => {
     return render(
-      <Provider>
+        <ChakraProvider value={defaultSystem}>
         <BrowserRouter>
-          <SubmitSightingPage user={mockUser} />
+            <SubmitSightingPage user={mockUser} />
         </BrowserRouter>
-      </Provider>
+        </ChakraProvider>
     );
-  };
+    };
 
     it('renders correctly and shows additional primate fields when a primate is selected', async () => {
         renderComponent();
@@ -109,7 +118,21 @@ describe('SubmitSightingPage', () => {
 
         vi.mocked(SightingsService.postApiSightings).mockResolvedValueOnce({
             message: 'Success',
-            sighting: {} as never
+            sighting: {id: 'mock-sighting-1',
+                        result: 'sighted',
+                        date: '2023-10-10',
+                        time: '14:00',
+                        location: 'Thomson Nature Park Route A',
+                        notes: '',
+                        submittedBy: 'test@example.com',
+                        species: "Raffles' Banded Langur",
+                        adults: 2,
+                        juveniles: 1,
+                        behaviour: 'Feeding',
+                        latitude: undefined,
+                        longitude: undefined,
+                        mediaUrl: undefined,
+                    },
         });
 
         fireEvent.change(screen.getByLabelText(/Date/i), { target: { value: '2023-10-10' } });
@@ -142,10 +165,25 @@ describe('SubmitSightingPage', () => {
 
         vi.mocked(SightingsService.postApiSightings).mockResolvedValueOnce({
             message: 'Success',
-            sighting: {} as never
+            sighting: {
+                id: 'mock-sighting-2',
+                result: 'not_sighted',
+                date: '2023-10-11',
+                time: '09:00',
+                location: 'Springleaf Route C',
+                notes: 'Raining',
+                submittedBy: 'test@example.com',
+                species: undefined,
+                adults: undefined,
+                juveniles: undefined,
+                behaviour: undefined,
+                latitude: undefined,
+                longitude: undefined,
+                mediaUrl: undefined,
+            },
         });
 
-        fireEvent.click(screen.getByRole('button', { name: /No sighting/i }));
+        fireEvent.click(screen.getByRole('button', { name: /Zero Sightings/i }));
 
         fireEvent.change(screen.getByLabelText(/Date/i), { target: { value: '2023-10-11' } });
         fireEvent.change(screen.getByLabelText(/Time/i), { target: { value: '09:00' } });

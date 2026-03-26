@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import { createSightingHandler } from '../handlers/sighting.handler';
-import * as SightingService from '../services/sighting.service';
+import { createSightingHandler } from '../../../handlers/sighting.handler';
+import * as SightingService from '../../../services/sighting.service';
 
-vi.mock('../services/sighting.service', () => ({
+vi.mock('../../../services/sighting.service', () => ({
     createSighting: vi.fn(),
 }));
 

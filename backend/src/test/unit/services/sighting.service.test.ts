@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createSighting } from '../services/sighting.service';
-import { db } from '../lib/firebase-admin';
+import { createSighting } from '../../../services/sighting.service';
+import { db } from '../../../lib/firebase-admin';
 
 // Mock crypto module to generate deterministic ID
 vi.mock('crypto', () => ({
@@ -8,7 +8,7 @@ vi.mock('crypto', () => ({
 }));
 
 // Mock Firebase implementation details for tracking arguments and interactions
-vi.mock('../lib/firebase-admin', () => {
+vi.mock('../../../lib/firebase-admin', () => {
     const set = vi.fn().mockResolvedValue(undefined);
     const doc = vi.fn(() => ({ set }));
     const collection = vi.fn(() => ({ doc }));

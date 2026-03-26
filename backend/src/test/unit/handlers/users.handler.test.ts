@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { listUsersHandler, changeRoleHandler } from '../handlers/users.handler';
-import { setContainer, resetContainer, Container } from '../container';
+import { listUsersHandler, changeRoleHandler } from '../../../handlers/users.handler';
+import { setContainer, resetContainer, Container } from '../../../container';
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import { UserRepository } from '../repositories/user.repository';
+import { UserRepository } from '../../../repositories/user.repository';
 
 /**
  * Handler Unit Tests
