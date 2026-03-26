@@ -20,7 +20,7 @@ import {
     updateSurveyPeriodHandler,
     joinSurveyPeriodHandler,
     unjoinSurveyPeriodHandler,
-} from '../handlers/surveyPeriods.handler';
+} from '../handlers/surveyPeriod.handler';
 
 export const surveyPeriodRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 

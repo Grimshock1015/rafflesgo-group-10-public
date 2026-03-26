@@ -9,6 +9,11 @@ export default defineConfig({
                 'src/services/**',
                 'src/handlers/**'
             ],
+            // Exclude example files or boilerplate code from coverage report
+            exclude: [
+                'src/handlers/health.handler.ts',
+                'src/handlers/hello.handler.ts'
+            ],
         },
     },
 });
