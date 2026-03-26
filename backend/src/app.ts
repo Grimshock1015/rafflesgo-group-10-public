@@ -14,7 +14,6 @@ import { surveyPeriodRoutes } from './routes/surveyPeriods.routes'
 import { helloRoutes } from './routes/hello.routes';
 import { usersRoutes } from './routes/users.routes';
 import { sightingRoutes } from './routes/sighting.route';
-import { surveyPeriodRoutes } from './routes/surveyPeriods.routes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
