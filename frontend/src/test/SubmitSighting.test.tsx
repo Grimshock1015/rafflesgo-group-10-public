@@ -2,7 +2,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import SubmitSightingPage from '../pages/SubmitSighting';
-import { SightingsService } from '../api';
+import { SightingsService, RafflesGoService} from '../api';
+import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
 
 // Mock the openapi client to prevent actual network calls
 vi.mock('../api', async (importOriginal) => {
@@ -11,6 +12,10 @@ vi.mock('../api', async (importOriginal) => {
         ...actual,
         SightingsService: {
             postApiSightings: vi.fn(),
+        },
+        RafflesGoService: {
+            ...actual.RafflesGoService,
+            getCurrentUser: vi.fn(),
         },
         OpenAPI: {
             HEADERS: {},
@@ -54,14 +59,22 @@ const mockUser = {
 describe('SubmitSightingPage', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+
+        vi.mocked(RafflesGoService.getCurrentUser).mockResolvedValue({
+            uid: 'test-user-123',
+            email: 'test@example.com',
+            role: 'user',
+        });
     });
 
     const renderComponent = () => {
-        return render(
-            <BrowserRouter>
-                <SubmitSightingPage user={mockUser} />
-            </BrowserRouter>
-        );
+    return render(
+        <ChakraProvider value={defaultSystem}>
+        <BrowserRouter>
+            <SubmitSightingPage user={mockUser} />
+        </BrowserRouter>
+        </ChakraProvider>
+    );
     };
 
     it('renders correctly and shows additional primate fields when a primate is selected', async () => {
