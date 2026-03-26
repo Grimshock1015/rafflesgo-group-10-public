@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Navigation } from '../components/Navigation';
+// import { Navigation } from '../components/Navigation';
 import { getAllDrafts, deleteDraft } from '../services/SightingDraftsService';
 import type { SightingDraft } from '../types/sightingDrafts';
 import type { User } from 'firebase/auth';
@@ -47,7 +47,7 @@ export default function DraftsPage({ user }: { user: User }) {
 
   return (
     <>
-      <Navigation user={user} />
+      {/* <Navigation user={user} /> */}
 
       <main style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto' }}>
         <h1>Saved Drafts</h1>

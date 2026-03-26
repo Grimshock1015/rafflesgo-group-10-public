@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import type { User } from 'firebase/auth';
-import { Navigation } from '../components/Navigation';
+// import { Navigation } from '../components/Navigation';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SightingsService, OpenAPI } from '../api';
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -294,7 +294,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
   }, [searchParams]);
   return (
     <>
-      <Navigation user={user} />
+      {/* <Navigation user={user} /> */}
 
       <main className="main-content" style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto' }}>
         <header className="welcome-header" style={{ marginBottom: '2rem' }}>
