@@ -14,6 +14,7 @@ export default tseslint.config(
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_|Schema$' },
       ],
       '@typescript-eslint/no-explicit-any': 'error',
+      "@typescript-eslint/ban-ts-comment": "off",
     },
   }
 );

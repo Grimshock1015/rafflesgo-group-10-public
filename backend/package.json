@@ -9,7 +9,7 @@
     "build": "npm run generate-spec && tsc",
     "test": "vitest run --exclude 'src/test/integration/**'",
     "test:coverage": "vitest run --coverage --exclude 'src/test/integration/**'",
-    "test:integration": "FIRESTORE_EMULATOR_HOST=localhost:8080 vitest run src/test/integration",
+    "test:integration": "FIRESTORE_EMULATOR_HOST=localhost:8080 vitest run src/test/integration --fileParallelism false",
     "emulator": "firebase emulators:start",
     "lint": "eslint src --fix",
     "generate-spec": "tsx src/generate-spec.ts"
