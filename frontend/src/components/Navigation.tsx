@@ -111,13 +111,18 @@ export function Navigation({ user }: NavigationProps) {
                    </Button>
                 )
               }
-              
             </li>
+
+            <li>
+              <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/submit-sighting');}} px={2}>
+                Submit Sighting
+              </Button>
+            </li>
+
             <li>
               <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/dashboard');}} px={2}>
                 Dashboard
               </Button>
-              {/* <Link to="/dashboard" className={isActive('/dashboard')} onClick={closeMobileMenu}>Dashboard</Link> */}
             </li>
           </ul>
 

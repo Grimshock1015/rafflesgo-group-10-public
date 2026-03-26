@@ -76,6 +76,9 @@ export default function App() {
       {/* protected */}
       <Route element={<ProtectedLayout user={user} />}>
         <Route path="/dashboard" element={<Dashboard user={user!} />} />
+        <Route path="/submit-sighting" element={ <RequireAuth user={user}>
+          <SubmitSightingPage user={user!} />
+        </RequireAuth>} />
         <Route path="/survey-periods" element={<SurveyPeriodList user={user!} />} />
         <Route path="/submit-sighting" element={<SubmitSightingPage user={user!} />} />
         <Route path="/create-survey-period" element={<CreateSurveyPeriod />} />

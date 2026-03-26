@@ -4,22 +4,11 @@ import { RafflesGoService } from '../api';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard({ user }: { user: User }) {
-  const [helloMessage, setHelloMessage] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [error, setError] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchHello = async () => {
-      try {
-        const response = await RafflesGoService.sayHello(
-          user.displayName || 'Volunteer',
-        );
-        setHelloMessage(response.message);
-      } catch (error) {
-        console.error('Failed to fetch hello message:', error);
-      }
-    };
-
     const fetchEmail = async () => {
       try {
         const response = await RafflesGoService.getCurrentUser();
@@ -28,10 +17,10 @@ export default function Dashboard({ user }: { user: User }) {
         setUserRole(response.role || "");
       } catch (error) {
         console.error('Failed to fetch user email:', error);
+        setError(true)
       }
     };
 
-    fetchHello();
     fetchEmail();
   }, [user.displayName]);
 
@@ -44,23 +33,17 @@ export default function Dashboard({ user }: { user: User }) {
 
   return (
     <>
+
       {/* Main Dashboard Content */}
       <main className="main-content">
         <div className="container">
           <header className="welcome-header">
             <h1>
-              Welcome back,{' '}
-              <span id="volunteerName">
-                {displayRole ? `${displayRole} ` : ""}
-                {user.displayName || ""}
-                </span>
-                !
+              {displayRole && user.displayName && <><span>Welcome back </span> <span id="volunteerName">{user.displayName}</span></>}
             </h1>
-            <p className="welcome-subtitle">
-              Langur conservation volunteer platform
-            </p>
-            {helloMessage && <p className="hello-message">{helloMessage}</p>}
             {userEmail || ""}
+            <p className={"text-error"}>{error && "Something went wrong getting your details. Please try again later."}</p>
+
           </header>
 
           <section className="quick-actions">

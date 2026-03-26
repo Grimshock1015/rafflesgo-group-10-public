@@ -45,8 +45,6 @@ describe('Dashboard', () => {
 
   // Test 1: Basic rendering and querying DOM elements
   it('renders welcome message with user name', async () => {
-    vi.mocked(RafflesGoService.sayHello).mockResolvedValue({ message: 'Hello!' });
-
     render(
       <BrowserRouter>
         <Dashboard user={mockUser as User} />
@@ -54,16 +52,28 @@ describe('Dashboard', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/welcome back,/i)).toBeInTheDocument();
-      expect(screen.getByText('John Doe')).toBeInTheDocument(); // Name is in a <span>
-    }, { timeout: 300 });
+      expect(screen.getByText(/welcome back/i)).toBeInTheDocument();
+      expect(screen.getByText(/John Doe/i)).toBeInTheDocument(); // Name is in a <span>
+      expect(screen.getByText(/john@example.com/i)).toBeInTheDocument(); // Emal is displayed below the H1
+    });
   });
 
   // Test 2: Async API calls with waitFor
-  it('fetches and displays hello message from API', async () => {
-    vi.mocked(RafflesGoService.sayHello).mockResolvedValue({
-      message: 'Hello, John Doe!',
+  it('fetches user info and assigns variables properly', async () => {
+    render(
+      <BrowserRouter>
+        <Dashboard user={mockUser as User} />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      expect(RafflesGoService.getCurrentUser).toHaveBeenCalled();
+      expect(screen.getByText(/john@example.com/i)).toBeInTheDocument();
     });
+  });
+
+  it('error when API fails', async () => {
+    vi.mocked(RafflesGoService.getCurrentUser).mockRejectedValueOnce(new Error('API Error'));
 
     render(
       <BrowserRouter>
@@ -72,23 +82,7 @@ describe('Dashboard', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/Hello, John Doe!/i)).toBeInTheDocument();
+      expect(screen.getByText(/Something went wrong getting your details/i)).toBeInTheDocument();
     });
-
-    expect(RafflesGoService.sayHello).toHaveBeenCalledWith('John Doe');
-  });
-
-  // Test 3: Testing with different props (edge case)
-  it('falls back to "Volunteer" when user has no display name', () => {
-    vi.mocked(RafflesGoService.sayHello).mockResolvedValue({ message: 'Hi!' });
-
-    render(
-      <BrowserRouter>
-        <Dashboard user={{ ...mockUser, displayName: null } as User} />
-      </BrowserRouter>
-    );
-
-    expect(screen.getByText(/Volunteer/i)).toBeInTheDocument(); // Name is in a <span>
-    expect(RafflesGoService.sayHello).toHaveBeenCalledWith('Volunteer');
   });
 });

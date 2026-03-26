@@ -19,3 +19,6 @@ src/**/*.d.ts.map
 
 # Firebase service account (keep secret!)
 svc-account-key.json
+
+# Test coverage
+coverage/

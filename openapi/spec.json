@@ -922,6 +922,69 @@
         }
       }
     },
+    "/api/surveyPeriods/{uid}/unjoin": {
+      "post": {
+        "operationId": "unjoinSurveyPeriod",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Volunteer unjoins a survey period",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "volunteerUid"
+                ],
+                "properties": {
+                  "volunteerUid": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/my-endpoint": {
       "get": {
         "tags": [

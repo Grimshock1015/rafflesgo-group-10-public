@@ -5,20 +5,13 @@ import { useEffect, useState } from "react";
 import { MdDelete, MdModeEdit } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import type { User } from 'firebase/auth';
-import { MdGroupAdd } from "react-icons/md"; 
+import { JoinSurveyPeriodButton } from "./JoinSurveyPeriodButton";
 
 type SurveyPeriod = Awaited<ReturnType<typeof RafflesGoService.listSurveyPeriods>>["surveyPeriods"][number];
 
 type DeleteSurveyPeriodButtonProps = {
     surveyPeriodId: string;
     onDeleted: () => Promise<void>;
-};
-
-type JoinSurveyPeriodButtonProps = {
-    surveyPeriodId: string;
-    volunteerUids: string[]; 
-    onJoined: () => Promise<void>;
-    user: User;
 };
 
 function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPeriodButtonProps) {
@@ -85,58 +78,6 @@ function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPer
                 </Dialog.Positioner>
             </Portal>
         </Dialog.Root>
-    );
-}
-
-function JoinSurveyPeriodButton({ surveyPeriodId, volunteerUids, onJoined, user }: JoinSurveyPeriodButtonProps) {
-    const [isJoining, setIsJoining] = useState(false);
-
-    // Check if the current user has already joined this survey period
-    const hasJoined = user ? volunteerUids.includes(user.uid) : false;
-
-    const handleJoin = async () => {
-        // User must be logged in to join (This is temporary, we need to change to only can join the survey after successfully verified by the admins)
-        if (!user) return; 
-        setIsJoining(true);
-        try {
-            await RafflesGoService.joinSurveyPeriod(surveyPeriodId, {
-                volunteerUid: user.uid
-            });
-            
-            toaster.create({
-                type: "success",
-                title: "Joined Successfully!",
-                description: "You are now part of this survey period.",
-                closable: true,
-            });
-            
-            await onJoined(); 
-        } catch (error) {
-            console.error("Failed to join survey period:", error);
-            toaster.create({
-                type: "error",
-                title: "Join failed",
-                description: "Unable to join. Please try again.",
-                closable: true,
-            });
-        } finally {
-            setIsJoining(false);
-        }
-    };
-
-    return (
-        <Button 
-            px={2} 
-            size={"sm"}
-            colorPalette="blue" 
-            variant={hasJoined ? "outline" : "solid"}
-            onClick={handleJoin}
-            loading={isJoining}
-            disabled={hasJoined || !user} // If user hasn't logged in or already joined, disable the button
-        >
-            <MdGroupAdd />
-            {hasJoined ? "Joined" : "Join"}
-        </Button>
     );
 }
 
