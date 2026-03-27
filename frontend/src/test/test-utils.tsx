@@ -8,8 +8,14 @@ interface AllTheProvidersProps {
   children: React.ReactNode
 }
 
+import { Provider } from '../components/ui/provider'
+
 function AllTheProviders({ children }: AllTheProvidersProps) {
-  return <ThemeProvider>{children}</ThemeProvider>
+  return (
+    <Provider>
+      <ThemeProvider>{children}</ThemeProvider>
+    </Provider>
+  )
 }
 
 function customRender(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) {
