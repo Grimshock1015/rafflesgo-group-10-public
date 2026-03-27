@@ -28,7 +28,7 @@ describe('SurveyPeriodService Unit Tests', () => {
     // Test Block 1: getAllSurveyPeriods
     // ==========================================
     describe('getAllSurveyPeriods', () => {
-        it('should return an array of all survey periods', async () => {
+        it('[TC-SP-SRV-01] should return an array of all survey periods', async () => {
             // Arrange: Prepare mock database response
             const mockData: SurveyPeriodEntity[] = [
                 { 
@@ -52,7 +52,7 @@ describe('SurveyPeriodService Unit Tests', () => {
             expect(mockRepository.findAll).toHaveBeenCalledOnce();
         });
 
-        it('should return an empty array when no survey periods exist in the database', async () => {
+        it('[TC-SP-SRV-02] should return an empty array when no survey periods exist in the database', async () => {
             // Arrange: Mock the database to return an empty array
             mockRepository.findAll.mockResolvedValue([]);
 
@@ -69,7 +69,7 @@ describe('SurveyPeriodService Unit Tests', () => {
     // Test Block 2: getSurveyPeriod
     // ==========================================
     describe('getSurveyPeriod', () => {
-        it('should successfully return the survey period when given an existing uid', async () => {
+        it('[TC-SP-SRV-03] should successfully return the survey period when given an existing uid', async () => {
             // Arrange: Prepare a mock uid and corresponding mock data
             const mockUid = 'valid-uid-123';
             const mockData: SurveyPeriodEntity = { 
@@ -92,7 +92,7 @@ describe('SurveyPeriodService Unit Tests', () => {
             expect(mockRepository.findById).toHaveBeenCalledOnce();
         });
 
-        it('should throw NotFoundError when the survey period does not exist', async () => {
+        it('[TC-SP-SRV-04] should throw NotFoundError when the survey period does not exist', async () => {
             // Arrange: Mock the repository to return null for an invalid uid
             const invalidUid = 'non-existent-uid';
             mockRepository.findById.mockResolvedValue(null);
@@ -116,7 +116,7 @@ describe('SurveyPeriodService Unit Tests', () => {
             [-1],       // Negative number
             [1.5],      // Decimal number
             [NaN],      // Not a Number
-        ])('should throw BadRequestError when minWalks is invalid (%s)', async (invalidMinWalks) => {
+        ])('[TC-SP-SRV-05] should throw BadRequestError when minWalks is invalid (%s)', async (invalidMinWalks) => {
             // Arrange: Prepare input with invalid minWalks
             const invalidInput = {
                 name: 'Test Survey',
@@ -135,7 +135,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         });
 
         // Validation Path: Test invalid dates
-        it('should throw BadRequestError when endDate is before startDate', async () => {
+        it('[TC-SP-SRV-06] should throw BadRequestError when endDate is before startDate', async () => {
             // Arrange: Prepare input where endDate is earlier than startDate
             const invalidInput = {
                 name: 'Test Survey',
@@ -154,7 +154,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         });
 
         // Success Path
-        it('should successfully call repository.create and return the new entity when all parameters are valid', async () => {
+        it('[TC-SP-SRV-07] should successfully call repository.create and return the new entity when all parameters are valid', async () => {
             // Arrange: Prepare valid input and mock database response
             const validInput = {
                 name: 'Valid Survey',
@@ -196,7 +196,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         };
 
         // Failure Path 1: Target period doesn't exist
-        it('should throw NotFoundError when the survey period to update does not exist', async () => {
+        it('[TC-SP-SRV-08] should throw NotFoundError when the survey period to update does not exist', async () => {
             // Arrange: Mock findById to return null (simulating getSurveyPeriod failing)
             mockRepository.findById.mockResolvedValue(null);
             const updateInput = { name: 'New Name' };
@@ -209,7 +209,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         });
 
         // Validation Path 1: Invalid cross-dates
-        it('should throw BadRequestError when updating only endDate makes it earlier than existing startDate', async () => {
+        it('[TC-SP-SRV-09] should throw BadRequestError when updating only endDate makes it earlier than existing startDate', async () => {
             // Arrange: Mock findById to return the existing record
             mockRepository.findById.mockResolvedValue(existingSurveyPeriod);
             
@@ -224,7 +224,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         });
 
         // Validation Path 2: Invalid minWalks
-        it('should throw BadRequestError when minWalks is invalid', async () => {
+        it('[TC-SP-SRV-10] should throw BadRequestError when minWalks is invalid', async () => {
             // Arrange: Mock findById to return the existing record
             mockRepository.findById.mockResolvedValue(existingSurveyPeriod);
             
@@ -239,7 +239,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         });
 
         // Failure Path 2: repository.update returns null
-        it('should throw NotFoundError when repository.update fails and returns null', async () => {
+        it('[TC-SP-SRV-11] should throw NotFoundError when repository.update fails and returns null', async () => {
             // Arrange: Mock findById to pass validation, but mock update to return null
             mockRepository.findById.mockResolvedValue(existingSurveyPeriod);
             mockRepository.update.mockResolvedValue(null);
@@ -254,7 +254,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         });
 
         // Success Path 1: Update with an empty payload (no fields updated)
-        it('should successfully process when no fields are updated', async () => {
+        it('[TC-SP-SRV-12] should successfully process when no fields are updated', async () => {
             // Arrange
             mockRepository.findById.mockResolvedValue(existingSurveyPeriod);
             const emptyInput = {};
@@ -270,7 +270,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         });
 
         // Success Path 2: Update without providing dates (fallback to existing dates)
-        it('should successfully update when dates are not provided', async () => {
+        it('[TC-SP-SRV-13] should successfully update when dates are not provided', async () => {
             // Arrange
             mockRepository.findById.mockResolvedValue(existingSurveyPeriod);
             const noDateInput = { 
@@ -293,7 +293,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         });
 
         // Success Path 3: Update without providing minWalks (only updating dates)
-        it('should successfully update dates without triggering minWalks validation', async () => {
+        it('[TC-SP-SRV-14] should successfully update dates without triggering minWalks validation', async () => {
             // Arrange
             mockRepository.findById.mockResolvedValue(existingSurveyPeriod);
             const onlyDatesInput = { 
@@ -316,7 +316,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         });
 
         // Success Path 4: Update all fields
-        it('should successfully update when all fields are provided', async () => {
+        it('[TC-SP-SRV-15] should successfully update when all fields are provided', async () => {
             // Arrange
             mockRepository.findById.mockResolvedValue(existingSurveyPeriod);
             const allFieldsInput = { 
@@ -348,7 +348,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         const mockUid = 'delete-uid-123';
 
         // Failure Path: repository returns false
-        it('should throw NotFoundError when the survey period to delete does not exist', async () => {
+        it('[TC-SP-SRV-16] should throw NotFoundError when the survey period to delete does not exist', async () => {
             // Arrange
             mockRepository.delete.mockResolvedValue(false);
 
@@ -361,7 +361,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         });
 
         // Success Path: repository returns true
-        it('should return a success object when the survey period is successfully deleted', async () => {
+        it('[TC-SP-SRV-17] should return a success object when the survey period is successfully deleted', async () => {
             // Arrange
             mockRepository.delete.mockResolvedValue(true);
 
@@ -394,7 +394,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         };
 
         // Failure Path 1: Survey period does not exist
-        it('should throw NotFoundError and NOT call repository.join if survey period does not exist', async () => {
+        it('[TC-SP-SRV-18] should throw NotFoundError and NOT call repository.join if survey period does not exist', async () => {
             // Arrange
             mockRepository.findById.mockResolvedValue(null);
 
@@ -406,7 +406,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         });
 
         // Failure Path 2: repository.join returns false
-        it('should throw NotFoundError if repository.join fails and returns false', async () => {
+        it('[TC-SP-SRV-19] should throw NotFoundError if repository.join fails and returns false', async () => {
             // Arrange
             mockRepository.findById.mockResolvedValue(existingSurveyPeriod);
             mockRepository.join.mockResolvedValue(false);
@@ -420,7 +420,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         });
 
         // Success Path
-        it('should return true when successfully joined the survey period', async () => {
+        it('[TC-SP-SRV-20] should return true when successfully joined the survey period', async () => {
             // Arrange
             mockRepository.findById.mockResolvedValue(existingSurveyPeriod);
             mockRepository.join.mockResolvedValue(true);
@@ -454,7 +454,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         };
 
         // Failure Path 1: Survey period does not exist
-        it('should throw NotFoundError and not call repository.unjoin if survey period does not exist', async () => {
+        it('[TC-SP-SRV-21] should throw NotFoundError and not call repository.unjoin if survey period does not exist', async () => {
             // Arrange
             mockRepository.findById.mockResolvedValue(null);
 
@@ -466,7 +466,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         });
 
         // Failure Path 2: repository.unjoin returns false
-        it('should throw NotFoundError if repository.unjoin fails and returns false', async () => {
+        it('[TC-SP-SRV-22] should throw NotFoundError if repository.unjoin fails and returns false', async () => {
             // Arrange
             mockRepository.findById.mockResolvedValue(existingSurveyPeriod);
             mockRepository.unjoin.mockResolvedValue(false);
@@ -480,7 +480,7 @@ describe('SurveyPeriodService Unit Tests', () => {
         });
 
         // Success Path
-        it('should return true when successfully unjoined from the survey period', async () => {
+        it('[TC-SP-SRV-23] should return true when successfully unjoined from the survey period', async () => {
             // Arrange
             mockRepository.findById.mockResolvedValue(existingSurveyPeriod);
             mockRepository.unjoin.mockResolvedValue(true);
