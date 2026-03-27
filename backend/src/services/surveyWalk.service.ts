@@ -46,6 +46,7 @@ export class SurveyWalkService {
     }
 
     async createSurveyWalk(input: CreateSurveyWalkInput): Promise<SurveyWalkEntity> {
+        this.validateTimeRange(input.startTime, input.endTime);
         await this.validateSurveyPeriodDate(input.surveyPeriodUid, input.date);
         return this.surveyWalkRepository.create(input);
     }
@@ -55,7 +56,10 @@ export class SurveyWalkService {
 
         const nextSurveyPeriodUid = input.surveyPeriodUid ?? existing.surveyPeriodUid;
         const nextDate = input.date ?? existing.date;
+        const nextStartTime = input.startTime ?? existing.startTime;
+        const nextEndTime = input.endTime ?? existing.endTime;
 
+        this.validateTimeRange(nextStartTime, nextEndTime);
         await this.validateSurveyPeriodDate(nextSurveyPeriodUid, nextDate);
 
         const updated = await this.surveyWalkRepository.update(uid, input);
@@ -160,6 +164,13 @@ export class SurveyWalkService {
 
         if (date < surveyPeriod.startDate || date > surveyPeriod.endDate) {
             throw new BadRequestError('Date must be within the associated survey period date range');
+        }
+    }
+
+    private validateTimeRange(startTime: string, endTime: string): void {
+        // Times are in HH:mm format, so lexicographic comparison is valid.
+        if (startTime >= endTime) {
+            throw new BadRequestError('startTime must be before endTime');
         }
     }
 }
