@@ -4,6 +4,8 @@ import { BrowserRouter } from 'react-router-dom';
 import SubmitSightingPage from '../pages/SubmitSighting';
 import { SightingsService, RafflesGoService} from '../api';
 import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
+import { saveDraft, getDraft } from '../services/SightingDraftsService';
+import type { SightingDraft } from '../types/sightingDrafts';
 
 // Mock the openapi client to prevent actual network calls
 vi.mock('../api', async (importOriginal) => {
@@ -50,6 +52,13 @@ vi.mock('../lib/firebase', () => ({
     storage: {},
 }));
 
+// Mock the draft service
+vi.mock('../services/SightingDraftsService', () => ({
+    saveDraft: vi.fn().mockResolvedValue(undefined),
+    getDraft: vi.fn(),
+    deleteDraft: vi.fn().mockResolvedValue(undefined),
+}));
+
 const mockUser = {
     uid: 'test-user-123',
     email: 'test@example.com',
@@ -59,6 +68,8 @@ const mockUser = {
 describe('SubmitSightingPage', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        // Reset the URL to clear any residual draftId from previous tests
+        window.history.pushState({}, '', '/');
 
         vi.mocked(RafflesGoService.getCurrentUser).mockResolvedValue({
             uid: 'test-user-123',
@@ -204,4 +215,179 @@ describe('SubmitSightingPage', () => {
             }));
         });
     });
+
+    it('should call saveDraft and show success message when "Save Draft" is clicked', async () => {
+        // Arrange
+        renderComponent();
+        const dateInput = screen.getByLabelText(/Date/i);
+        fireEvent.change(dateInput, { target: { value: '2026-03-27' } });
+
+        // Act
+        const saveButton = screen.getByRole('button', { name: /Save Draft/i });
+        fireEvent.click(saveButton);
+
+        // Assert
+        await waitFor(() => {
+            // Verify the service was called
+            expect(saveDraft).toHaveBeenCalled();
+            // Verify the UI feedback
+            expect(screen.getByText(/Draft saved locally/i)).toBeInTheDocument();
+        });
+    });
+
+    it('should show error message when saving a draft fails', async () => {
+        // Arrange
+        renderComponent();
+        // Force the saveDraft service to throw an error
+        vi.mocked(saveDraft).mockRejectedValueOnce(new Error('Save failed'));
+
+        // Act
+        const saveButton = screen.getByRole('button', { name: /Save Draft/i });
+        fireEvent.click(saveButton);
+
+        // Assert
+        await waitFor(() => {
+            // Verify that the error message from the catch block is displayed
+            expect(screen.getByText(/Failed to save draft/i)).toBeInTheDocument();
+        });
+    });
+
+    it('should automatically load draft data when draftId is present in the URL', async () => {
+    // Arrange
+    const mockId = 'test-draft-123';
+
+    const mockDraftData: SightingDraft = {
+        id: mockId,
+        userId: 'test-user-123',
+        createdAt: 1700000000000,
+        updatedAt: 1700000000000,
+        status: 'draft',
+        formData: {
+        result: 'sighted',
+        date: '2026-12-25',
+        time: '14:00',
+        location: 'Springleaf Route C',
+        species: 'Macaque',
+        latitude: 1.3521,
+        longitude: 103.8198,
+        adults: 3,
+        juveniles: 2,
+        behaviour: 'Eating',
+        notes: 'Found near the tree',
+        mediaUrl: ''
+        },
+        media: [],
+        lastError: null 
+    };
+
+    vi.mocked(getDraft).mockResolvedValue(mockDraftData);
+    window.history.pushState({}, 'Test Page', `/submit?draftId=${mockId}`);
+
+    // Act
+    renderComponent();
+
+    // Assert
+    await waitFor(() => {
+        expect(getDraft).toHaveBeenCalledWith(mockId);
+        expect(screen.getByLabelText(/Date/i)).toHaveValue('2026-12-25');
+        expect(screen.getByLabelText(/Time/i)).toHaveValue('14:00');
+        expect(screen.getByLabelText(/Species/i)).toHaveValue('Macaque');
+        expect(screen.getByText(/Draft loaded/i)).toBeInTheDocument();
+    });
+    });
+
+    it('should remove a specific file from the list when the "X" button is clicked', async () => {
+        // Arrange
+        const { container } = renderComponent();
+        const file1 = new File(['file1'], 'photo1.jpg', { type: 'image/jpeg' });
+        const file2 = new File(['file2'], 'photo2.jpg', { type: 'image/jpeg' });
+        
+        const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+
+        // Act
+        fireEvent.change(fileInput, { target: { files: [file1, file2] } });
+
+        // CRITICAL: We must wait for the async handleFileChange to finish and render the list
+        await waitFor(() => {
+            expect(screen.getByText('photo1.jpg')).toBeInTheDocument();
+            expect(screen.getByText('photo2.jpg')).toBeInTheDocument();
+        });
+
+        // Now that the files are rendered, the buttons will exist
+        // Using getAllByText('X') to target the specific labels
+        const removeButtons = screen.getAllByText('X'); 
+        fireEvent.click(removeButtons[1]);
+
+        // Assert
+        await waitFor(() => {
+            // Verify photo2 is gone and photo1 remains
+            expect(screen.queryByText('photo2.jpg')).not.toBeInTheDocument();
+            expect(screen.getByText('photo1.jpg')).toBeInTheDocument();
+        });
+    });
+
+    it('should show error message and re-enable the button when API submission fails', async () => {
+        // Arrange
+        renderComponent();
+        
+        // Fill in REQUIRED fields so the form can actually be submitted
+        fireEvent.change(screen.getByLabelText(/Date/i), { target: { value: '2026-03-27' } });
+        fireEvent.change(screen.getByLabelText(/Time/i), { target: { value: '14:00' } });
+        
+        // Mock the API to reject so we hit the catch block
+        vi.mocked(SightingsService.postApiSightings).mockRejectedValueOnce(new Error('Internal Server Error'));
+
+        // Act
+        const submitButton = screen.getByRole('button', { name: /Submit Report/i });
+        fireEvent.click(submitButton);
+
+        // Assert
+        await waitFor(() => {
+            // Now it should hit the catch block and show the message
+            expect(screen.getByText(/Failed to submit report/i)).toBeInTheDocument();
+            // And check if the button is re-enabled in the 'finally' block
+            expect(submitButton).not.toBeDisabled();
+        });
+    });
+
+    it('should show "Draft not found" message when the draft ID does not exist in storage', async () => {
+        // Arrange
+        // Mock getDraft to return null, simulating a missing record
+        vi.mocked(getDraft).mockResolvedValue(undefined);
+        window.history.pushState({}, 'Test Page', '/submit?draftId=non-existent-id');
+
+        // Act
+        renderComponent();
+
+        // Assert
+        await waitFor(() => {
+            // Verify the specific error message for missing drafts
+            expect(screen.getByText(/Draft not found/i)).toBeInTheDocument();
+        });
+    });
+
+    it('should update the position when "Use Device GPS" button is clicked', async () => {
+        // Arrange
+        const mockCoords = { latitude: 1.35208, longitude: 103.81984 };
+        const getCurrentPositionMock = vi.fn().mockImplementationOnce((success) =>
+            success({ coords: mockCoords })
+        );
+        vi.stubGlobal('navigator', {
+            ...global.navigator,
+            geolocation: { getCurrentPosition: getCurrentPositionMock }
+        });
+        renderComponent();
+
+        // Act
+        const gpsButton = screen.getByRole('button', { name: /Use Device GPS/i });
+        fireEvent.click(gpsButton);
+
+        // Assert
+        await waitFor(() => {
+            // Verify coordinates appear on screen formatted to 5 decimal places
+            expect(screen.getByText(/Pinned: 1.35208, 103.81984/i)).toBeInTheDocument();
+        });
+    });
+
+    
 });
