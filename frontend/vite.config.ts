@@ -105,6 +105,17 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
+    coverage: {
+      provider: 'v8',
+      exclude: [
+        'src/api/**',             
+        'src/components/ui/**',  
+        'src/test/**',            
+        'eslint.config.js',      
+        'vite.config.ts', 
+        'src/contexts/ThemeContext.tsx',        
+      ],
+    },
   },
   server: {
     proxy: {
