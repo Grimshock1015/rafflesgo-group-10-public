@@ -75,3 +75,16 @@ export async function getDraftsByStatus(
   const drafts = await db.getAll(STORE_NAME);
   return drafts.filter((draft) => draft.status === status);
 }
+
+export async function __clearDraftsForTests(): Promise<void> {
+  const db = await getDB();
+  await db.clear(STORE_NAME);
+}
+
+export async function __resetDraftDbForTests(): Promise<void> {
+  if (dbPromise) {
+    const db = await dbPromise;
+    db.close();
+    dbPromise = null;
+  }
+}
