@@ -281,7 +281,7 @@ describe('SubmitSightingPage', () => {
     };
 
     vi.mocked(getDraft).mockResolvedValue(mockDraftData);
-    window.history.pushState({}, 'Test Page', `/submit?draftId=${mockId}`);
+    window.history.pushState({}, 'Test Page', `/submit-sighting?draftId=${mockId}`);
 
     // Act
     renderComponent();
@@ -354,7 +354,7 @@ describe('SubmitSightingPage', () => {
         // Arrange
         // Mock getDraft to return null, simulating a missing record
         vi.mocked(getDraft).mockResolvedValue(undefined);
-        window.history.pushState({}, 'Test Page', '/submit?draftId=non-existent-id');
+        window.history.pushState({}, 'Test Page', '/submit-sighting?draftId=non-existent-id');
 
         // Act
         renderComponent();

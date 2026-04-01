@@ -49,43 +49,76 @@ export default function DraftsPage({ user }: { user: User }) {
     <>
       {/* <Navigation user={user} /> */}
 
-      <main style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto' }}>
-        <h1>Saved Drafts</h1>
-
-        {drafts.length === 0 ? (
-          <p>No drafts yet.</p>
-        ) : (
-          drafts.map((draft) => (
-            <div
-              key={draft.id}
-              style={{
-                border: '1px solid #ccc',
-                borderRadius: '8px',
-                padding: '1rem',
-                marginBottom: '1rem',
-              }}
-            >
-              <p><strong>{draft.formData.location || 'No location'}</strong></p>
-              <p>{draft.formData.date} {draft.formData.time}</p>
-              <p style={{ fontSize: '0.85rem', color: '#666' }}>
-                Last updated: {new Date(draft.updatedAt).toLocaleString()}
+      <main className="main-content">
+        <div className="container drafts-page">
+          <header className="welcome-header drafts-header">
+            <div>
+              <h1>Saved Drafts</h1>
+              <p className="welcome-subtitle">
+                Reopen an unfinished sighting or remove drafts you no longer need.
               </p>
-
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                <button onClick={() => handleOpen(draft.id)}>
-                  Open
-                </button>
-
-                <button
-                  onClick={() => handleDelete(draft.id)}
-                  style={{ color: 'red' }}
-                >
-                  Delete
-                </button>
-              </div>
             </div>
-          ))
-        )}
+            <button className="btn-primary" onClick={() => navigate('/submit-sighting')}>
+              New Sighting
+            </button>
+          </header>
+
+          <section className="card drafts-summary-card">
+            <p className="drafts-summary-eyebrow">Local storage</p>
+            <h2>{drafts.length} saved draft{drafts.length === 1 ? '' : 's'}</h2>
+            <p className="text-secondary">
+              Drafts stay on this device and account until you submit or delete them.
+            </p>
+          </section>
+
+          {drafts.length === 0 ? (
+            <section className="card drafts-empty-state">
+              <h2>No drafts yet</h2>
+              <p className="text-secondary">
+                Start a sighting, use Save Draft, and it will show up here for later.
+              </p>
+              <button className="btn-secondary" onClick={() => navigate('/submit-sighting')}>
+                Create First Draft
+              </button>
+            </section>
+          ) : (
+            <section className="drafts-grid">
+              {drafts.map((draft) => (
+                <article key={draft.id} className="card draft-card">
+                  <div className="draft-card-top">
+                    <span className={`draft-pill ${draft.formData.result === 'not_sighted' ? 'zero' : 'sighted'}`}>
+                      {draft.formData.result === 'not_sighted' ? 'Zero sighting' : 'Animal sighting'}
+                    </span>
+                    <span className="draft-updated">
+                      Updated {new Date(draft.updatedAt).toLocaleString()}
+                    </span>
+                  </div>
+
+                  <h2>{draft.formData.location || 'No route selected'}</h2>
+                  <p className="draft-meta">
+                    {draft.formData.date || 'No date'} {draft.formData.time || ''}
+                  </p>
+                  <p className="draft-meta">
+                    {draft.formData.species || (draft.formData.result === 'not_sighted' ? 'No animals recorded' : 'Species not set')}
+                  </p>
+
+                  <div className="draft-card-actions">
+                    <button className="btn-primary" onClick={() => handleOpen(draft.id)}>
+                      Open Draft
+                    </button>
+
+                    <button
+                      className="btn-secondary"
+                      onClick={() => handleDelete(draft.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </section>
+          )}
+        </div>
       </main>
     </>
   );
