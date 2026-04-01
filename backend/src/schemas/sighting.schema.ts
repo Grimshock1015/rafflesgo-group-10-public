@@ -49,3 +49,76 @@ export const CreateSightingResponseSchema = {
     },
   },
 } as const;
+
+export const MySightingsResponseSchema = {
+  $id: 'MySightingsResponse',
+  type: 'object',
+  required: ['stats', 'sightings'],
+  properties: {
+    stats: {
+      type: 'object',
+      required: [
+        'totalSubmissions',
+        'sightedCount',
+        'notSightedCount',
+        'uniqueLocations',
+        'totalAdults',
+        'totalJuveniles',
+        'speciesBreakdown',
+      ],
+      properties: {
+        totalSubmissions: { type: 'number' },
+        sightedCount: { type: 'number' },
+        notSightedCount: { type: 'number' },
+        uniqueLocations: { type: 'number' },
+        totalAdults: { type: 'number' },
+        totalJuveniles: { type: 'number' },
+        latestSubmissionAt: { type: 'string' },
+        speciesBreakdown: {
+          type: 'array',
+          items: {
+            type: 'object',
+            required: ['species', 'count'],
+            properties: {
+              species: { type: 'string' },
+              count: { type: 'number' },
+            },
+          },
+        },
+      },
+    },
+    sightings: {
+      type: 'array',
+      items: {
+        type: 'object',
+        required: [
+          'id',
+          'result',
+          'date',
+          'time',
+          'location',
+          'notes',
+          'submittedBy',
+          'createdAt',
+        ],
+        properties: {
+          id: { type: 'string' },
+          result: { type: 'string' },
+          date: { type: 'string' },
+          time: { type: 'string' },
+          location: { type: 'string' },
+          species: { type: 'string' },
+          latitude: { type: 'number' },
+          longitude: { type: 'number' },
+          adults: { type: 'number' },
+          juveniles: { type: 'number' },
+          behaviour: { type: 'string' },
+          notes: { type: 'string' },
+          submittedBy: { type: 'string' },
+          mediaUrl: { type: 'string' },
+          createdAt: { type: 'string' },
+        },
+      },
+    },
+  },
+} as const;

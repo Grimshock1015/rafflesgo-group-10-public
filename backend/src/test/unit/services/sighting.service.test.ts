@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createSighting } from '../../../services/sighting.service';
+import { createSighting, getMySightingsDashboard } from '../../../services/sighting.service';
 import { db } from '../../../lib/firebase-admin';
 
 // Mock crypto module to generate deterministic ID
@@ -10,8 +10,10 @@ vi.mock('crypto', () => ({
 // Mock Firebase implementation details for tracking arguments and interactions
 vi.mock('../../../lib/firebase-admin', () => {
     const set = vi.fn().mockResolvedValue(undefined);
+    const get = vi.fn().mockResolvedValue({ docs: [] });
+    const where = vi.fn(() => ({ get }));
     const doc = vi.fn(() => ({ set }));
-    const collection = vi.fn(() => ({ doc }));
+    const collection = vi.fn(() => ({ doc, where }));
     return {
         db: {
             collection,
@@ -105,6 +107,92 @@ describe('Sighting Service', () => {
                 result: 'not_sighted',
                 species: null,
             }));
+        });
+    });
+
+    describe('getMySightingsDashboard', () => {
+        it('should return sorted sightings and aggregate stats for the current user', async () => {
+            const docs = [
+                {
+                    data: () => ({
+                        id: 'older',
+                        result: 'not_sighted',
+                        date: '2026-03-24',
+                        time: '09:00',
+                        location: 'Route A',
+                        species: null,
+                        latitude: null,
+                        longitude: null,
+                        adults: null,
+                        juveniles: null,
+                        behaviour: null,
+                        notes: '',
+                        mediaUrl: '',
+                        submittedBy: 'user@example.com',
+                        createdAt: '2026-03-24T09:00:00.000Z',
+                    }),
+                },
+                {
+                    data: () => ({
+                        id: 'newer',
+                        result: 'sighted',
+                        date: '2026-03-25',
+                        time: '10:30',
+                        location: 'Route B',
+                        species: 'Raffles Banded Langur',
+                        latitude: 1.3,
+                        longitude: 103.8,
+                        adults: 2,
+                        juveniles: 1,
+                        behaviour: 'Resting',
+                        notes: 'Observed in canopy',
+                        mediaUrl: '',
+                        submittedBy: 'user@example.com',
+                        createdAt: '2026-03-25T10:30:00.000Z',
+                    }),
+                },
+                {
+                    data: () => ({
+                        id: 'same-species',
+                        result: 'sighted',
+                        date: '2026-03-26',
+                        time: '07:30',
+                        location: 'Route B',
+                        species: 'Raffles Banded Langur',
+                        latitude: 1.31,
+                        longitude: 103.81,
+                        adults: 1,
+                        juveniles: 0,
+                        behaviour: 'Moving',
+                        notes: '',
+                        mediaUrl: '',
+                        submittedBy: 'user@example.com',
+                        createdAt: '2026-03-26T07:30:00.000Z',
+                    }),
+                },
+            ];
+
+            const mockCollection = db.collection as unknown as ReturnType<typeof vi.fn>;
+            const collectionResult = mockCollection();
+            collectionResult.where().get.mockResolvedValue({ docs });
+
+            const result = await getMySightingsDashboard('user@example.com');
+
+            expect(mockCollection).toHaveBeenCalledWith('sightings');
+            expect(collectionResult.where).toHaveBeenCalledWith('submittedBy', '==', 'user@example.com');
+            expect(result.sightings.map((sighting) => sighting.id)).toEqual(['same-species', 'newer', 'older']);
+            expect(result.stats).toEqual({
+                totalSubmissions: 3,
+                sightedCount: 2,
+                notSightedCount: 1,
+                uniqueLocations: 2,
+                totalAdults: 3,
+                totalJuveniles: 1,
+                latestSubmissionAt: '2026-03-26T07:30:00.000Z',
+                speciesBreakdown: [
+                    { species: 'Raffles Banded Langur', count: 2 },
+                ],
+            });
         });
     });
 });

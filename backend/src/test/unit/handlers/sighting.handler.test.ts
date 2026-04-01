@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import { createSightingHandler } from '../../../handlers/sighting.handler';
+import { createSightingHandler, getMySightingsHandler } from '../../../handlers/sighting.handler';
 import * as SightingService from '../../../services/sighting.service';
 
 vi.mock('../../../services/sighting.service', () => ({
     createSighting: vi.fn(),
+    getMySightingsDashboard: vi.fn(),
 }));
 
 describe('Sighting Handler', () => {
@@ -84,6 +85,59 @@ describe('Sighting Handler', () => {
             expect(mockCode).toHaveBeenCalledWith(500);
             expect(mockSend).toHaveBeenCalledWith({
                 message: 'Failed to submit sighting',
+            });
+        });
+    });
+
+    describe('getMySightingsHandler', () => {
+        it('should return the current user dashboard when email is available', async () => {
+            const dashboard = {
+                stats: {
+                    totalSubmissions: 1,
+                    sightedCount: 1,
+                    notSightedCount: 0,
+                    uniqueLocations: 1,
+                    totalAdults: 2,
+                    totalJuveniles: 0,
+                    latestSubmissionAt: '2026-03-24T12:00:00.000Z',
+                    speciesBreakdown: [{ species: 'Raffles Banded Langur', count: 1 }],
+                },
+                sightings: [],
+            };
+
+            vi.mocked(SightingService.getMySightingsDashboard).mockResolvedValue(
+                dashboard as Awaited<ReturnType<typeof SightingService.getMySightingsDashboard>>
+            );
+
+            await getMySightingsHandler(mockRequest, mockReply);
+
+            expect(SightingService.getMySightingsDashboard).toHaveBeenCalledWith('test@example.com');
+            expect(mockCode).toHaveBeenCalledWith(200);
+            expect(mockSend).toHaveBeenCalledWith(dashboard);
+        });
+
+        it('should return 400 when the authenticated user has no email', async () => {
+            mockRequest.user = {};
+
+            await getMySightingsHandler(mockRequest, mockReply);
+
+            expect(SightingService.getMySightingsDashboard).not.toHaveBeenCalled();
+            expect(mockCode).toHaveBeenCalledWith(400);
+            expect(mockSend).toHaveBeenCalledWith({
+                message: 'Authenticated user does not have an email address',
+            });
+        });
+
+        it('should return 500 when fetching the dashboard fails', async () => {
+            const serviceError = new Error('Firestore unavailable');
+            vi.mocked(SightingService.getMySightingsDashboard).mockRejectedValue(serviceError);
+
+            await getMySightingsHandler(mockRequest, mockReply);
+
+            expect(mockRequest.log?.error).toHaveBeenCalledWith(serviceError);
+            expect(mockCode).toHaveBeenCalledWith(500);
+            expect(mockSend).toHaveBeenCalledWith({
+                message: 'Failed to fetch your sightings',
             });
         });
     });

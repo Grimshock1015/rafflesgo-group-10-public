@@ -1,5 +1,6 @@
 import { randomUUID } from 'crypto';
 import { db } from '../lib/firebase-admin';
+import { FIRESTORE_COLLECTIONS } from '../lib/firestore-collections';
 
 type CreateSightingInput = {
   result: 'sighted' | 'not_sighted';
@@ -17,10 +18,45 @@ type CreateSightingInput = {
   submittedBy: string;
 };
 
+export type StoredSighting = {
+  id: string;
+  result: 'sighted' | 'not_sighted';
+  date: string;
+  time: string;
+  location: string;
+  species: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  adults: number | null;
+  juveniles: number | null;
+  behaviour: string | null;
+  notes: string;
+  mediaUrl: string;
+  submittedBy: string;
+  createdAt: string;
+};
+
+export type MySightingsDashboard = {
+  stats: {
+    totalSubmissions: number;
+    sightedCount: number;
+    notSightedCount: number;
+    uniqueLocations: number;
+    totalAdults: number;
+    totalJuveniles: number;
+    latestSubmissionAt?: string;
+    speciesBreakdown: Array<{
+      species: string;
+      count: number;
+    }>;
+  };
+  sightings: StoredSighting[];
+};
+
 export async function createSighting(input: CreateSightingInput) {
   const id = randomUUID();
 
-  const sighting = {
+  const sighting: StoredSighting = {
     id,
     result: input.result,
     date: input.date,
@@ -38,7 +74,55 @@ export async function createSighting(input: CreateSightingInput) {
     createdAt: new Date().toISOString(),
   };
 
-  await db.collection('sightings').doc(id).set(sighting);
+  await db.collection(FIRESTORE_COLLECTIONS.SIGHTINGS).doc(id).set(sighting);
 
   return sighting;
+}
+
+export async function getMySightingsDashboard(submittedBy: string): Promise<MySightingsDashboard> {
+  const snapshot = await db
+    .collection(FIRESTORE_COLLECTIONS.SIGHTINGS)
+    .where('submittedBy', '==', submittedBy)
+    .get();
+
+  const sightings = snapshot.docs
+    .map((doc) => doc.data() as StoredSighting)
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+
+  const speciesCounts = new Map<string, number>();
+  let sightedCount = 0;
+  let notSightedCount = 0;
+  let totalAdults = 0;
+  let totalJuveniles = 0;
+
+  for (const sighting of sightings) {
+    if (sighting.result === 'sighted') {
+      sightedCount += 1;
+    } else {
+      notSightedCount += 1;
+    }
+
+    totalAdults += sighting.adults ?? 0;
+    totalJuveniles += sighting.juveniles ?? 0;
+
+    if (sighting.species) {
+      speciesCounts.set(sighting.species, (speciesCounts.get(sighting.species) ?? 0) + 1);
+    }
+  }
+
+  return {
+    stats: {
+      totalSubmissions: sightings.length,
+      sightedCount,
+      notSightedCount,
+      uniqueLocations: new Set(sightings.map((sighting) => sighting.location)).size,
+      totalAdults,
+      totalJuveniles,
+      latestSubmissionAt: sightings[0]?.createdAt,
+      speciesBreakdown: [...speciesCounts.entries()]
+        .map(([species, count]) => ({ species, count }))
+        .sort((left, right) => right.count - left.count || left.species.localeCompare(right.species)),
+    },
+    sightings,
+  };
 }
