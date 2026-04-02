@@ -49,7 +49,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
         const mockRequest = {} as unknown as Parameters<typeof listSurveyPeriodsHandler>[0];
         const mockReply = {} as unknown as Parameters<typeof listSurveyPeriodsHandler>[1];
 
-        it('should return a list of mapped survey period DTOs when entities exist', async () => {
+        it('[TC-SP-HDL-01] should return a list of mapped survey period DTOs when entities exist', async () => {
             // Arrange
             const mockDate1 = new Date('2026-01-01T00:00:00.000Z');
             const mockDate2 = new Date('2026-02-01T00:00:00.000Z');
@@ -86,7 +86,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             });
         });
 
-        it('should return an empty array when no survey periods exist', async () => {
+        it('[TC-SP-HDL-02] should return an empty array when no survey periods exist', async () => {
             // Arrange
             mockSurveyPeriodService.getAllSurveyPeriods.mockResolvedValue([]);
 
@@ -123,7 +123,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             volunteerUids: ['user-A', 'user-B']
         };
 
-        it('should extract uid from params, call service, and return the mapped DTO', async () => {
+        it('[TC-SP-HDL-03] should extract uid from params, call service, and return the mapped DTO', async () => {
             // Arrange
             mockSurveyPeriodService.getSurveyPeriod.mockResolvedValue(mockEntity);
 
@@ -144,7 +144,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             });
         });
 
-        it('should propagate the error if the underlying service throws an error', async () => {
+        it('[TC-SP-HDL-04] should propagate the error if the underlying service throws an error', async () => {
             // Arrange
             const mockError = new Error('Survey period not found');
             mockSurveyPeriodService.getSurveyPeriod.mockRejectedValue(mockError);
@@ -176,7 +176,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             minWalks: 3
         };
 
-        it('should throw BadRequestError if startDate is an invalid date string', async () => {
+        it('[TC-SP-HDL-05] should throw BadRequestError if startDate is an invalid date string', async () => {
             // Arrange
             const invalidRequest = {
                 body: { ...validBody, startDate: 'not-a-date' }
@@ -193,7 +193,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             expect(mockSurveyPeriodService.createSurveyPeriod).not.toHaveBeenCalled();
         });
 
-        it('should throw BadRequestError if endDate is an invalid date string', async () => {
+        it('[TC-SP-HDL-06] should throw BadRequestError if endDate is an invalid date string', async () => {
             // Arrange
             const invalidRequest = {
                 body: { ...validBody, endDate: 'wrong-format' }
@@ -207,7 +207,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                 .rejects.toThrow('endDate must be a valid date-time');
         });
 
-        it('should parse dates, call service, and return 201 with DTO', async () => {
+        it('[TC-SP-HDL-07] should parse dates, call service, and return 201 with DTO', async () => {
             // Arrange
             const mockRequest = { body: validBody } as unknown as Parameters<typeof createSurveyPeriodHandler>[0];
             const createdEntity: SurveyPeriodEntity = {
@@ -254,7 +254,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
         // Arrange: Mock reply using Parameters utility to eliminate 'any'
         const mockReply = {} as unknown as Parameters<typeof updateSurveyPeriodHandler>[1];
 
-        it('should throw BadRequestError if startDate is provided but invalid', async () => {
+        it('[TC-SP-HDL-08] should throw BadRequestError if startDate is provided but invalid', async () => {
             // Arrange
             const request = {
                 params: { uid: mockUid },
@@ -268,7 +268,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                 .rejects.toThrow('startDate must be a valid date-time');
         });
 
-        it('should throw BadRequestError if endDate is provided but invalid', async () => {
+        it('[TC-SP-HDL-09] should throw BadRequestError if endDate is provided but invalid', async () => {
             // Arrange
             const request = {
                 params: { uid: mockUid },
@@ -282,7 +282,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                 .rejects.toThrow('endDate must be a valid date-time');
         });
 
-        it('should pass undefined to service when dates are not provided (Partial Update)', async () => {
+        it('[TC-SP-HDL-10] should pass undefined to service when dates are not provided (Partial Update)', async () => {
             // Arrange
             const request = {
                 params: { uid: mockUid },
@@ -313,7 +313,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             });
         });
 
-        it('should parse date strings and call service when dates are provided (Full Update)', async () => {
+        it('[TC-SP-HDL-11] should parse date strings and call service when dates are provided (Full Update)', async () => {
             // Arrange
             const startDateStr = '2026-05-01T12:00:00.000Z';
             const endDateStr = '2026-06-01T12:00:00.000Z';
@@ -368,7 +368,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
         } as unknown as Parameters<typeof deleteSurveyPeriodHandler>[0];
         const mockReply = {} as unknown as Parameters<typeof deleteSurveyPeriodHandler>[1];
 
-        it('should call service with uid from params and return the service result', async () => {
+        it('[TC-SP-HDL-12] should call service with uid from params and return the service result', async () => {
             // Arrange: Use 'as const' to ensure 'success' is treated as literal type 'true' instead of 'boolean'
             const serviceResult = { success: true as const, uid: mockUid };
             mockSurveyPeriodService.deleteSurveyPeriod.mockResolvedValue(serviceResult);
@@ -382,7 +382,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             expect(result).toEqual(serviceResult);
         });
 
-        it('should propagate errors thrown by the service', async () => {
+        it('[TC-SP-HDL-13] should propagate errors thrown by the service', async () => {
             // Arrange: Mock the service to throw an error
             const mockError = new Error('Service delete failed');
             mockSurveyPeriodService.deleteSurveyPeriod.mockRejectedValue(mockError);
@@ -407,7 +407,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
         } as unknown as Parameters<typeof joinSurveyPeriodHandler>[0];
         const mockReply = {} as unknown as Parameters<typeof joinSurveyPeriodHandler>[1];
 
-        it('should call service with uids from params and body and return success true', async () => {
+        it('[TC-SP-HDL-14] should call service with uids from params and body and return success true', async () => {
             // Arrange: Mock the service to resolve successfully
             mockSurveyPeriodService.joinSurveyPeriod.mockResolvedValue(true);
 
@@ -425,7 +425,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             expect(result).toEqual({ success: true });
         });
 
-        it('should propagate errors thrown by the service (e.g., NotFoundError)', async () => {
+        it('[TC-SP-HDL-15] should propagate errors thrown by the service (e.g., NotFoundError)', async () => {
             // Arrange: Mock the service to throw an error
             const mockError = new Error('Survey period not found');
             mockSurveyPeriodService.joinSurveyPeriod.mockRejectedValue(mockError);
@@ -456,7 +456,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
         } as unknown as Parameters<typeof unjoinSurveyPeriodHandler>[0];
         const mockReply = {} as unknown as Parameters<typeof unjoinSurveyPeriodHandler>[1];
 
-        it('should call service with uids from params and body and return success true', async () => {
+        it('[TC-SP-HDL-16] should call service with uids from params and body and return success true', async () => {
             // Arrange: Mock the service to resolve successfully
             mockSurveyPeriodService.unjoinSurveyPeriod.mockResolvedValue(true);
 
@@ -474,7 +474,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             expect(result).toEqual({ success: true });
         });
 
-        it('should propagate errors thrown by the service (e.g., NotFoundError)', async () => {
+        it('[TC-SP-HDL-17] should propagate errors thrown by the service (e.g., NotFoundError)', async () => {
             // Arrange: Mock the service to throw an error
             const mockError = new Error('Fail to unjoin Survey Period');
             mockSurveyPeriodService.unjoinSurveyPeriod.mockRejectedValue(mockError);
