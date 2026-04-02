@@ -106,6 +106,12 @@ export function Navigation({ user }: NavigationProps) {
             </li>
 
             <li>
+              <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/drafts');}} px={2}>
+                Saved Drafts
+              </Button>
+            </li>
+
+            <li>
               <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/dashboard');}} px={2}>
                 Dashboard
               </Button>

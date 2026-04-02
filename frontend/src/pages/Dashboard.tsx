@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { RafflesGoService } from '../api';
 import { Link } from 'react-router-dom';
+import { getAllDrafts } from '../services/SightingDraftsService';
 
 export default function Dashboard({ user }: { user: User }) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [error, setError] = useState<boolean>(false);
+  const [draftCount, setDraftCount] = useState(0);
 
   useEffect(() => {
     const fetchEmail = async () => {
@@ -23,6 +25,19 @@ export default function Dashboard({ user }: { user: User }) {
 
     fetchEmail();
   }, [user.displayName]);
+
+  useEffect(() => {
+    const loadDraftCount = async () => {
+      try {
+        const drafts = await getAllDrafts();
+        setDraftCount(drafts.filter((draft) => draft.userId === user.uid).length);
+      } catch (draftError) {
+        console.error('Failed to load draft count:', draftError);
+      }
+    };
+
+    void loadDraftCount();
+  }, [user.uid]);
 
   const displayRole =
     userRole === "user"
@@ -52,8 +67,15 @@ export default function Dashboard({ user }: { user: User }) {
               <Link to="/submit-sighting" className="btn btn-primary">
                 Submit Sighting
               </Link>
-              {/* Add your feature links here */}
+              <Link to="/drafts" className="btn btn-secondary">
+                Saved Drafts {draftCount > 0 ? `(${draftCount})` : ''}
+              </Link>
             </div>
+            <p className="text-secondary" style={{ marginTop: '0.75rem' }}>
+              {draftCount > 0
+                ? `You have ${draftCount} saved draft${draftCount === 1 ? '' : 's'} ready to reopen.`
+                : 'Saved drafts will appear here after you use Save Draft on a sighting.'}
+            </p>
           </section>
         </div>
       </main>
