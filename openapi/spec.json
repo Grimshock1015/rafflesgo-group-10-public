@@ -324,155 +324,13 @@
         }
       }
     },
-    "/api/sightings": {
-      "post": {
-        "tags": [
-          "Sightings"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "result",
-                  "date",
-                  "time",
-                  "location"
-                ],
-                "properties": {
-                  "result": {
-                    "type": "string",
-                    "enum": [
-                      "sighted",
-                      "not_sighted"
-                    ]
-                  },
-                  "date": {
-                    "type": "string"
-                  },
-                  "time": {
-                    "type": "string"
-                  },
-                  "location": {
-                    "type": "string"
-                  },
-                  "species": {
-                    "type": "string"
-                  },
-                  "latitude": {
-                    "type": "number"
-                  },
-                  "longitude": {
-                    "type": "number"
-                  },
-                  "adults": {
-                    "type": "number"
-                  },
-                  "juveniles": {
-                    "type": "number"
-                  },
-                  "behaviour": {
-                    "type": "string"
-                  },
-                  "notes": {
-                    "type": "string"
-                  },
-                  "mediaUrl": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "message",
-                    "sighting"
-                  ],
-                  "properties": {
-                    "message": {
-                      "type": "string"
-                    },
-                    "sighting": {
-                      "type": "object",
-                      "required": [
-                        "id",
-                        "result",
-                        "date",
-                        "time",
-                        "location",
-                        "notes",
-                        "submittedBy"
-                      ],
-                      "properties": {
-                        "id": {
-                          "type": "string"
-                        },
-                        "result": {
-                          "type": "string"
-                        },
-                        "date": {
-                          "type": "string"
-                        },
-                        "time": {
-                          "type": "string"
-                        },
-                        "location": {
-                          "type": "string"
-                        },
-                        "species": {
-                          "type": "string"
-                        },
-                        "latitude": {
-                          "type": "number"
-                        },
-                        "longitude": {
-                          "type": "number"
-                        },
-                        "adults": {
-                          "type": "number"
-                        },
-                        "juveniles": {
-                          "type": "number"
-                        },
-                        "behaviour": {
-                          "type": "string"
-                        },
-                        "notes": {
-                          "type": "string"
-                        },
-                        "submittedBy": {
-                          "type": "string"
-                        },
-                        "mediaUrl": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/surveyPeriods": {
       "get": {
         "operationId": "listSurveyPeriods",
         "tags": [
           "RafflesGo"
         ],
-        "description": "List all survey periods (admin only)",
+        "description": "List all survey periods",
         "security": [
           {
             "bearerAuth": []
@@ -645,7 +503,7 @@
         "tags": [
           "RafflesGo"
         ],
-        "description": "Get one survey period by uid (admin only)",
+        "description": "Get one survey period by uid",
         "parameters": [
           {
             "schema": {
@@ -976,6 +834,1374 @@
                   "properties": {
                     "success": {
                       "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveyWalks": {
+      "get": {
+        "operationId": "listSurveyWalks",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "List all survey walks (admin only)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "surveyWalks"
+                  ],
+                  "properties": {
+                    "surveyWalks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "uid",
+                          "surveyPeriodUid",
+                          "surveyPeriodName",
+                          "name",
+                          "date",
+                          "startTime",
+                          "endTime",
+                          "capacity",
+                          "isFinished",
+                          "volunteers",
+                          "leader"
+                        ],
+                        "properties": {
+                          "uid": {
+                            "type": "string"
+                          },
+                          "surveyPeriodUid": {
+                            "type": "string"
+                          },
+                          "surveyPeriodName": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "date": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "startTime": {
+                            "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                            "type": "string"
+                          },
+                          "endTime": {
+                            "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                            "type": "string"
+                          },
+                          "capacity": {
+                            "minimum": 1,
+                            "type": "integer"
+                          },
+                          "isFinished": {
+                            "type": "boolean"
+                          },
+                          "volunteers": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "uid",
+                                "name"
+                              ],
+                              "properties": {
+                                "uid": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "leader": {
+                            "type": "object",
+                            "required": [
+                              "uid",
+                              "name"
+                            ],
+                            "properties": {
+                              "uid": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createSurveyWalk",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Create a survey walk (admin only)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "surveyPeriodUid",
+                  "name",
+                  "date",
+                  "startTime",
+                  "endTime",
+                  "capacity"
+                ],
+                "properties": {
+                  "surveyPeriodUid": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "name": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "date": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "startTime": {
+                    "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                    "type": "string"
+                  },
+                  "endTime": {
+                    "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                    "type": "string"
+                  },
+                  "capacity": {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "isFinished": {
+                    "type": "boolean"
+                  },
+                  "leader": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "uid",
+                    "surveyPeriodUid",
+                    "surveyPeriodName",
+                    "name",
+                    "date",
+                    "startTime",
+                    "endTime",
+                    "capacity",
+                    "isFinished",
+                    "volunteers",
+                    "leader"
+                  ],
+                  "properties": {
+                    "uid": {
+                      "type": "string"
+                    },
+                    "surveyPeriodUid": {
+                      "type": "string"
+                    },
+                    "surveyPeriodName": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "startTime": {
+                      "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                      "type": "string"
+                    },
+                    "endTime": {
+                      "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                      "type": "string"
+                    },
+                    "capacity": {
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "isFinished": {
+                      "type": "boolean"
+                    },
+                    "volunteers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "uid",
+                          "name"
+                        ],
+                        "properties": {
+                          "uid": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "leader": {
+                      "type": "object",
+                      "required": [
+                        "uid",
+                        "name"
+                      ],
+                      "properties": {
+                        "uid": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveyWalks/joined": {
+      "get": {
+        "operationId": "listSurveyWalksForCurrentUser",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "List survey walks for periods the current user has joined",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "surveyWalks"
+                  ],
+                  "properties": {
+                    "surveyWalks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "uid",
+                          "surveyPeriodUid",
+                          "surveyPeriodName",
+                          "name",
+                          "date",
+                          "startTime",
+                          "endTime",
+                          "capacity",
+                          "isFinished",
+                          "volunteers",
+                          "leader"
+                        ],
+                        "properties": {
+                          "uid": {
+                            "type": "string"
+                          },
+                          "surveyPeriodUid": {
+                            "type": "string"
+                          },
+                          "surveyPeriodName": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "date": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "startTime": {
+                            "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                            "type": "string"
+                          },
+                          "endTime": {
+                            "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                            "type": "string"
+                          },
+                          "capacity": {
+                            "minimum": 1,
+                            "type": "integer"
+                          },
+                          "isFinished": {
+                            "type": "boolean"
+                          },
+                          "volunteers": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "uid",
+                                "name"
+                              ],
+                              "properties": {
+                                "uid": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "leader": {
+                            "type": "object",
+                            "required": [
+                              "uid",
+                              "name"
+                            ],
+                            "properties": {
+                              "uid": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveyWalks/{uid}": {
+      "get": {
+        "operationId": "getSurveyWalk",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Get one survey walk by uid (admin only)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "uid",
+                    "surveyPeriodUid",
+                    "surveyPeriodName",
+                    "name",
+                    "date",
+                    "startTime",
+                    "endTime",
+                    "capacity",
+                    "isFinished",
+                    "volunteers",
+                    "leader"
+                  ],
+                  "properties": {
+                    "uid": {
+                      "type": "string"
+                    },
+                    "surveyPeriodUid": {
+                      "type": "string"
+                    },
+                    "surveyPeriodName": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "startTime": {
+                      "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                      "type": "string"
+                    },
+                    "endTime": {
+                      "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                      "type": "string"
+                    },
+                    "capacity": {
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "isFinished": {
+                      "type": "boolean"
+                    },
+                    "volunteers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "uid",
+                          "name"
+                        ],
+                        "properties": {
+                          "uid": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "leader": {
+                      "type": "object",
+                      "required": [
+                        "uid",
+                        "name"
+                      ],
+                      "properties": {
+                        "uid": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "updateSurveyWalk",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Update a survey walk by uid (admin only)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "surveyPeriodUid": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "name": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "date": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "startTime": {
+                    "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                    "type": "string"
+                  },
+                  "endTime": {
+                    "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                    "type": "string"
+                  },
+                  "capacity": {
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "isFinished": {
+                    "type": "boolean"
+                  },
+                  "leader": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "uid",
+                    "surveyPeriodUid",
+                    "surveyPeriodName",
+                    "name",
+                    "date",
+                    "startTime",
+                    "endTime",
+                    "capacity",
+                    "isFinished",
+                    "volunteers",
+                    "leader"
+                  ],
+                  "properties": {
+                    "uid": {
+                      "type": "string"
+                    },
+                    "surveyPeriodUid": {
+                      "type": "string"
+                    },
+                    "surveyPeriodName": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "startTime": {
+                      "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                      "type": "string"
+                    },
+                    "endTime": {
+                      "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                      "type": "string"
+                    },
+                    "capacity": {
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "isFinished": {
+                      "type": "boolean"
+                    },
+                    "volunteers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "uid",
+                          "name"
+                        ],
+                        "properties": {
+                          "uid": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "leader": {
+                      "type": "object",
+                      "required": [
+                        "uid",
+                        "name"
+                      ],
+                      "properties": {
+                        "uid": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteSurveyWalk",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Delete a survey walk by uid (admin only)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "uid"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "uid": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveyPeriods/{surveyPeriodUid}/surveyWalks": {
+      "get": {
+        "operationId": "listSurveyWalksBySurveyPeriod",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "List survey walks for a survey period",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "surveyPeriodUid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "surveyWalks"
+                  ],
+                  "properties": {
+                    "surveyWalks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "uid",
+                          "surveyPeriodUid",
+                          "surveyPeriodName",
+                          "name",
+                          "date",
+                          "startTime",
+                          "endTime",
+                          "capacity",
+                          "isFinished",
+                          "volunteers",
+                          "leader"
+                        ],
+                        "properties": {
+                          "uid": {
+                            "type": "string"
+                          },
+                          "surveyPeriodUid": {
+                            "type": "string"
+                          },
+                          "surveyPeriodName": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "date": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "startTime": {
+                            "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                            "type": "string"
+                          },
+                          "endTime": {
+                            "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                            "type": "string"
+                          },
+                          "capacity": {
+                            "minimum": 1,
+                            "type": "integer"
+                          },
+                          "isFinished": {
+                            "type": "boolean"
+                          },
+                          "volunteers": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "uid",
+                                "name"
+                              ],
+                              "properties": {
+                                "uid": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "leader": {
+                            "type": "object",
+                            "required": [
+                              "uid",
+                              "name"
+                            ],
+                            "properties": {
+                              "uid": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveyWalks/{uid}/join": {
+      "post": {
+        "operationId": "joinSurveyWalk",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Join a survey walk as the current user",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "surveyWalk"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "surveyWalk": {
+                      "type": "object",
+                      "required": [
+                        "uid",
+                        "surveyPeriodUid",
+                        "surveyPeriodName",
+                        "name",
+                        "date",
+                        "startTime",
+                        "endTime",
+                        "capacity",
+                        "isFinished",
+                        "volunteers",
+                        "leader"
+                      ],
+                      "properties": {
+                        "uid": {
+                          "type": "string"
+                        },
+                        "surveyPeriodUid": {
+                          "type": "string"
+                        },
+                        "surveyPeriodName": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "startTime": {
+                          "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                          "type": "string"
+                        },
+                        "endTime": {
+                          "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                          "type": "string"
+                        },
+                        "capacity": {
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "isFinished": {
+                          "type": "boolean"
+                        },
+                        "volunteers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "uid",
+                              "name"
+                            ],
+                            "properties": {
+                              "uid": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "leader": {
+                          "type": "object",
+                          "required": [
+                            "uid",
+                            "name"
+                          ],
+                          "properties": {
+                            "uid": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveyWalks/{uid}/quit": {
+      "post": {
+        "operationId": "quitSurveyWalk",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Quit a survey walk as the current user",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "surveyWalk"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "surveyWalk": {
+                      "type": "object",
+                      "required": [
+                        "uid",
+                        "surveyPeriodUid",
+                        "surveyPeriodName",
+                        "name",
+                        "date",
+                        "startTime",
+                        "endTime",
+                        "capacity",
+                        "isFinished",
+                        "volunteers",
+                        "leader"
+                      ],
+                      "properties": {
+                        "uid": {
+                          "type": "string"
+                        },
+                        "surveyPeriodUid": {
+                          "type": "string"
+                        },
+                        "surveyPeriodName": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "startTime": {
+                          "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                          "type": "string"
+                        },
+                        "endTime": {
+                          "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                          "type": "string"
+                        },
+                        "capacity": {
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "isFinished": {
+                          "type": "boolean"
+                        },
+                        "volunteers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "uid",
+                              "name"
+                            ],
+                            "properties": {
+                              "uid": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "leader": {
+                          "type": "object",
+                          "required": [
+                            "uid",
+                            "name"
+                          ],
+                          "properties": {
+                            "uid": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveyWalks/{uid}/reassign-leader": {
+      "post": {
+        "operationId": "reassignSurveyWalkLeader",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Reassign survey walk leader (current leader only)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "newLeaderUid"
+                ],
+                "properties": {
+                  "newLeaderUid": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "surveyWalk"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "surveyWalk": {
+                      "type": "object",
+                      "required": [
+                        "uid",
+                        "surveyPeriodUid",
+                        "surveyPeriodName",
+                        "name",
+                        "date",
+                        "startTime",
+                        "endTime",
+                        "capacity",
+                        "isFinished",
+                        "volunteers",
+                        "leader"
+                      ],
+                      "properties": {
+                        "uid": {
+                          "type": "string"
+                        },
+                        "surveyPeriodUid": {
+                          "type": "string"
+                        },
+                        "surveyPeriodName": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "startTime": {
+                          "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                          "type": "string"
+                        },
+                        "endTime": {
+                          "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$",
+                          "type": "string"
+                        },
+                        "capacity": {
+                          "minimum": 1,
+                          "type": "integer"
+                        },
+                        "isFinished": {
+                          "type": "boolean"
+                        },
+                        "volunteers": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "uid",
+                              "name"
+                            ],
+                            "properties": {
+                              "uid": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "leader": {
+                          "type": "object",
+                          "required": [
+                            "uid",
+                            "name"
+                          ],
+                          "properties": {
+                            "uid": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sightings": {
+      "post": {
+        "tags": [
+          "Sightings"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "result",
+                  "date",
+                  "time",
+                  "location"
+                ],
+                "properties": {
+                  "result": {
+                    "type": "string",
+                    "enum": [
+                      "sighted",
+                      "not_sighted"
+                    ]
+                  },
+                  "date": {
+                    "type": "string"
+                  },
+                  "time": {
+                    "type": "string"
+                  },
+                  "location": {
+                    "type": "string"
+                  },
+                  "species": {
+                    "type": "string"
+                  },
+                  "latitude": {
+                    "type": "number"
+                  },
+                  "longitude": {
+                    "type": "number"
+                  },
+                  "adults": {
+                    "type": "number"
+                  },
+                  "juveniles": {
+                    "type": "number"
+                  },
+                  "behaviour": {
+                    "type": "string"
+                  },
+                  "notes": {
+                    "type": "string"
+                  },
+                  "mediaUrl": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "message",
+                    "sighting"
+                  ],
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "sighting": {
+                      "type": "object",
+                      "required": [
+                        "id",
+                        "result",
+                        "date",
+                        "time",
+                        "location",
+                        "notes",
+                        "submittedBy"
+                      ],
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "result": {
+                          "type": "string"
+                        },
+                        "date": {
+                          "type": "string"
+                        },
+                        "time": {
+                          "type": "string"
+                        },
+                        "location": {
+                          "type": "string"
+                        },
+                        "species": {
+                          "type": "string"
+                        },
+                        "latitude": {
+                          "type": "number"
+                        },
+                        "longitude": {
+                          "type": "number"
+                        },
+                        "adults": {
+                          "type": "number"
+                        },
+                        "juveniles": {
+                          "type": "number"
+                        },
+                        "behaviour": {
+                          "type": "string"
+                        },
+                        "notes": {
+                          "type": "string"
+                        },
+                        "submittedBy": {
+                          "type": "string"
+                        },
+                        "mediaUrl": {
+                          "type": "string"
+                        }
+                      }
                     }
                   }
                 }
