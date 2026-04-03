@@ -9,7 +9,7 @@
     "build": "npm run generate-spec && tsc",
     "test": "vitest run --exclude 'src/test/integration/**'",
     "test:coverage": "vitest run --coverage --exclude 'src/test/integration/**'",
-    "test:integration": "cross-env FIRESTORE_EMULATOR_HOST=localhost:8080 vitest run src/test/integration --fileParallelism false",
+    "test:integration": "firebase emulators:exec --only firestore \"vitest run src/test/integration --fileParallelism false\"",
     "emulator": "firebase emulators:start",
     "lint": "eslint src --fix",
     "generate-spec": "tsx src/generate-spec.ts"
@@ -25,6 +25,7 @@
     "@vitest/coverage-v8": "^4.1.1",
     "cross-env": "^10.1.0",
     "eslint": "^9.39.2",
+    "firebase-tools": "^14.14.0",
     "nodemon": "^3.1.11",
     "prettier": "^3.7.4",
     "ts-node": "^10.9.2",
