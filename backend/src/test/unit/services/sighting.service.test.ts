@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createSighting, getMySightingsDashboard } from '../../../services/sighting.service';
 import { db } from '../../../lib/firebase-admin';
+import { FIRESTORE_COLLECTIONS } from '../../../lib/firestore-collections';
 
 // Mock crypto module to generate deterministic ID
 vi.mock('crypto', () => ({
@@ -29,6 +30,7 @@ describe('Sighting Service', () => {
     describe('createSighting', () => {
         it('should create and save a sighting with all optional fields provided', async () => {
             const input = {
+                surveyWalkUid: 'walk-123',
                 result: 'sighted' as const,
                 date: '2026-03-24',
                 time: '12:00',
@@ -41,13 +43,14 @@ describe('Sighting Service', () => {
                 behaviour: 'Feeding',
                 notes: 'Saw them high up in the canopy.',
                 mediaUrl: 'https://example.com/image.jpg',
-                submittedBy: 'user@example.com',
+                submittedBy: 'user-uid-123',
             };
 
             const result = await createSighting(input);
 
             // Verify the returned sighting has all fields properly mapped
             expect(result.id).toBe('mock-uuid-1234');
+            expect(result.surveyWalkUid).toBe('walk-123');
             expect(result.result).toBe('sighted');
             expect(result.species).toBe('Raffles Banded Langur');
             expect(result.latitude).toBe(1.3521);
@@ -57,12 +60,12 @@ describe('Sighting Service', () => {
             expect(result.behaviour).toBe('Feeding');
             expect(result.notes).toBe('Saw them high up in the canopy.');
             expect(result.mediaUrl).toBe('https://example.com/image.jpg');
-            expect(result.submittedBy).toBe('user@example.com');
+            expect(result.submittedBy).toBe('user-uid-123');
             expect(result.createdAt).toEqual(expect.any(String));
 
             // Verify Firebase interaction
             const mockCollection = db.collection as unknown as ReturnType<typeof vi.fn>;
-            expect(mockCollection).toHaveBeenCalledWith('sightings');
+            expect(mockCollection).toHaveBeenCalledWith(FIRESTORE_COLLECTIONS.SIGHTINGS);
 
             const mockDoc = mockCollection().doc;
             expect(mockDoc).toHaveBeenCalledWith('mock-uuid-1234');
@@ -70,25 +73,28 @@ describe('Sighting Service', () => {
             const mockSet = mockDoc().set;
             expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({
                 id: 'mock-uuid-1234',
+                surveyWalkUid: 'walk-123',
                 result: 'sighted',
                 species: 'Raffles Banded Langur',
-                submittedBy: 'user@example.com',
+                submittedBy: 'user-uid-123',
             }));
         });
 
         it('should create a sighting fallback for coalesced or missing fields', async () => {
             const input = {
+                surveyWalkUid: 'walk-999',
                 result: 'not_sighted' as const,
                 date: '2026-03-24',
                 time: '14:00',
                 location: 'Park',
-                submittedBy: 'anonymous',
+                submittedBy: 'anonymous-uid',
             };
 
             const result = await createSighting(input);
 
             // Verify fields fallback to appropriate defaults (null or empty string based on handler)
             expect(result.id).toBe('mock-uuid-1234');
+            expect(result.surveyWalkUid).toBe('walk-999');
             expect(result.result).toBe('not_sighted');
             expect(result.species).toBeNull();
             expect(result.latitude).toBeNull();
@@ -98,7 +104,7 @@ describe('Sighting Service', () => {
             expect(result.behaviour).toBeNull();
             expect(result.notes).toBe('');
             expect(result.mediaUrl).toBe('');
-            expect(result.submittedBy).toBe('anonymous');
+            expect(result.submittedBy).toBe('anonymous-uid');
 
             // Verify Firebase Database operation applies default values appropriately
             const mockSet = (db.collection as unknown as ReturnType<typeof vi.fn>)().doc().set;
@@ -106,6 +112,7 @@ describe('Sighting Service', () => {
                 id: 'mock-uuid-1234',
                 result: 'not_sighted',
                 species: null,
+                submittedBy: 'anonymous-uid',
             }));
         });
     });
@@ -116,6 +123,7 @@ describe('Sighting Service', () => {
                 {
                     data: () => ({
                         id: 'older',
+                        surveyWalkUid: 'walk-a',
                         result: 'not_sighted',
                         date: '2026-03-24',
                         time: '09:00',
@@ -128,13 +136,14 @@ describe('Sighting Service', () => {
                         behaviour: null,
                         notes: '',
                         mediaUrl: '',
-                        submittedBy: 'user@example.com',
+                        submittedBy: 'user-uid-123',
                         createdAt: '2026-03-24T09:00:00.000Z',
                     }),
                 },
                 {
                     data: () => ({
                         id: 'newer',
+                        surveyWalkUid: 'walk-a',
                         result: 'sighted',
                         date: '2026-03-25',
                         time: '10:30',
@@ -147,13 +156,14 @@ describe('Sighting Service', () => {
                         behaviour: 'Resting',
                         notes: 'Observed in canopy',
                         mediaUrl: '',
-                        submittedBy: 'user@example.com',
+                        submittedBy: 'user-uid-123',
                         createdAt: '2026-03-25T10:30:00.000Z',
                     }),
                 },
                 {
                     data: () => ({
                         id: 'same-species',
+                        surveyWalkUid: 'walk-b',
                         result: 'sighted',
                         date: '2026-03-26',
                         time: '07:30',
@@ -166,7 +176,7 @@ describe('Sighting Service', () => {
                         behaviour: 'Moving',
                         notes: '',
                         mediaUrl: '',
-                        submittedBy: 'user@example.com',
+                        submittedBy: 'user-uid-123',
                         createdAt: '2026-03-26T07:30:00.000Z',
                     }),
                 },
@@ -176,10 +186,10 @@ describe('Sighting Service', () => {
             const collectionResult = mockCollection();
             collectionResult.where().get.mockResolvedValue({ docs });
 
-            const result = await getMySightingsDashboard('user@example.com');
+            const result = await getMySightingsDashboard('user-uid-123');
 
-            expect(mockCollection).toHaveBeenCalledWith('sightings');
-            expect(collectionResult.where).toHaveBeenCalledWith('submittedBy', '==', 'user@example.com');
+            expect(mockCollection).toHaveBeenCalledWith(FIRESTORE_COLLECTIONS.SIGHTINGS);
+            expect(collectionResult.where).toHaveBeenCalledWith('submittedBy', '==', 'user-uid-123');
             expect(result.sightings.map((sighting) => sighting.id)).toEqual(['same-species', 'newer', 'older']);
             expect(result.stats).toEqual({
                 totalSubmissions: 3,

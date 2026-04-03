@@ -2152,6 +2152,7 @@
                         "type": "object",
                         "required": [
                           "id",
+                          "surveyWalkUid",
                           "result",
                           "date",
                           "time",
@@ -2162,6 +2163,9 @@
                         ],
                         "properties": {
                           "id": {
+                            "type": "string"
+                          },
+                          "surveyWalkUid": {
                             "type": "string"
                           },
                           "result": {
@@ -2229,12 +2233,16 @@
               "schema": {
                 "type": "object",
                 "required": [
+                  "surveyWalkUid",
                   "result",
                   "date",
                   "time",
                   "location"
                 ],
                 "properties": {
+                  "surveyWalkUid": {
+                    "type": "string"
+                  },
                   "result": {
                     "type": "string",
                     "enum": [
@@ -2305,6 +2313,7 @@
                       "type": "object",
                       "required": [
                         "id",
+                        "surveyWalkUid",
                         "result",
                         "date",
                         "time",
@@ -2314,6 +2323,9 @@
                       ],
                       "properties": {
                         "id": {
+                          "type": "string"
+                        },
+                        "surveyWalkUid": {
                           "type": "string"
                         },
                         "result": {

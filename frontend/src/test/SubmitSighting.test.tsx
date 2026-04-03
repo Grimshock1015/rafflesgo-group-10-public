@@ -18,6 +18,7 @@ vi.mock('../api', async (importOriginal) => {
         RafflesGoService: {
             ...actual.RafflesGoService,
             getCurrentUser: vi.fn(),
+            listSurveyWalksForCurrentUser: vi.fn(),
         },
         OpenAPI: {
             HEADERS: {},
@@ -66,6 +67,20 @@ const mockUser = {
 } as unknown as import('firebase/auth').User;
 
 describe('SubmitSightingPage', () => {
+    const mockLeaderWalk = {
+        uid: 'walk-1',
+        surveyPeriodUid: 'period-1',
+        surveyPeriodName: 'Period One',
+        name: 'Thomson Nature Park Route A',
+        date: '2026-03-27T00:00:00.000Z',
+        startTime: '09:00',
+        endTime: '11:00',
+        capacity: 10,
+        isFinished: false,
+        volunteers: [{ uid: 'test-user-123', name: 'Test User' }],
+        leader: { uid: 'test-user-123', name: 'Test User' },
+    };
+
     beforeEach(() => {
         vi.clearAllMocks();
         // Reset the URL to clear any residual draftId from previous tests
@@ -75,6 +90,9 @@ describe('SubmitSightingPage', () => {
             uid: 'test-user-123',
             email: 'test@example.com',
             role: 'user',
+        });
+        vi.mocked(RafflesGoService.listSurveyWalksForCurrentUser).mockResolvedValue({
+            surveyWalks: [mockLeaderWalk],
         });
     });
 
@@ -86,6 +104,12 @@ describe('SubmitSightingPage', () => {
         </BrowserRouter>
         </ChakraProvider>
     );
+    };
+
+    const waitForLeaderSurveyWalkToLoad = async () => {
+        await waitFor(() => {
+            expect(screen.getByLabelText(/Survey Walk/i)).toHaveValue('walk-1');
+        });
     };
 
     it('renders correctly and shows additional primate fields when a primate is selected', async () => {
@@ -114,6 +138,8 @@ describe('SubmitSightingPage', () => {
     it('extracts GPS coordinates when a photo is uploaded', async () => {
         const { container } = renderComponent();
 
+        await waitForLeaderSurveyWalkToLoad();
+
         const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
         const file = new File(['dummy content'], 'test.jpg', { type: 'image/jpeg' });
 
@@ -127,15 +153,18 @@ describe('SubmitSightingPage', () => {
     it('submits a "sighted" report successfully with correct payload', async () => {
         renderComponent();
 
+        await waitForLeaderSurveyWalkToLoad();
+
         vi.mocked(SightingsService.postApiSightings).mockResolvedValueOnce({
             message: 'Success',
             sighting: {id: 'mock-sighting-1',
+                        surveyWalkUid: 'walk-1',
                         result: 'sighted',
                         date: '2023-10-10',
                         time: '14:00',
                         location: 'Thomson Nature Park Route A',
                         notes: '',
-                        submittedBy: 'test@example.com',
+                        submittedBy: 'test-user-123',
                         species: "Raffles' Banded Langur",
                         adults: 2,
                         juveniles: 1,
@@ -148,7 +177,7 @@ describe('SubmitSightingPage', () => {
 
         fireEvent.change(screen.getByLabelText(/Date/i), { target: { value: '2023-10-10' } });
         fireEvent.change(screen.getByLabelText(/Time/i), { target: { value: '14:00' } });
-        fireEvent.change(screen.getByLabelText(/Survey Route/i), { target: { value: 'Thomson Nature Park Route A' } });
+    fireEvent.change(screen.getByLabelText(/Survey Walk/i), { target: { value: 'walk-1' } });
 
         fireEvent.change(screen.getByLabelText(/Species/i), { target: { value: "Raffles' Banded Langur" } });
         fireEvent.change(screen.getByLabelText(/^Adults/i), { target: { value: '2' } });
@@ -159,6 +188,7 @@ describe('SubmitSightingPage', () => {
 
         await waitFor(() => {
             expect(SightingsService.postApiSightings).toHaveBeenCalledWith(expect.objectContaining({
+                surveyWalkUid: 'walk-1',
                 result: 'sighted',
                 location: 'Thomson Nature Park Route A',
                 date: '2023-10-10',
@@ -174,16 +204,19 @@ describe('SubmitSightingPage', () => {
     it('submits a "not_sighted" report successfully with correct minimum payload', async () => {
         const { container } = renderComponent();
 
+        await waitForLeaderSurveyWalkToLoad();
+
         vi.mocked(SightingsService.postApiSightings).mockResolvedValueOnce({
             message: 'Success',
             sighting: {
                 id: 'mock-sighting-2',
+                surveyWalkUid: 'walk-1',
                 result: 'not_sighted',
                 date: '2023-10-11',
                 time: '09:00',
                 location: 'Springleaf Route C',
                 notes: 'Raining',
-                submittedBy: 'test@example.com',
+                submittedBy: 'test-user-123',
                 species: undefined,
                 adults: undefined,
                 juveniles: undefined,
@@ -198,7 +231,7 @@ describe('SubmitSightingPage', () => {
 
         fireEvent.change(screen.getByLabelText(/Date/i), { target: { value: '2023-10-11' } });
         fireEvent.change(screen.getByLabelText(/Time/i), { target: { value: '09:00' } });
-        fireEvent.change(screen.getByLabelText(/Survey Route/i), { target: { value: 'Springleaf Route C' } });
+        fireEvent.change(screen.getByLabelText(/Survey Walk/i), { target: { value: 'walk-1' } });
 
         const notesTextArea = container.querySelector('#notes') as HTMLTextAreaElement;
         fireEvent.change(notesTextArea, { target: { value: 'Raining' } });
@@ -207,8 +240,9 @@ describe('SubmitSightingPage', () => {
 
         await waitFor(() => {
             expect(SightingsService.postApiSightings).toHaveBeenCalledWith(expect.objectContaining({
+                surveyWalkUid: 'walk-1',
                 result: 'not_sighted',
-                location: 'Springleaf Route C',
+                location: 'Thomson Nature Park Route A',
                 date: '2023-10-11',
                 time: '09:00',
                 notes: 'Raining',
@@ -219,6 +253,7 @@ describe('SubmitSightingPage', () => {
     it('should call saveDraft and show success message when "Save Draft" is clicked', async () => {
         // Arrange
         renderComponent();
+        await waitForLeaderSurveyWalkToLoad();
         const dateInput = screen.getByLabelText(/Date/i);
         fireEvent.change(dateInput, { target: { value: '2026-03-27' } });
 
@@ -238,6 +273,7 @@ describe('SubmitSightingPage', () => {
     it('should show error message when saving a draft fails', async () => {
         // Arrange
         renderComponent();
+        await waitForLeaderSurveyWalkToLoad();
         // Force the saveDraft service to throw an error
         vi.mocked(saveDraft).mockRejectedValueOnce(new Error('Save failed'));
 
@@ -264,6 +300,7 @@ describe('SubmitSightingPage', () => {
         status: 'draft',
         formData: {
         result: 'sighted',
+        surveyWalkUid: 'walk-1',
         date: '2026-12-25',
         time: '14:00',
         location: 'Springleaf Route C',
@@ -288,6 +325,7 @@ describe('SubmitSightingPage', () => {
 
     // Assert
     await waitFor(() => {
+        expect(screen.getByLabelText(/Survey Walk/i)).toHaveValue('walk-1');
         expect(getDraft).toHaveBeenCalledWith(mockId);
         expect(screen.getByLabelText(/Date/i)).toHaveValue('2026-12-25');
         expect(screen.getByLabelText(/Time/i)).toHaveValue('14:00');
@@ -299,6 +337,7 @@ describe('SubmitSightingPage', () => {
     it('should remove a specific file from the list when the "X" button is clicked', async () => {
         // Arrange
         const { container } = renderComponent();
+        await waitForLeaderSurveyWalkToLoad();
         const file1 = new File(['file1'], 'photo1.jpg', { type: 'image/jpeg' });
         const file2 = new File(['file2'], 'photo2.jpg', { type: 'image/jpeg' });
         
@@ -329,6 +368,7 @@ describe('SubmitSightingPage', () => {
     it('should show error message and re-enable the button when API submission fails', async () => {
         // Arrange
         renderComponent();
+        await waitForLeaderSurveyWalkToLoad();
         
         // Fill in REQUIRED fields so the form can actually be submitted
         fireEvent.change(screen.getByLabelText(/Date/i), { target: { value: '2026-03-27' } });
@@ -359,6 +399,8 @@ describe('SubmitSightingPage', () => {
         // Act
         renderComponent();
 
+        await waitForLeaderSurveyWalkToLoad();
+
         // Assert
         await waitFor(() => {
             // Verify the specific error message for missing drafts
@@ -377,6 +419,7 @@ describe('SubmitSightingPage', () => {
             geolocation: { getCurrentPosition: getCurrentPositionMock }
         });
         renderComponent();
+        await waitForLeaderSurveyWalkToLoad();
 
         // Act
         const gpsButton = screen.getByRole('button', { name: /Use Device GPS/i });

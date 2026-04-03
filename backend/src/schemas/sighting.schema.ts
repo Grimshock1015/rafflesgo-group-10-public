@@ -1,8 +1,9 @@
 export const CreateSightingBodySchema = {
   $id: 'CreateSightingBody',
   type: 'object',
-  required: ['result', 'date', 'time', 'location'],
+  required: ['surveyWalkUid', 'result', 'date', 'time', 'location'],
   properties: {
+    surveyWalkUid: { type: 'string' },
     result: {
       type: 'string',
       enum: ['sighted', 'not_sighted'],
@@ -29,9 +30,10 @@ export const CreateSightingResponseSchema = {
     message: { type: 'string' },
     sighting: {
       type: 'object',
-      required: ['id', 'result', 'date', 'time', 'location', 'notes', 'submittedBy'],
+      required: ['id', 'surveyWalkUid', 'result', 'date', 'time', 'location', 'notes', 'submittedBy'],
       properties: {
         id: { type: 'string' },
+        surveyWalkUid: { type: 'string' },
         result: { type: 'string' },
         date: { type: 'string' },
         time: { type: 'string' },
@@ -93,6 +95,7 @@ export const MySightingsResponseSchema = {
         type: 'object',
         required: [
           'id',
+          'surveyWalkUid',
           'result',
           'date',
           'time',
@@ -103,6 +106,7 @@ export const MySightingsResponseSchema = {
         ],
         properties: {
           id: { type: 'string' },
+          surveyWalkUid: { type: 'string' },
           result: { type: 'string' },
           date: { type: 'string' },
           time: { type: 'string' },

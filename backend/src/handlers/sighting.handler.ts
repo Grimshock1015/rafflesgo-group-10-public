@@ -1,4 +1,5 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
+import { getContainer } from '../container';
 import { createSighting, getMySightingsDashboard } from '../services/sighting.service';
 
 export async function createSightingHandler(
@@ -6,7 +7,8 @@ export async function createSightingHandler(
   reply: FastifyReply,
 ) {
   try {
-    const { result, date, time, location, species, latitude, longitude, adults, juveniles, behaviour, notes, mediaUrl } = request.body as {
+    const { surveyWalkUid, result, date, time, location, species, latitude, longitude, adults, juveniles, behaviour, notes, mediaUrl } = request.body as {
+      surveyWalkUid: string;
       result: 'sighted' | 'not_sighted';
       date: string;
       time: string;
@@ -21,9 +23,23 @@ export async function createSightingHandler(
       mediaUrl?: string;
     };
 
-    const user = request.user as { email?: string } | undefined;
+    if (!request.user?.uid) {
+      return reply.code(401).send({
+        message: 'User is not authenticated',
+      });
+    }
+
+    const { surveyWalkService } = getContainer();
+    const surveyWalk = await surveyWalkService.getSurveyWalk(surveyWalkUid);
+
+    if (surveyWalk.leader !== request.user.uid) {
+      return reply.code(403).send({
+        message: 'Only the survey walk leader can submit sightings for this walk',
+      });
+    }
 
     const sighting = await createSighting({
+      surveyWalkUid,
       result,
       date,
       time,
@@ -36,7 +52,7 @@ export async function createSightingHandler(
       behaviour,
       notes,
       mediaUrl,
-      submittedBy: user?.email || 'unknown',
+      submittedBy: request.user.uid,
     });
 
     return reply.code(201).send({
@@ -56,15 +72,13 @@ export async function getMySightingsHandler(
   reply: FastifyReply,
 ) {
   try {
-    const user = request.user as { email?: string } | undefined;
-
-    if (!user?.email) {
+    if (!request.user?.uid) {
       return reply.code(400).send({
-        message: 'Authenticated user does not have an email address',
+        message: 'Authenticated user does not have a uid',
       });
     }
 
-    const dashboard = await getMySightingsDashboard(user.email);
+    const dashboard = await getMySightingsDashboard(request.user.uid);
     return reply.code(200).send(dashboard);
   } catch (error) {
     request.log.error(error);

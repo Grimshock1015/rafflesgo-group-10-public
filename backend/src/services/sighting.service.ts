@@ -3,6 +3,7 @@ import { db } from '../lib/firebase-admin';
 import { FIRESTORE_COLLECTIONS } from '../lib/firestore-collections';
 
 type CreateSightingInput = {
+  surveyWalkUid: string;
   result: 'sighted' | 'not_sighted';
   date: string;
   time: string;
@@ -20,6 +21,7 @@ type CreateSightingInput = {
 
 export type StoredSighting = {
   id: string;
+  surveyWalkUid: string;
   result: 'sighted' | 'not_sighted';
   date: string;
   time: string;
@@ -58,6 +60,7 @@ export async function createSighting(input: CreateSightingInput) {
 
   const sighting: StoredSighting = {
     id,
+    surveyWalkUid: input.surveyWalkUid,
     result: input.result,
     date: input.date,
     time: input.time,

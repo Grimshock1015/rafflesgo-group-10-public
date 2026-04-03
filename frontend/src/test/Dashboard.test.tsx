@@ -64,6 +64,7 @@ describe('Dashboard', () => {
       sightings: [
         {
           id: 'sighting-1',
+          surveyWalkUid: 'walk-1',
           result: 'sighted',
           date: '2026-03-24',
           time: '10:30',
@@ -73,17 +74,18 @@ describe('Dashboard', () => {
           juveniles: 1,
           behaviour: 'Resting',
           notes: 'Observed near the trail',
-          submittedBy: 'john@example.com',
+          submittedBy: 'test-uid-123',
           createdAt: '2026-03-24T10:30:00.000Z',
         },
         {
           id: 'sighting-2',
+          surveyWalkUid: 'walk-2',
           result: 'not_sighted',
           date: '2026-03-23',
           time: '08:15',
           location: 'Route B',
           notes: '',
-          submittedBy: 'john@example.com',
+          submittedBy: 'test-uid-123',
           createdAt: '2026-03-23T08:15:00.000Z',
         },
       ],
