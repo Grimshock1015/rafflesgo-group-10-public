@@ -1,30 +1,91 @@
 import { useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 import type { User } from 'firebase/auth';
-import { RafflesGoService } from '../api';
 import { Link } from 'react-router-dom';
+import { RafflesGoService, SightingsService } from '../api';
+
+type MySightingsDashboard = Awaited<ReturnType<typeof SightingsService.getMySightingsDashboard>>;
+
+const sectionStyle: CSSProperties = {
+  background: 'var(--color-surface)',
+  border: '1px solid var(--color-border, rgba(255, 255, 255, 0.08))',
+  borderRadius: '16px',
+  padding: '1.5rem',
+  marginTop: '1.5rem',
+};
+
+const cardStyle: CSSProperties = {
+  background: 'rgba(255, 255, 255, 0.03)',
+  border: '1px solid var(--color-border, rgba(255, 255, 255, 0.08))',
+  borderRadius: '14px',
+  padding: '1rem 1.25rem',
+};
+
+const gridStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+  gap: '1rem',
+  marginTop: '1rem',
+};
+
+function formatTimestamp(value?: string) {
+  if (!value) return 'No submissions yet';
+
+  return new Intl.DateTimeFormat('en-SG', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
+}
 import { getAllDrafts } from '../services/SightingDraftsService';
 
 export default function Dashboard({ user }: { user: User }) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [error, setError] = useState<boolean>(false);
   const [draftCount, setDraftCount] = useState(0);
+  const [detailsError, setDetailsError] = useState(false);
+  const [sightingsError, setSightingsError] = useState(false);
+  const [sightingsData, setSightingsData] = useState<MySightingsDashboard | null>(null);
+  const [isLoadingSightings, setIsLoadingSightings] = useState(true);
 
   useEffect(() => {
-    const fetchEmail = async () => {
-      try {
-        const response = await RafflesGoService.getCurrentUser();
-        console.log(response)
-        setUserEmail(response.email || "");
-        setUserRole(response.role || "");
-      } catch (error) {
-        console.error('Failed to fetch user email:', error);
-        setError(true)
+    let isMounted = true;
+
+    const fetchDashboardData = async () => {
+      setDetailsError(false);
+      setSightingsError(false);
+      setIsLoadingSightings(true);
+
+      const [userResult, sightingsResult] = await Promise.allSettled([
+        RafflesGoService.getCurrentUser(),
+        SightingsService.getMySightingsDashboard(),
+      ]);
+
+      if (!isMounted) return;
+
+      if (userResult.status === 'fulfilled') {
+        setUserEmail(userResult.value.email || '');
+        setUserRole(userResult.value.role || '');
+      } else {
+        console.error('Failed to fetch user details:', userResult.reason);
+        setDetailsError(true);
       }
+
+      if (sightingsResult.status === 'fulfilled') {
+        setSightingsData(sightingsResult.value);
+      } else {
+        console.error('Failed to fetch sightings dashboard:', sightingsResult.reason);
+        setSightingsError(true);
+      }
+
+      setIsLoadingSightings(false);
     };
 
-    fetchEmail();
-  }, [user.displayName]);
+    fetchDashboardData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user.uid]);
 
   useEffect(() => {
     const loadDraftCount = async () => {
@@ -40,45 +101,151 @@ export default function Dashboard({ user }: { user: User }) {
   }, [user.uid]);
 
   const displayRole =
-    userRole === "user"
-      ? "Volunteer"
-      : userRole === "admin"
-      ? "Admin"
-      : userRole;
+    userRole === 'user'
+      ? 'Volunteer'
+      : userRole === 'admin'
+        ? 'Admin'
+        : userRole;
+
+  const stats = sightingsData?.stats;
+  const sightings = sightingsData?.sightings ?? [];
+  const topSpecies = stats?.speciesBreakdown[0];
+  const displayName = user.displayName || userEmail || 'Volunteer';
 
   return (
-    <>
+    <main className="main-content">
+      <div className="container" style={{ paddingBottom: '3rem' }}>
+        <header className="welcome-header">
+          <h1>
+            <span>Welcome back </span>
+            <span id="volunteerName">{displayName}</span>
+          </h1>
+          {displayRole ? <p>{displayRole}</p> : null}
+          {userEmail ? <p>{userEmail}</p> : null}
+          {detailsError ? (
+            <p className="text-error">Something went wrong getting your details. Please try again later.</p>
+          ) : null}
+        </header>
 
-      {/* Main Dashboard Content */}
-      <main className="main-content">
-        <div className="container">
-          <header className="welcome-header">
-            <h1>
-              {displayRole && user.displayName && <><span>Welcome back </span> <span id="volunteerName">{user.displayName}</span></>}
-            </h1>
-            {userEmail || ""}
-            <p className={"text-error"}>{error && "Something went wrong getting your details. Please try again later."}</p>
+        <section className="quick-actions" style={sectionStyle}>
+          <h2>Quick Actions</h2>
+          <div className="action-buttons" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1rem' }}>
+            <Link to="/submit-sighting" className="btn btn-primary">
+              Submit Sighting
+            </Link>
+            <a href="#my-sightings" className="btn btn-secondary">
+              View My Sightings
+            </a>
 
-          </header>
+            <Link to="/drafts" className="btn btn-secondary">
+              Saved Drafts {draftCount > 0 ? `(${draftCount})` : ''}
+            </Link>
+          </div>
+        </section>
 
-          <section className="quick-actions">
-            <h2>Quick Actions</h2>
-            <div className="action-buttons">
-              <Link to="/submit-sighting" className="btn btn-primary">
-                Submit Sighting
-              </Link>
-              <Link to="/drafts" className="btn btn-secondary">
-                Saved Drafts {draftCount > 0 ? `(${draftCount})` : ''}
-              </Link>
+        <section aria-labelledby="activity-overview" style={sectionStyle}>
+          <h2 id="activity-overview">My Activity</h2>
+          <p>Your recent survey effort and submitted sightings at a glance.</p>
+
+          {sightingsError ? (
+            <p className="text-error">Could not load your sightings right now. Please refresh and try again.</p>
+          ) : null}
+
+          {isLoadingSightings ? (
+            <p>Loading your submission history...</p>
+          ) : (
+            <div style={gridStyle}>
+              <article style={cardStyle}>
+                <p>Total submissions</p>
+                <strong style={{ fontSize: '2rem' }}>{stats?.totalSubmissions ?? 0}</strong>
+              </article>
+              <article style={cardStyle}>
+                <p>Confirmed sightings</p>
+                <strong style={{ fontSize: '2rem' }}>{stats?.sightedCount ?? 0}</strong>
+              </article>
+              <article style={cardStyle}>
+                <p>Zero-sighting walks</p>
+                <strong style={{ fontSize: '2rem' }}>{stats?.notSightedCount ?? 0}</strong>
+              </article>
+              <article style={cardStyle}>
+                <p>Routes covered</p>
+                <strong style={{ fontSize: '2rem' }}>{stats?.uniqueLocations ?? 0}</strong>
+              </article>
+              <article style={cardStyle}>
+                <p>Adults counted</p>
+                <strong style={{ fontSize: '2rem' }}>{stats?.totalAdults ?? 0}</strong>
+              </article>
+              <article style={cardStyle}>
+                <p>Juveniles counted</p>
+                <strong style={{ fontSize: '2rem' }}>{stats?.totalJuveniles ?? 0}</strong>
+              </article>
             </div>
-            <p className="text-secondary" style={{ marginTop: '0.75rem' }}>
-              {draftCount > 0
-                ? `You have ${draftCount} saved draft${draftCount === 1 ? '' : 's'} ready to reopen.`
-                : 'Saved drafts will appear here after you use Save Draft on a sighting.'}
-            </p>
-          </section>
-        </div>
-      </main>
-    </>
+          )}
+
+          {!isLoadingSightings && !sightingsError ? (
+            <div style={{ ...gridStyle, marginTop: '1.5rem' }}>
+              <article style={cardStyle}>
+                <h3>Most logged species</h3>
+                <p>{topSpecies ? `${topSpecies.species} (${topSpecies.count})` : 'No species recorded yet'}</p>
+              </article>
+              <article style={cardStyle}>
+                <h3>Latest submission</h3>
+                <p>{formatTimestamp(stats?.latestSubmissionAt)}</p>
+              </article>
+            </div>
+          ) : null}
+        </section>
+
+        <section id="my-sightings" aria-labelledby="my-sightings-heading" style={sectionStyle}>
+          <h2 id="my-sightings-heading">My Sightings</h2>
+
+          {isLoadingSightings ? (
+            <p>Loading your sightings...</p>
+          ) : sightingsError ? (
+            <p className="text-error">Your submission history is unavailable right now.</p>
+          ) : sightings.length === 0 ? (
+            <p>You have not submitted any sightings yet.</p>
+          ) : (
+            <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
+
+              {
+                // @ts-ignore
+                sightings.map((sighting) => (
+                  <article
+                    key={sighting.id}
+                    style={cardStyle}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                      <div>
+                        <h3 style={{ marginBottom: '0.35rem' }}>
+                          {sighting.result === 'sighted' ? (sighting.species || 'Sighting recorded') : 'Zero-sighting walk'}
+                        </h3>
+                        <p>{sighting.location}</p>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <p>{sighting.date} at {sighting.time}</p>
+                        <p>{formatTimestamp(sighting.createdAt)}</p>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+                      <span>Result: {sighting.result === 'sighted' ? 'Sighted' : 'Not sighted'}</span>
+                      {typeof sighting.adults === 'number' ? <span>Adults: {sighting.adults}</span> : null}
+                      {typeof sighting.juveniles === 'number' ? <span>Juveniles: {sighting.juveniles}</span> : null}
+                      {sighting.behaviour ? <span>Behaviour: {sighting.behaviour}</span> : null}
+                    </div>
+
+                    {sighting.notes ? (
+                      <p style={{ marginTop: '0.75rem' }}>
+                        <strong>Notes:</strong> {sighting.notes}
+                      </p>
+                    ) : null}
+                  </article>
+                ))}
+            </div>
+          )}
+        </section>
+      </div>
+    </main>
   );
 }

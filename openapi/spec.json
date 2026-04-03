@@ -2069,8 +2069,157 @@
         }
       }
     },
+    "/api/sightings/mine": {
+      "get": {
+        "operationId": "getMySightingsDashboard",
+        "tags": [
+          "Sightings"
+        ],
+        "description": "Get the authenticated user dashboard for submitted sightings",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "stats",
+                    "sightings"
+                  ],
+                  "properties": {
+                    "stats": {
+                      "type": "object",
+                      "required": [
+                        "totalSubmissions",
+                        "sightedCount",
+                        "notSightedCount",
+                        "uniqueLocations",
+                        "totalAdults",
+                        "totalJuveniles",
+                        "speciesBreakdown"
+                      ],
+                      "properties": {
+                        "totalSubmissions": {
+                          "type": "number"
+                        },
+                        "sightedCount": {
+                          "type": "number"
+                        },
+                        "notSightedCount": {
+                          "type": "number"
+                        },
+                        "uniqueLocations": {
+                          "type": "number"
+                        },
+                        "totalAdults": {
+                          "type": "number"
+                        },
+                        "totalJuveniles": {
+                          "type": "number"
+                        },
+                        "latestSubmissionAt": {
+                          "type": "string"
+                        },
+                        "speciesBreakdown": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": [
+                              "species",
+                              "count"
+                            ],
+                            "properties": {
+                              "species": {
+                                "type": "string"
+                              },
+                              "count": {
+                                "type": "number"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "sightings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "result",
+                          "date",
+                          "time",
+                          "location",
+                          "notes",
+                          "submittedBy",
+                          "createdAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "result": {
+                            "type": "string"
+                          },
+                          "date": {
+                            "type": "string"
+                          },
+                          "time": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          },
+                          "species": {
+                            "type": "string"
+                          },
+                          "latitude": {
+                            "type": "number"
+                          },
+                          "longitude": {
+                            "type": "number"
+                          },
+                          "adults": {
+                            "type": "number"
+                          },
+                          "juveniles": {
+                            "type": "number"
+                          },
+                          "behaviour": {
+                            "type": "string"
+                          },
+                          "notes": {
+                            "type": "string"
+                          },
+                          "submittedBy": {
+                            "type": "string"
+                          },
+                          "mediaUrl": {
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/sightings": {
       "post": {
+        "operationId": "postApiSightings",
         "tags": [
           "Sightings"
         ],
@@ -2132,6 +2281,11 @@
           },
           "required": true
         },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "201": {
             "description": "Default Response",

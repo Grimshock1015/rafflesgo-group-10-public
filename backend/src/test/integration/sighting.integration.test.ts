@@ -157,4 +157,64 @@ describe('Sighting Submissions Integration', () => {
 
         expect(response.statusCode).toBe(401);
     });
+
+    it('GET /api/sightings/mine should return the user dashboard and only their sightings', async () => {
+        mockRegularUser();
+
+        const ownSightedResponse = await app.inject({
+            method: 'POST',
+            url: '/api/sightings',
+            headers: { authorization: 'Bearer fake-token' },
+            payload: validSightedPayload,
+        });
+        expect(ownSightedResponse.statusCode).toBe(201);
+
+        const ownNotSightedResponse = await app.inject({
+            method: 'POST',
+            url: '/api/sightings',
+            headers: { authorization: 'Bearer fake-token' },
+            payload: validNotSightedPayload,
+        });
+        expect(ownNotSightedResponse.statusCode).toBe(201);
+
+        // Seed another user's record directly so the dashboard filter is exercised.
+        await db.collection('sightings').doc('other-user-record').set({
+            id: 'other-user-record',
+            result: 'sighted',
+            date: '2026-03-27',
+            time: '18:30',
+            location: 'Other Route',
+            species: 'Other Species',
+            latitude: 1.4,
+            longitude: 103.9,
+            adults: 3,
+            juveniles: 1,
+            behaviour: 'Feeding',
+            notes: 'Should not be returned',
+            mediaUrl: '',
+            submittedBy: 'someone-else@example.com',
+            createdAt: '2026-03-27T18:30:00.000Z',
+        });
+
+        const response = await app.inject({
+            method: 'GET',
+            url: '/api/sightings/mine',
+            headers: { authorization: 'Bearer fake-token' },
+        });
+
+        expect(response.statusCode).toBe(200);
+
+        const data = response.json();
+        expect(data.stats.totalSubmissions).toBe(2);
+        expect(data.stats.sightedCount).toBe(1);
+        expect(data.stats.notSightedCount).toBe(1);
+        expect(data.stats.uniqueLocations).toBe(2);
+        expect(data.stats.totalAdults).toBe(2);
+        expect(data.stats.totalJuveniles).toBe(1);
+        expect(data.stats.speciesBreakdown).toEqual([
+            { species: 'Species X', count: 1 },
+        ]);
+        expect(data.sightings).toHaveLength(2);
+        expect(data.sightings.every((sighting: { submittedBy: string }) => sighting.submittedBy === 'user@example.com')).toBe(true);
+    });
 });

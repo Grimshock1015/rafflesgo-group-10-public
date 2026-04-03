@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
-import { createSighting } from '../services/sighting.service';
+import { createSighting, getMySightingsDashboard } from '../services/sighting.service';
 
 export async function createSightingHandler(
   request: FastifyRequest,
@@ -47,6 +47,29 @@ export async function createSightingHandler(
     request.log.error(error);
     return reply.code(500).send({
       message: 'Failed to submit sighting',
+    });
+  }
+}
+
+export async function getMySightingsHandler(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  try {
+    const user = request.user as { email?: string } | undefined;
+
+    if (!user?.email) {
+      return reply.code(400).send({
+        message: 'Authenticated user does not have an email address',
+      });
+    }
+
+    const dashboard = await getMySightingsDashboard(user.email);
+    return reply.code(200).send(dashboard);
+  } catch (error) {
+    request.log.error(error);
+    return reply.code(500).send({
+      message: 'Failed to fetch your sightings',
     });
   }
 }

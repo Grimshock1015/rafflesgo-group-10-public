@@ -16,6 +16,9 @@ vi.mock('../api', () => ({
     sayHello: vi.fn(),
     getCurrentUser: vi.fn(),
   },
+  SightingsService: {
+    getMySightingsDashboard: vi.fn(),
+  },
 }));
 
 vi.mock('../services/SightingDraftsService', () => ({
@@ -29,7 +32,7 @@ vi.mock('../components/Navigation', () => ({
   Navigation: () => <nav data-testid="navigation">Nav</nav>,
 }));
 
-import { RafflesGoService } from '../api';
+import { RafflesGoService, SightingsService } from '../api';
 import { getAllDrafts } from '../services/SightingDraftsService';
 
 const mockUser: Partial<User> = {
@@ -47,6 +50,44 @@ describe('Dashboard', () => {
       role: 'user',
     });
     vi.mocked(getAllDrafts).mockResolvedValue([]);
+    vi.mocked(SightingsService.getMySightingsDashboard).mockResolvedValue({
+      stats: {
+        totalSubmissions: 2,
+        sightedCount: 1,
+        notSightedCount: 1,
+        uniqueLocations: 2,
+        totalAdults: 2,
+        totalJuveniles: 1,
+        latestSubmissionAt: '2026-03-24T10:30:00.000Z',
+        speciesBreakdown: [{ species: 'Raffles Banded Langur', count: 1 }],
+      },
+      sightings: [
+        {
+          id: 'sighting-1',
+          result: 'sighted',
+          date: '2026-03-24',
+          time: '10:30',
+          location: 'Route A',
+          species: 'Raffles Banded Langur',
+          adults: 2,
+          juveniles: 1,
+          behaviour: 'Resting',
+          notes: 'Observed near the trail',
+          submittedBy: 'john@example.com',
+          createdAt: '2026-03-24T10:30:00.000Z',
+        },
+        {
+          id: 'sighting-2',
+          result: 'not_sighted',
+          date: '2026-03-23',
+          time: '08:15',
+          location: 'Route B',
+          notes: '',
+          submittedBy: 'john@example.com',
+          createdAt: '2026-03-23T08:15:00.000Z',
+        },
+      ],
+    });
   });
 
   // Test 1: Basic rendering and querying DOM elements
@@ -74,12 +115,30 @@ describe('Dashboard', () => {
 
     await waitFor(() => {
       expect(RafflesGoService.getCurrentUser).toHaveBeenCalled();
+      expect(SightingsService.getMySightingsDashboard).toHaveBeenCalled();
       expect(screen.getByText(/john@example.com/i)).toBeInTheDocument();
+    });
+  });
+
+  it('renders aggregate stats and submitted sightings', async () => {
+    render(
+      <BrowserRouter>
+        <Dashboard user={mockUser as User} />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/total submissions/i)).toBeInTheDocument();
+      expect(screen.getByText(/routes covered/i)).toBeInTheDocument();
+      expect(screen.getByText(/Raffles Banded Langur \(1\)/i)).toBeInTheDocument();
+      expect(screen.getByText(/Observed near the trail/i)).toBeInTheDocument();
+      expect(screen.getByText(/Result: Not sighted/i)).toBeInTheDocument();
     });
   });
 
   it('error when API fails', async () => {
     vi.mocked(RafflesGoService.getCurrentUser).mockRejectedValueOnce(new Error('API Error'));
+    vi.mocked(SightingsService.getMySightingsDashboard).mockRejectedValueOnce(new Error('API Error'));
 
     render(
       <BrowserRouter>
