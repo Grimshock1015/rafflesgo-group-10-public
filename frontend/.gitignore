@@ -26,3 +26,5 @@ npm-debug.log*
 
 # Generated API client (regenerate with: npm run generate-api)
 src/api/
+
+coverage/

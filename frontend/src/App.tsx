@@ -14,6 +14,7 @@ import SurveyPeriodList from './pages/SurveyPeriodList'
 import CreateSurveyPeriod from './pages/CreateSurveyPeriod'
 import EditSurveyPeriod from './pages/EditSurveyPeriod'
 import { Navigation } from './components/Navigation'
+import SurveyWalkList from './pages/SurveyWalkList'
 
 function RequireAuth({ user, children }: { user: User | null; children: ReactNode }) {
   const location = useLocation()
@@ -76,14 +77,12 @@ export default function App() {
       {/* protected */}
       <Route element={<ProtectedLayout user={user} />}>
         <Route path="/dashboard" element={<Dashboard user={user!} />} />
-        <Route path="/submit-sighting" element={ <RequireAuth user={user}>
-          <SubmitSightingPage user={user!} />
-        </RequireAuth>} />
-        <Route path="/survey-periods" element={<SurveyPeriodList user={user!} />} />
         <Route path="/submit-sighting" element={<SubmitSightingPage user={user!} />} />
+        <Route path="/survey-periods" element={<SurveyPeriodList user={user!} />} />
         <Route path="/create-survey-period" element={<CreateSurveyPeriod />} />
         <Route path="/drafts" element={<DraftsPage user={user!} />} />
         <Route path="/edit-survey-period/:surveyPeriodId" element={<EditSurveyPeriod />} />
+        <Route path="/survey-walks" element={<SurveyWalkList user={user!} />} />
       </Route>
 
       {/* fallback */}

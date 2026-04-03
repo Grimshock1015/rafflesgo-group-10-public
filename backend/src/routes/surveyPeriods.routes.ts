@@ -24,12 +24,12 @@ import {
 
 export const surveyPeriodRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
-    // List all survey periods (admin only)
+    // List all survey periods
     fastify.get('/api/surveyPeriods', {
-        preHandler: [verifyToken, requireAdminEmail],
+        preHandler: [verifyToken],
         schema: {
             operationId: 'listSurveyPeriods',
-            description: 'List all survey periods (admin only)',
+            description: 'List all survey periods',
             tags: ['RafflesGo'],
             security: [{ bearerAuth: [] }],
             response: {
@@ -38,12 +38,12 @@ export const surveyPeriodRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
         },
     }, listSurveyPeriodsHandler);
 
-    // Get one survey period (admin only)
+    // Get one survey period
     fastify.get('/api/surveyPeriods/:uid', {
-        preHandler: [verifyToken, requireAdminEmail],
+        preHandler: [verifyToken],
         schema: {
             operationId: 'getSurveyPeriod',
-            description: 'Get one survey period by uid (admin only)',
+            description: 'Get one survey period by uid',
             tags: ['RafflesGo'],
             security: [{ bearerAuth: [] }],
             params: SurveyPeriodParamsSchema,

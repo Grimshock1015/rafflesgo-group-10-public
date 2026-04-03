@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import type { User } from 'firebase/auth';
 // import { Navigation } from '../components/Navigation';
+import { Link } from 'react-router-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SightingsService, OpenAPI } from '../api';
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -155,7 +156,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
       setDraftId(draft.id);
       setCreatedAt(draft.createdAt);
       setMessage('Draft saved locally.');
-      setTimeout(() => navigate('/dashboard'), 1000);
+      setTimeout(() => navigate('/drafts'), 900);
     } catch (error) {
       console.error('Failed to save draft:', error);
       setMessage('Failed to save draft.');
@@ -302,6 +303,23 @@ export default function SubmitSightingPage({ user }: { user: User }) {
           <p className="welcome-subtitle">Report a sighting or a zero-catch walk</p>
         </header>
 
+        <section className="card draft-link-card">
+          <div>
+            <p className="draft-link-eyebrow">
+              {draftId ? 'Editing saved draft' : 'Working on this later?'}
+            </p>
+            <h2>{draftId ? 'This report is linked to a saved draft' : 'Save progress and reopen it from Saved Drafts'}</h2>
+            <p className="text-secondary">
+              {draftId
+                ? 'Submitting this report will remove the saved draft automatically.'
+                : 'Drafts are stored on this device so you can come back without losing your form.'}
+            </p>
+          </div>
+          <Link className="btn-secondary" to="/drafts">
+            Open Saved Drafts
+          </Link>
+        </section>
+
         <form onSubmit={handleSubmit}>
 
           {/* SECTION 1: OBSERVATION TYPE */}
@@ -365,11 +383,13 @@ export default function SubmitSightingPage({ user }: { user: User }) {
                 />
 
                 {mediaFiles.length > 0 && (
-                  <ul style={{ listStyleType: 'none', padding: 0, margin: 0 }}>
+                  <ul className="media-file-list">
                     {mediaFiles.map((file, idx) => (
-                      <li key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', backgroundColor: '#f7fafc', marginBottom: '0.25rem', borderRadius: '4px' }}>
-                        <span style={{ fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
-                        <button type="button" onClick={() => removeFile(idx)} style={{ color: 'red', border: 'none', background: 'none', cursor: 'pointer' }}>X</button>
+                      <li key={idx} className="media-file-item">
+                        <span className="media-file-name">{file.name}</span>
+                        <button type="button" className="btn-remove-media" onClick={() => removeFile(idx)} aria-label={`Remove ${file.name}`}>
+                          X
+                        </button>
                       </li>
                     ))}
                   </ul>
@@ -444,26 +464,19 @@ export default function SubmitSightingPage({ user }: { user: User }) {
             <textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={result === 'not_sighted' ? "Any trail blockages, bad weather etc?" : "Any other details?"} style={{ width: '100%', padding: '0.75rem', minHeight: '80px', borderRadius: '4px', border: '1px solid #ccc' }} />
           </div>
 
-          <button type="submit" className="btn-primary" disabled={submitting} style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', fontWeight: 'bold', backgroundColor: '#3182ce', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
-            {submitting ? 'Submitting...' : 'Submit Report'}
-          </button>
-          <button
-            type="button"
-            onClick={handleSaveDraft}
-            disabled={submitting}
-            style={{
-              width: '100%',
-              padding: '1rem',
-              fontSize: '1.1rem',   // match size
-              fontWeight: 'bold',   // match weight
-              backgroundColor: '#718096', // grey = secondary action
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-            }}>
-            Save Draft
-          </button>
+          <div className="sighting-actions">
+            <button type="submit" className="btn-primary sighting-action-button" disabled={submitting}>
+              {submitting ? 'Submitting...' : 'Submit Report'}
+            </button>
+            <button
+              type="button"
+              className="btn-secondary sighting-action-button"
+              onClick={handleSaveDraft}
+              disabled={submitting}
+            >
+              Save Draft
+            </button>
+          </div>
           {message && <p style={{ textAlign: 'center', marginTop: '1rem', color: '#2f855a', fontWeight: 'bold' }}>{message}</p>}
         </form>
       </main>

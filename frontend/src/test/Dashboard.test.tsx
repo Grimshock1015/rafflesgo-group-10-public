@@ -21,6 +21,10 @@ vi.mock('../api', () => ({
   },
 }));
 
+vi.mock('../services/SightingDraftsService', () => ({
+  getAllDrafts: vi.fn(),
+}));
+
 import { BrowserRouter } from 'react-router-dom';
 
 // Mock child components to isolate unit testing
@@ -29,6 +33,7 @@ vi.mock('../components/Navigation', () => ({
 }));
 
 import { RafflesGoService, SightingsService } from '../api';
+import { getAllDrafts } from '../services/SightingDraftsService';
 
 const mockUser: Partial<User> = {
   displayName: 'John Doe',
@@ -44,6 +49,7 @@ describe('Dashboard', () => {
       email: 'john@example.com',
       role: 'user',
     });
+    vi.mocked(getAllDrafts).mockResolvedValue([]);
     vi.mocked(SightingsService.getMySightingsDashboard).mockResolvedValue({
       stats: {
         totalSubmissions: 2,
@@ -142,6 +148,18 @@ describe('Dashboard', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Something went wrong getting your details/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows a saved drafts quick action', async () => {
+    render(
+      <BrowserRouter>
+        <Dashboard user={mockUser as User} />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: /saved drafts/i })).toBeInTheDocument();
     });
   });
 });

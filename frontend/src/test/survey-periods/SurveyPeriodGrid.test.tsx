@@ -16,6 +16,7 @@ vi.mock('@/api', () => ({
     RafflesGoService: {
         listSurveyPeriods: vi.fn(),
         deleteSurveyPeriod: vi.fn(),
+        getCurrentUser: vi.fn(),
     },
 }));
 
@@ -32,6 +33,7 @@ const mockUser: Partial<User> = {
 describe('SurveyPeriodGrid', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.mocked(RafflesGoService.getCurrentUser).mockResolvedValue({ role: 'user' } as never);
     });
 
     it('renders loading state initially', () => {
@@ -102,6 +104,8 @@ describe('SurveyPeriodGrid', () => {
     });
 
     it('handles deletion of a survey period', async () => {
+        vi.mocked(RafflesGoService.getCurrentUser).mockResolvedValue({ role: 'admin' } as never);
+
         vi.mocked(RafflesGoService.listSurveyPeriods).mockResolvedValueOnce({
             surveyPeriods: [
                 {

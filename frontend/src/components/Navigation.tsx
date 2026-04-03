@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { signOut } from 'firebase/auth'
 import { auth } from '../lib/firebase'
-import { RafflesGoService } from '../api'
 import type { User } from 'firebase/auth'
 import { Button } from '@chakra-ui/react'
 
@@ -13,7 +12,6 @@ interface NavigationProps {
 export function Navigation({ user }: NavigationProps) {
   const navigate = useNavigate()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [role, setRole] = useState<'user' | 'admin' | null>(null)
 
   const handleLogout = async () => {
     await signOut(auth)
@@ -38,20 +36,6 @@ export function Navigation({ user }: NavigationProps) {
       document.body.style.overflow = ''
     }
   }, [isMobileMenuOpen])
-
-  useEffect(() => {
-    const fetchRole = async () => {
-      try {
-        const response = await RafflesGoService.getCurrentUser()
-        setRole(response.role)
-      } catch (error) {
-        console.error('Failed to fetch current user role:', error)
-        setRole('user')
-      }
-    }
-
-    fetchRole()
-  }, [user.uid])
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -104,18 +88,26 @@ export function Navigation({ user }: NavigationProps) {
         <div className={`nav-menu-wrapper ${isMobileMenuOpen ? 'open' : ''}`}>
           <ul className="nav-menu">
             <li>
-              {
-                 role === 'admin' && (
-                   <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/survey-periods');}} px={2}>
-                      Survey Periods
-                   </Button>
-                )
-              }
+                <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/survey-periods');}} px={2}>
+                  Survey Periods
+                </Button>
+            </li>
+
+            <li>
+                <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/survey-walks');}} px={2}>
+                  Survey Walks
+                </Button>
             </li>
 
             <li>
               <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/submit-sighting');}} px={2}>
                 Submit Sighting
+              </Button>
+            </li>
+
+            <li>
+              <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/drafts');}} px={2}>
+                Saved Drafts
               </Button>
             </li>
 

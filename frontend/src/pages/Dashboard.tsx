@@ -36,10 +36,12 @@ function formatTimestamp(value?: string) {
     timeStyle: 'short',
   }).format(new Date(value));
 }
+import { getAllDrafts } from '../services/SightingDraftsService';
 
 export default function Dashboard({ user }: { user: User }) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [draftCount, setDraftCount] = useState(0);
   const [detailsError, setDetailsError] = useState(false);
   const [sightingsError, setSightingsError] = useState(false);
   const [sightingsData, setSightingsData] = useState<MySightingsDashboard | null>(null);
@@ -85,6 +87,19 @@ export default function Dashboard({ user }: { user: User }) {
     };
   }, [user.uid]);
 
+  useEffect(() => {
+    const loadDraftCount = async () => {
+      try {
+        const drafts = await getAllDrafts();
+        setDraftCount(drafts.filter((draft) => draft.userId === user.uid).length);
+      } catch (draftError) {
+        console.error('Failed to load draft count:', draftError);
+      }
+    };
+
+    void loadDraftCount();
+  }, [user.uid]);
+
   const displayRole =
     userRole === 'user'
       ? 'Volunteer'
@@ -121,6 +136,10 @@ export default function Dashboard({ user }: { user: User }) {
             <a href="#my-sightings" className="btn btn-secondary">
               View My Sightings
             </a>
+
+            <Link to="/drafts" className="btn btn-secondary">
+              Saved Drafts {draftCount > 0 ? `(${draftCount})` : ''}
+            </Link>
           </div>
         </section>
 
@@ -188,38 +207,41 @@ export default function Dashboard({ user }: { user: User }) {
             <p>You have not submitted any sightings yet.</p>
           ) : (
             <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
-              {sightings.map((sighting) => (
-                <article
-                  key={sighting.id}
-                  style={cardStyle}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-                    <div>
-                      <h3 style={{ marginBottom: '0.35rem' }}>
-                        {sighting.result === 'sighted' ? (sighting.species || 'Sighting recorded') : 'Zero-sighting walk'}
-                      </h3>
-                      <p>{sighting.location}</p>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <p>{sighting.date} at {sighting.time}</p>
-                      <p>{formatTimestamp(sighting.createdAt)}</p>
-                    </div>
-                  </div>
 
-                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-                    <span>Result: {sighting.result === 'sighted' ? 'Sighted' : 'Not sighted'}</span>
-                    {typeof sighting.adults === 'number' ? <span>Adults: {sighting.adults}</span> : null}
-                    {typeof sighting.juveniles === 'number' ? <span>Juveniles: {sighting.juveniles}</span> : null}
-                    {sighting.behaviour ? <span>Behaviour: {sighting.behaviour}</span> : null}
-                  </div>
+              {
+                // @ts-ignore
+                sightings.map((sighting) => (
+                  <article
+                    key={sighting.id}
+                    style={cardStyle}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                      <div>
+                        <h3 style={{ marginBottom: '0.35rem' }}>
+                          {sighting.result === 'sighted' ? (sighting.species || 'Sighting recorded') : 'Zero-sighting walk'}
+                        </h3>
+                        <p>{sighting.location}</p>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <p>{sighting.date} at {sighting.time}</p>
+                        <p>{formatTimestamp(sighting.createdAt)}</p>
+                      </div>
+                    </div>
 
-                  {sighting.notes ? (
-                    <p style={{ marginTop: '0.75rem' }}>
-                      <strong>Notes:</strong> {sighting.notes}
-                    </p>
-                  ) : null}
-                </article>
-              ))}
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+                      <span>Result: {sighting.result === 'sighted' ? 'Sighted' : 'Not sighted'}</span>
+                      {typeof sighting.adults === 'number' ? <span>Adults: {sighting.adults}</span> : null}
+                      {typeof sighting.juveniles === 'number' ? <span>Juveniles: {sighting.juveniles}</span> : null}
+                      {sighting.behaviour ? <span>Behaviour: {sighting.behaviour}</span> : null}
+                    </div>
+
+                    {sighting.notes ? (
+                      <p style={{ marginTop: '0.75rem' }}>
+                        <strong>Notes:</strong> {sighting.notes}
+                      </p>
+                    ) : null}
+                  </article>
+                ))}
             </div>
           )}
         </section>
