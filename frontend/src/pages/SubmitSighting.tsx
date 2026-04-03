@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import type { User } from 'firebase/auth';
 // import { Navigation } from '../components/Navigation';
 import { Link } from 'react-router-dom';
@@ -13,6 +13,8 @@ import exifr from 'exifr';
 import { saveDraft, getDraft, deleteDraft } from '../services/SightingDraftsService';
 import type { DraftMedia, SightingDraftFormData } from '../types/sightingDrafts';
 import { buildDraft } from '../utils/buildDraft';
+import { ObservationDatePicker } from '../components/ObservationDatePicker';
+import { ObservationTimePicker } from '../components/ObservationTimePicker';
 
 // Fix leaflet icon issue in react-leaflet
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
@@ -163,7 +165,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
     }
   }
 
-  async function loadDraftById(id: string) {
+  const loadDraftById = useCallback(async (id: string) => {
     try {
       const draft = await getDraft(id);
 
@@ -211,7 +213,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
       console.error('Failed to load draft:', error);
       setMessage('Failed to load draft.');
     }
-  }
+  }, []);
 
   const removeFile = (indexToRemove: number) => {
     setMediaFiles(prev => prev.filter((_, index) => index !== indexToRemove));
@@ -292,7 +294,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
     if (existingDraftId) {
       void loadDraftById(existingDraftId);
     }
-  }, [searchParams]);
+  }, [loadDraftById, searchParams]);
   return (
     <>
       {/* <Navigation user={user} /> */}
@@ -353,15 +355,21 @@ export default function SubmitSightingPage({ user }: { user: User }) {
               </select>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div>
-                <label htmlFor="date">Date</label>
-                <input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
-              </div>
-              <div>
-                <label htmlFor="time">Time</label>
-                <input id="time" type="time" value={time} onChange={(e) => setTime(e.target.value)} required style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
-              </div>
+            <div className="form-row">
+              <ObservationDatePicker
+                id="date"
+                label="Date"
+                value={date}
+                onChange={setDate}
+                required
+              />
+              <ObservationTimePicker
+                id="time"
+                label="Time"
+                value={time}
+                onChange={setTime}
+                required
+              />
             </div>
           </div>
 

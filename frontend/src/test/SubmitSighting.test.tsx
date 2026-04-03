@@ -235,6 +235,24 @@ describe('SubmitSightingPage', () => {
         });
     });
 
+    it('should not submit the form when Enter is pressed in the time picker', async () => {
+        renderComponent();
+
+        fireEvent.change(screen.getByLabelText(/Date/i), { target: { value: '2026-03-27' } });
+
+        const timeInput = screen.getByLabelText(/Time/i);
+        fireEvent.focus(timeInput);
+        fireEvent.change(timeInput, { target: { value: '14:00' } });
+        fireEvent.keyDown(timeInput, { key: 'Enter', code: 'Enter', charCode: 13 });
+
+        await waitFor(() => {
+            expect(screen.getByLabelText(/Time/i)).toHaveValue('14:00');
+        });
+
+        expect(SightingsService.postApiSightings).not.toHaveBeenCalled();
+        expect(screen.queryByText(/Failed to submit report/i)).not.toBeInTheDocument();
+    });
+
     it('should show error message when saving a draft fails', async () => {
         // Arrange
         renderComponent();
