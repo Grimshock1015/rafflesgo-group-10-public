@@ -93,6 +93,24 @@ export function ObservationTimePicker({
 
   const selectedTime = parseTimeString(value);
 
+  function openPicker() {
+    setInputValue(value);
+
+    if (!selectedTime) {
+      setDraftHour("08");
+      setDraftMinute("00");
+      setDraftMeridiem("AM");
+      setIsOpen(true);
+      return;
+    }
+
+    const converted = to12Hour(selectedTime.hour);
+    setDraftHour(converted.hour);
+    setDraftMinute(selectedTime.minute);
+    setDraftMeridiem(converted.meridiem);
+    setIsOpen(true);
+  }
+
   function handleInputChange(nextValue: string) {
     setInputValue(nextValue);
 
@@ -226,13 +244,13 @@ export function ObservationTimePicker({
         <Flex gap={2}>
           <Input
             id={id}
-            value={inputValue}
+            value={isOpen ? inputValue : value}
             onChange={(event) => handleInputChange(event.target.value)}
             onBlur={handleInputBlur}
             onKeyDown={handleEnterKey}
             placeholder="HH:MM"
             required={required}
-            onFocus={() => setIsOpen(true)}
+            onFocus={openPicker}
             bg="var(--bg-card)"
             color="var(--text-primary)"
             borderColor="var(--border-color)"
@@ -241,7 +259,14 @@ export function ObservationTimePicker({
             type="button"
             variant="outline"
             aria-label="Open clock menu"
-            onClick={() => setIsOpen((open) => !open)}
+            onClick={() => {
+              if (isOpen) {
+                setIsOpen(false);
+                return;
+              }
+
+              openPicker();
+            }}
             color="var(--text-primary)"
             borderColor="var(--border-color)"
             bg="var(--bg-card)"
@@ -267,9 +292,18 @@ export function ObservationTimePicker({
           >
             <Flex align="center" justify="space-between" mb={3}>
               <Text fontWeight="semibold">
-                {selectedTime ? formatDisplayTime(value) : "Choose a time"}
+                {selectedTime ? formatDisplayTime(value) : 'Choose a time'}
               </Text>
-              <Button type="button" variant="ghost" size="sm" color="var(--text-primary)" onClick={setNow}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                bg="var(--primary-green)"
+                color="var(--text-inverse)"
+                _hover={{ bg: 'var(--secondary-green)' }}
+                px={2}
+                onClick={setNow}
+              >
                 Now
               </Button>
             </Flex>
@@ -281,8 +315,10 @@ export function ObservationTimePicker({
                 </Text>
                 <Input
                   value={draftHour}
-                  onChange={(event) => handleSegmentChange("hour", event.target.value)}
-                  onBlur={() => normalizeSegment("hour")}
+                  onChange={(event) =>
+                    handleSegmentChange('hour', event.target.value)
+                  }
+                  onBlur={() => normalizeSegment('hour')}
                   onKeyDown={handleEnterKey}
                   onFocus={(event) => event.target.select()}
                   onClick={(event) => event.currentTarget.select()}
@@ -297,7 +333,9 @@ export function ObservationTimePicker({
                 />
               </Box>
 
-              <Text fontSize="xl" pb={2} color="var(--text-secondary)">:</Text>
+              <Text fontSize="xl" pb={2} color="var(--text-secondary)">
+                :
+              </Text>
 
               <Box flex="1">
                 <Text fontSize="sm" color="var(--text-secondary)" mb={2}>
@@ -305,9 +343,11 @@ export function ObservationTimePicker({
                 </Text>
                 <Input
                   value={draftMinute}
-                  onChange={(event) => handleSegmentChange("minute", event.target.value)}
+                  onChange={(event) =>
+                    handleSegmentChange('minute', event.target.value)
+                  }
                   onBlur={() => {
-                    normalizeSegment("minute");
+                    normalizeSegment('minute');
                     if (draftHour.length === 2) {
                       setIsOpen(false);
                     }
@@ -328,18 +368,33 @@ export function ObservationTimePicker({
             </Flex>
 
             <Flex gap={2} mt={4}>
-              {(["AM", "PM"] as const).map((meridiem) => (
+              {(['AM', 'PM'] as const).map((meridiem) => (
                 <Button
                   key={meridiem}
                   type="button"
                   size="sm"
                   flex="1"
-                  bg={draftMeridiem === meridiem ? "var(--primary-green)" : "transparent"}
-                  color={draftMeridiem === meridiem ? "var(--text-inverse)" : "var(--text-primary)"}
+                  bg={
+                    draftMeridiem === meridiem
+                      ? 'var(--primary-green)'
+                      : 'transparent'
+                  }
+                  color={
+                    draftMeridiem === meridiem
+                      ? 'var(--text-inverse)'
+                      : 'var(--text-primary)'
+                  }
                   borderWidth="1px"
-                  borderColor={draftMeridiem === meridiem ? "var(--primary-green)" : "var(--border-color)"}
+                  borderColor={
+                    draftMeridiem === meridiem
+                      ? 'var(--primary-green)'
+                      : 'var(--border-color)'
+                  }
                   _hover={{
-                    bg: draftMeridiem === meridiem ? "var(--secondary-green)" : "var(--bg-hover)",
+                    bg:
+                      draftMeridiem === meridiem
+                        ? 'var(--secondary-green)'
+                        : 'var(--bg-hover)',
                   }}
                   onClick={() => {
                     setDraftMeridiem(meridiem);
@@ -355,16 +410,17 @@ export function ObservationTimePicker({
 
             <Flex justify="space-between" mt={4}>
               <Button
+                px={2}
                 type="button"
                 size="sm"
                 variant="ghost"
                 color="var(--text-secondary)"
                 onClick={() => {
-                  setDraftHour("");
-                  setDraftMinute("");
-                  setDraftMeridiem("AM");
-                  setInputValue("");
-                  onChange("");
+                  setDraftHour('');
+                  setDraftMinute('');
+                  setDraftMeridiem('AM');
+                  setInputValue('');
+                  onChange('');
                   setIsOpen(false);
                 }}
               >

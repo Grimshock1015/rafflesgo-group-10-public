@@ -357,7 +357,6 @@ export default function SubmitSightingPage({ user }: { user: User }) {
 
             <div className="form-row">
               <ObservationDatePicker
-                key={`observation-date-${date || 'empty'}`}
                 id="date"
                 label="Date"
                 value={date}
@@ -365,7 +364,6 @@ export default function SubmitSightingPage({ user }: { user: User }) {
                 required
               />
               <ObservationTimePicker
-                key={`observation-time-${time || 'empty'}`}
                 id="time"
                 label="Time"
                 value={time}

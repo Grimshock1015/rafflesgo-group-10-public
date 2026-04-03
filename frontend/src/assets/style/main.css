@@ -957,6 +957,11 @@ input:focus, select:focus, textarea:focus {
     box-shadow: var(--shadow-md);
 }
 
+.draft-link-card:hover,
+.section-container:hover {
+    transform: none;
+}
+
 .draft-link-card h2 {
     font-size: var(--font-size-xl);
     margin-bottom: var(--spacing-xs);

@@ -81,6 +81,12 @@ export function ObservationDatePicker({
   const selectedDate = parseDateString(value);
   const calendarDays = getCalendarDays(visibleMonth);
 
+  function openPicker() {
+    setInputValue(value);
+    setVisibleMonth(selectedDate ?? new Date());
+    setIsOpen(true);
+  }
+
   function commitValue(nextValue: string) {
     setInputValue(nextValue);
     onChange(nextValue);
@@ -124,12 +130,12 @@ export function ObservationDatePicker({
         <Flex gap={2}>
           <Input
             id={id}
-            value={inputValue}
+            value={isOpen ? inputValue : value}
             onChange={(event) => handleInputChange(event.target.value)}
             onBlur={handleInputBlur}
             placeholder="YYYY-MM-DD"
             required={required}
-            onFocus={() => setIsOpen(true)}
+            onFocus={openPicker}
             bg="var(--bg-card)"
             color="var(--text-primary)"
             borderColor="var(--border-color)"
@@ -138,7 +144,14 @@ export function ObservationDatePicker({
             type="button"
             variant="outline"
             aria-label="Open calendar"
-            onClick={() => setIsOpen((open) => !open)}
+            onClick={() => {
+              if (isOpen) {
+                setIsOpen(false);
+                return;
+              }
+
+              openPicker();
+            }}
             color="var(--text-primary)"
             borderColor="var(--border-color)"
             bg="var(--bg-card)"
@@ -247,6 +260,7 @@ export function ObservationDatePicker({
 
             <Flex justify="space-between" mt={4}>
               <Button
+                px={2}
                 type="button"
                 size="sm"
                 variant="ghost"
@@ -259,6 +273,7 @@ export function ObservationDatePicker({
                 Clear
               </Button>
               <Button
+                px={2}
                 type="button"
                 size="sm"
                 bg="var(--primary-green)"
