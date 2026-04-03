@@ -699,13 +699,15 @@ a:hover {
     padding-right: 2.5rem !important;
 }
 
-input[type="date"].date-input {
+input[type="date"].date-input,
+input[type="time"].time-input {
     background-color: var(--white) !important;
     color: var(--text-primary) !important;
     color-scheme: light; /* Force light scheme for the picker */
 }
 
-.date-input::-webkit-calendar-picker-indicator {
+.date-input::-webkit-calendar-picker-indicator,
+.time-input::-webkit-calendar-picker-indicator {
     filter: none;
     cursor: pointer;
 }
@@ -950,15 +952,18 @@ input:focus, select:focus, textarea:focus {
     gap: var(--spacing-lg);
     margin-bottom: var(--spacing-lg);
     padding: var(--spacing-lg);
-    border: 1px solid rgba(74, 124, 89, 0.18);
-    background:
-        radial-gradient(circle at top right, rgba(163, 217, 119, 0.22), transparent 35%),
-        linear-gradient(135deg, rgba(45, 90, 39, 0.08), rgba(255, 255, 255, 0.92));
+    background: var(--bg-card);
+    border: 1px solid var(--border-color-light);
+    box-shadow: var(--shadow-md);
 }
 
 .draft-link-card h2 {
     font-size: var(--font-size-xl);
     margin-bottom: var(--spacing-xs);
+}
+
+.draft-link-card .text-secondary {
+    max-width: 44rem;
 }
 
 .draft-link-eyebrow,
