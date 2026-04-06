@@ -25,6 +25,7 @@ function makeDraft(overrides: Partial<SightingDraft> = {}): SightingDraft {
     status: 'draft',
     formData: {
       result: 'sighted',
+      surveyWalkUid: 'walk-1',
       date: '2026-03-27',
       time: '09:00',
       location: 'Thomson Nature Park Route A',
@@ -95,6 +96,7 @@ describe('draftStorage', () => {
       status: 'submitted',
       formData: {
         result: 'not_sighted',
+        surveyWalkUid: 'walk-2',
         date: '2026-03-27',
         time: '09:00',
         location: 'Springleaf Route C',

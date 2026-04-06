@@ -2,17 +2,23 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import { createSightingHandler, getMySightingsHandler } from '../../../handlers/sighting.handler';
 import * as SightingService from '../../../services/sighting.service';
+import { getContainer } from '../../../container';
 
 vi.mock('../../../services/sighting.service', () => ({
     createSighting: vi.fn(),
     getMySightingsDashboard: vi.fn(),
 }));
 
+vi.mock('../../../container', () => ({
+    getContainer: vi.fn(),
+}));
+
 describe('Sighting Handler', () => {
-    let mockRequest: FastifyRequest & { user?: { email?: string } };
+    let mockRequest: FastifyRequest & { user?: { uid?: string; email?: string } };
     let mockReply: FastifyReply;
     let mockSend: ReturnType<typeof vi.fn>;
     let mockCode: ReturnType<typeof vi.fn>;
+    const mockGetSurveyWalk = vi.fn();
 
     beforeEach(() => {
         vi.clearAllMocks();
@@ -26,16 +32,24 @@ describe('Sighting Handler', () => {
 
         mockRequest = {
             body: {
+                surveyWalkUid: 'walk-123',
                 result: 'sighted',
                 date: '2026-03-24',
                 time: '12:00',
                 location: 'Forest',
             },
-            user: { email: 'test@example.com' },
+            user: { uid: 'leader-uid', email: 'test@example.com' },
             log: {
                 error: vi.fn(),
             } as unknown as FastifyRequest['log'],
-        } as unknown as FastifyRequest & { user?: { email?: string } };
+        } as unknown as FastifyRequest & { user?: { uid?: string; email?: string } };
+
+        vi.mocked(getContainer).mockReturnValue({
+            surveyWalkService: {
+                getSurveyWalk: mockGetSurveyWalk,
+            },
+        } as unknown as ReturnType<typeof getContainer>);
+        mockGetSurveyWalk.mockResolvedValue({ uid: 'walk-123', leader: 'leader-uid' });
     });
 
     describe('createSightingHandler', () => {
@@ -47,11 +61,12 @@ describe('Sighting Handler', () => {
 
             // Ensure appropriate attributes are picked from body and user contexts
             expect(SightingService.createSighting).toHaveBeenCalledWith(expect.objectContaining({
+                surveyWalkUid: 'walk-123',
                 result: 'sighted',
                 date: '2026-03-24',
                 time: '12:00',
                 location: 'Forest',
-                submittedBy: 'test@example.com',
+                submittedBy: 'leader-uid',
             }));
 
             expect(mockCode).toHaveBeenCalledWith(201);
@@ -61,17 +76,29 @@ describe('Sighting Handler', () => {
             });
         });
 
-        it('should fall back to "unknown" submittedBy if user is not authenticated or lacks an email', async () => {
+        it('should return 401 when user uid is missing', async () => {
             mockRequest.user = undefined; // E.g., not authenticated payload
-
-            vi.mocked(SightingService.createSighting).mockResolvedValue({ id: 'uuid-123' } as unknown as Awaited<ReturnType<typeof SightingService.createSighting>>);
 
             await createSightingHandler(mockRequest, mockReply);
 
-            // Should default to 'unknown' in the request logic
-            expect(SightingService.createSighting).toHaveBeenCalledWith(expect.objectContaining({
-                submittedBy: 'unknown',
-            }));
+            expect(SightingService.createSighting).not.toHaveBeenCalled();
+            expect(mockCode).toHaveBeenCalledWith(401);
+            expect(mockSend).toHaveBeenCalledWith({
+                message: 'User is not authenticated',
+            });
+        });
+
+        it('should return 403 when requester is not the survey walk leader', async () => {
+            mockRequest.user = { uid: 'not-leader', email: 'test@example.com' };
+            mockGetSurveyWalk.mockResolvedValue({ uid: 'walk-123', leader: 'leader-uid' });
+
+            await createSightingHandler(mockRequest, mockReply);
+
+            expect(SightingService.createSighting).not.toHaveBeenCalled();
+            expect(mockCode).toHaveBeenCalledWith(403);
+            expect(mockSend).toHaveBeenCalledWith({
+                message: 'Only the survey walk leader can submit sightings for this walk',
+            });
         });
 
         it('should return HTTP 500 when service throws a runtime exception/Database error', async () => {
@@ -90,7 +117,7 @@ describe('Sighting Handler', () => {
     });
 
     describe('getMySightingsHandler', () => {
-        it('should return the current user dashboard when email is available', async () => {
+        it('should return the current user dashboard when uid is available', async () => {
             const dashboard = {
                 stats: {
                     totalSubmissions: 1,
@@ -111,12 +138,12 @@ describe('Sighting Handler', () => {
 
             await getMySightingsHandler(mockRequest, mockReply);
 
-            expect(SightingService.getMySightingsDashboard).toHaveBeenCalledWith('test@example.com');
+            expect(SightingService.getMySightingsDashboard).toHaveBeenCalledWith('leader-uid');
             expect(mockCode).toHaveBeenCalledWith(200);
             expect(mockSend).toHaveBeenCalledWith(dashboard);
         });
 
-        it('should return 400 when the authenticated user has no email', async () => {
+        it('should return 400 when the authenticated user has no uid', async () => {
             mockRequest.user = {};
 
             await getMySightingsHandler(mockRequest, mockReply);
@@ -124,7 +151,7 @@ describe('Sighting Handler', () => {
             expect(SightingService.getMySightingsDashboard).not.toHaveBeenCalled();
             expect(mockCode).toHaveBeenCalledWith(400);
             expect(mockSend).toHaveBeenCalledWith({
-                message: 'Authenticated user does not have an email address',
+                message: 'Authenticated user does not have a uid',
             });
         });
 

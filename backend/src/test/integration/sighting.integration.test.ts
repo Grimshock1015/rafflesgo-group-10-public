@@ -3,6 +3,7 @@ import { FastifyInstance } from 'fastify';
 import { initializeFirebaseEmulator, clearFirebaseEmulator, getFirestore } from '../setup-emulator';
 import { buildApp } from '../../app';
 import { auth } from '../../lib/firebase-admin';
+import { FIRESTORE_COLLECTIONS } from '../../lib/firestore-collections';
 
 vi.mock('../../lib/firebase-admin', async (importOriginal) => {
     const actual = await importOriginal<typeof import('../../lib/firebase-admin')>();
@@ -40,7 +41,26 @@ describe('Sighting Submissions Integration', () => {
         });
     }
 
+    async function seedSurveyWalk(overrides: Record<string, unknown> = {}) {
+        const walkUid = String(overrides.uid ?? 'walk-1');
+        const { uid: _uid, ...rest } = overrides;
+        await db.collection('survey_walks').doc(walkUid).set({
+            surveyPeriodUid: 'period-1',
+            name: 'Morning Walk',
+            date: new Date('2026-03-24T00:00:00.000Z'),
+            startTime: '09:00',
+            endTime: '11:00',
+            capacity: 10,
+            isFinished: false,
+            volunteerUids: ['user-456'],
+            leader: 'user-456',
+            ...rest,
+        });
+        return walkUid;
+    }
+
     const validSightedPayload = {
+        surveyWalkUid: 'walk-1',
         result: 'sighted',
         date: '2026-03-24',
         time: '14:30',
@@ -56,6 +76,7 @@ describe('Sighting Submissions Integration', () => {
     };
 
     const validNotSightedPayload = {
+        surveyWalkUid: 'walk-1',
         result: 'not_sighted',
         date: '2026-03-24',
         time: '14:30',
@@ -64,6 +85,7 @@ describe('Sighting Submissions Integration', () => {
 
     it('POST /api/sightings should successfully create a sighting for authenticated user (sighted)', async () => {
         mockRegularUser();
+        await seedSurveyWalk({ uid: 'walk-1', leader: 'user-456' });
 
         const response = await app.inject({
             method: 'POST',
@@ -77,20 +99,23 @@ describe('Sighting Submissions Integration', () => {
         expect(data.message).toBe('Sighting submitted successfully');
         expect(data.sighting).toBeDefined();
         expect(data.sighting.id).toBeDefined();
-        expect(data.sighting.submittedBy).toBe('user@example.com');
+        expect(data.sighting.surveyWalkUid).toBe('walk-1');
+        expect(data.sighting.submittedBy).toBe('user-456');
         expect(data.sighting.species).toBe('Species X');
 
         // Verify in DB
-        const doc = await db.collection('sightings').doc(data.sighting.id).get();
+        const doc = await db.collection(FIRESTORE_COLLECTIONS.SIGHTINGS).doc(data.sighting.id).get();
         expect(doc.exists).toBe(true);
         const docData = doc.data();
-        expect(docData?.submittedBy).toBe('user@example.com');
+        expect(docData?.surveyWalkUid).toBe('walk-1');
+        expect(docData?.submittedBy).toBe('user-456');
         expect(docData?.result).toBe('sighted');
         expect(docData?.adults).toBe(2);
     });
 
     it('POST /api/sightings should successfully create a sighting for authenticated user (not_sighted)', async () => {
         mockRegularUser();
+        await seedSurveyWalk({ uid: 'walk-1', leader: 'user-456' });
 
         const response = await app.inject({
             method: 'POST',
@@ -104,17 +129,19 @@ describe('Sighting Submissions Integration', () => {
         expect(data.message).toBe('Sighting submitted successfully');
         expect(data.sighting).toBeDefined();
         expect(data.sighting.id).toBeDefined();
-        expect(data.sighting.submittedBy).toBe('user@example.com');
+        expect(data.sighting.surveyWalkUid).toBe('walk-1');
+        expect(data.sighting.submittedBy).toBe('user-456');
         expect(data.sighting.result).toBe('not_sighted');
 
         // Verify in DB
-        const doc = await db.collection('sightings').doc(data.sighting.id).get();
+        const doc = await db.collection(FIRESTORE_COLLECTIONS.SIGHTINGS).doc(data.sighting.id).get();
         expect(doc.exists).toBe(true);
         expect(doc.data()?.result).toBe('not_sighted');
     });
 
     it('POST /api/sightings should return 400 when missing required fields', async () => {
         mockRegularUser();
+        await seedSurveyWalk({ uid: 'walk-1', leader: 'user-456' });
 
         const response = await app.inject({
             method: 'POST',
@@ -131,6 +158,7 @@ describe('Sighting Submissions Integration', () => {
 
     it('POST /api/sightings should return 400 when given an invalid result enum value', async () => {
         mockRegularUser();
+        await seedSurveyWalk({ uid: 'walk-1', leader: 'user-456' });
 
         const response = await app.inject({
             method: 'POST',
@@ -158,8 +186,26 @@ describe('Sighting Submissions Integration', () => {
         expect(response.statusCode).toBe(401);
     });
 
+    it('POST /api/sightings should return 403 when requester is not survey walk leader', async () => {
+        mockRegularUser();
+        await seedSurveyWalk({ uid: 'walk-1', leader: 'another-user' });
+
+        const response = await app.inject({
+            method: 'POST',
+            url: '/api/sightings',
+            headers: { authorization: 'Bearer fake-token' },
+            payload: validSightedPayload,
+        });
+
+        expect(response.statusCode).toBe(403);
+        expect(response.json()).toEqual({
+            message: 'Only the survey walk leader can submit sightings for this walk',
+        });
+    });
+
     it('GET /api/sightings/mine should return the user dashboard and only their sightings', async () => {
         mockRegularUser();
+        await seedSurveyWalk({ uid: 'walk-1', leader: 'user-456' });
 
         const ownSightedResponse = await app.inject({
             method: 'POST',
@@ -178,7 +224,7 @@ describe('Sighting Submissions Integration', () => {
         expect(ownNotSightedResponse.statusCode).toBe(201);
 
         // Seed another user's record directly so the dashboard filter is exercised.
-        await db.collection('sightings').doc('other-user-record').set({
+        await db.collection(FIRESTORE_COLLECTIONS.SIGHTINGS).doc('other-user-record').set({
             id: 'other-user-record',
             result: 'sighted',
             date: '2026-03-27',
@@ -192,7 +238,7 @@ describe('Sighting Submissions Integration', () => {
             behaviour: 'Feeding',
             notes: 'Should not be returned',
             mediaUrl: '',
-            submittedBy: 'someone-else@example.com',
+            submittedBy: 'someone-else-uid',
             createdAt: '2026-03-27T18:30:00.000Z',
         });
 
@@ -215,6 +261,6 @@ describe('Sighting Submissions Integration', () => {
             { species: 'Species X', count: 1 },
         ]);
         expect(data.sightings).toHaveLength(2);
-        expect(data.sightings.every((sighting: { submittedBy: string }) => sighting.submittedBy === 'user@example.com')).toBe(true);
+        expect(data.sightings.every((sighting: { submittedBy: string }) => sighting.submittedBy === 'user-456')).toBe(true);
     });
 });
