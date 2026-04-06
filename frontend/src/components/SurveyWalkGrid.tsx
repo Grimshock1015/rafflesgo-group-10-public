@@ -7,10 +7,83 @@ import { FaEyeSlash } from "react-icons/fa6";
 import { toaster } from "./ui/toaster";
 import type { User } from "firebase/auth";
 import { BiTransfer } from "react-icons/bi";
+import { MdDelete, MdModeEdit } from "react-icons/md";
 
 type SurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalks>>["surveyWalks"][number];
 
-function SurveyWalkCard({ sw, onJoin, user }: { sw: SurveyWalk; onJoin: () => void; user: User }) {
+type DeleteSurveyWalkButtonProps = {
+    surveyWalkId: string;
+    onDeleted: () => Promise<void>;
+};
+
+function DeleteSurveyWalkButton({ surveyWalkId, onDeleted }: DeleteSurveyWalkButtonProps) {
+    const [open, setOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDelete = async () => {
+        try {
+            setIsDeleting(true);
+            await RafflesGoService.deleteSurveyWalk(surveyWalkId);
+            setOpen(false);
+            await onDeleted();
+            toaster.create({
+                type: "success",
+                title: "Deleted successfully!",
+                description: "The survey walk has been deleted.",
+                closable: true,
+            });
+        } catch (error) {
+            console.error("Failed to delete survey walk:", error);
+            toaster.create({
+                type: "error",
+                title: "Delete failed",
+                description: "Unable to delete survey walk. Please try again.",
+                closable: true,
+            });
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    return (
+        <Dialog.Root size={"sm"} open={open} onOpenChange={(event) => setOpen(event.open)}>
+            <Dialog.Trigger asChild>
+                <Button variant="outline" size={"sm"} px={2}>
+                    <MdDelete />
+                    Delete
+                </Button>
+            </Dialog.Trigger>
+            <Portal>
+                <Dialog.Backdrop />
+                <Dialog.Positioner position="fixed" inset={0} display="flex" alignItems="center" justifyContent="center">
+                    <Dialog.Content p={5}>
+                        <Dialog.Header>
+                            <Dialog.Title>Confirm Delete</Dialog.Title>
+                        </Dialog.Header>
+                        <Dialog.Body color={"black"}>
+                            Are you sure you want to delete this survey walk? This action cannot be undone.
+                        </Dialog.Body>
+                        <Dialog.Footer>
+                            <Dialog.ActionTrigger asChild>
+                                <Button variant="outline" px={2} disabled={isDeleting}>
+                                    Cancel
+                                </Button>
+                            </Dialog.ActionTrigger>
+                            <Button px={2} onClick={handleDelete} loading={isDeleting}>
+                                Delete
+                            </Button>
+                        </Dialog.Footer>
+                        <Dialog.CloseTrigger asChild>
+                            <CloseButton size="sm" />
+                        </Dialog.CloseTrigger>
+                    </Dialog.Content>
+                </Dialog.Positioner>
+            </Portal>
+        </Dialog.Root>
+    );
+}
+
+function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; onJoin: () => void; user: User; role: string; onEdit: (uid: string) => void }) {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const hasJoined = sw.volunteers.some((v) => v.uid === user.uid);
@@ -220,21 +293,32 @@ function SurveyWalkCard({ sw, onJoin, user }: { sw: SurveyWalk; onJoin: () => vo
                     </Stack>
                 </Card.Body>
                 <Card.Footer justifyContent={"flex-end"}>
-                    <Collapsible.Trigger asChild>
-                        <Button size={"sm"} px={2}>
-                            {open ? <><FaEyeSlash />Hide Details</> : <><FaEye /> View Details</>}
-                        </Button>
-                    </Collapsible.Trigger>
-                    <Button 
-                        size={"sm"} 
-                        px={2} 
-                        onClick={hasJoined ? handleQuit : handleJoin}
-                        disabled={sw.isFinished || (isFull && !hasJoined)}
-                        loading={isLoading}>
-                        {hasJoined ? <><MdGroupRemove /> Quit</> : <><MdGroupAdd /> Join</>}
-                    </Button>
-                    {isLeader && (
-                        <ReassignLeaderButton surveyWalkId={sw.uid} volunteers={sw.volunteers} onDeleted={onJoin}></ReassignLeaderButton>
+                    {role === "admin" ? (
+                        <>
+                            <DeleteSurveyWalkButton surveyWalkId={sw.uid} onDeleted={async () => {
+                                onJoin();
+                            }} />
+                            <Button size={"sm"} px={2} onClick={() => onEdit(sw.uid)}><MdModeEdit />Edit</Button>
+                        </>
+                    ) : (
+                        <>
+                            <Collapsible.Trigger asChild>
+                                <Button size={"sm"} px={2}>
+                                    {open ? <><FaEyeSlash />Hide Details</> : <><FaEye /> View Details</>}
+                                </Button>
+                            </Collapsible.Trigger>
+                            <Button 
+                                size={"sm"} 
+                                px={2} 
+                                onClick={hasJoined ? handleQuit : handleJoin}
+                                disabled={sw.isFinished || (isFull && !hasJoined)}
+                                loading={isLoading}>
+                                {hasJoined ? <><MdGroupRemove /> Quit</> : <><MdGroupAdd /> Join</>}
+                            </Button>
+                            {isLeader && (
+                                <ReassignLeaderButton surveyWalkId={sw.uid} volunteers={sw.volunteers} onDeleted={onJoin}></ReassignLeaderButton>
+                            )}
+                        </>
                     )}
                 </Card.Footer>
             </Card.Root>
@@ -249,6 +333,7 @@ export default function SurveyWalkGrid({user}: {user: User}) {
     const [surveyWalks, setSurveyWalks] = useState<SurveyWalk[]>([]);
     const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [role, setRole] = useState<string>("user");
 
     const fetchSurveyWalks = async (options?: { initial?: boolean }) => {
         const isInitial = options?.initial === true;
@@ -259,7 +344,9 @@ export default function SurveyWalkGrid({user}: {user: User}) {
         }
 
         try {
-            const response = await RafflesGoService.listSurveyWalksForCurrentUser();
+            const response = role === "admin"
+                ? await RafflesGoService.listSurveyWalks()
+                : await RafflesGoService.listSurveyWalksForCurrentUser();
             setSurveyWalks(response.surveyWalks);
         } catch (error) {
             console.error("Failed to fetch survey walks:", error);
@@ -273,8 +360,22 @@ export default function SurveyWalkGrid({user}: {user: User}) {
     }
 
     useEffect(() => {
+        const fetchRole = async () => {
+            try {
+                const response = await RafflesGoService.getCurrentUser();
+                setRole(response.role);
+            } catch (error) {
+                console.error("Failed to fetch current user role:", error);
+                setRole("user");
+            }
+        };
+
+        fetchRole();
+    }, [user.uid]);
+
+    useEffect(() => {
         fetchSurveyWalks({ initial: true });
-    }, []);
+    }, [role]);
 
     const refreshSurveyWalks = () => {
         void fetchSurveyWalks();
@@ -283,12 +384,21 @@ export default function SurveyWalkGrid({user}: {user: User}) {
     return ( isInitialLoading ? <Text>Loading survey walks...</Text> : surveyWalks.length === 0 ? <Text>No survey walks found.</Text> :
         <>
             <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-                <Text>Displaying survey walks for registered survey periods:</Text>
+                <Text>{role === "admin" ? "Displaying all survey walks:" : "Displaying survey walks for registered survey periods:"}</Text>
                 {isRefreshing && <Text fontSize="sm" color="gray.500">Refreshing...</Text>}
             </Box>
             <Grid templateColumns="repeat(auto-fill, minmax(320px, 1fr))" gap={4} mt={5}>
                 {surveyWalks.map((sw) => (
-                    <SurveyWalkCard key={sw.uid} sw={sw} onJoin={refreshSurveyWalks} user={user}/>
+                    <SurveyWalkCard
+                        key={sw.uid}
+                        sw={sw}
+                        onJoin={refreshSurveyWalks}
+                        user={user}
+                        role={role}
+                        onEdit={(uid) => {
+                            window.location.assign('/edit-survey-walk/' + uid);
+                        }}
+                    />
                 ))}
             </Grid>
         </>

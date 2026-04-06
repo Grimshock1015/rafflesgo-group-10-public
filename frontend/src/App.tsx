@@ -15,6 +15,8 @@ import CreateSurveyPeriod from './pages/CreateSurveyPeriod'
 import EditSurveyPeriod from './pages/EditSurveyPeriod'
 import { Navigation } from './components/Navigation'
 import SurveyWalkList from './pages/SurveyWalkList'
+import CreateSurveyWalk from './pages/CreateSurveyWalk'
+import EditSurveyWalk from './pages/EditSurveyWalk'
 import { RafflesGoService } from './api'
 
 function RequireAuth({ user, children }: { user: User | null; children: ReactNode }) {
@@ -124,8 +126,10 @@ export default function App() {
         <Route path="/submit-sighting" element={<SubmitSightingPage user={user!} />} />
         <Route path="/survey-periods" element={<RequireAdmin><SurveyPeriodList user={user!} /></RequireAdmin>} />
         <Route path="/create-survey-period" element={<RequireAdmin><CreateSurveyPeriod /></RequireAdmin>} />
+        <Route path="/create-survey-walk" element={<RequireAdmin><CreateSurveyWalk /></RequireAdmin>} />
         <Route path="/drafts" element={<DraftsPage user={user!} />} />
         <Route path="/edit-survey-period/:surveyPeriodId" element={<RequireAdmin><EditSurveyPeriod /></RequireAdmin>} />
+        <Route path="/edit-survey-walk/:surveyWalkId" element={<RequireAdmin><EditSurveyWalk /></RequireAdmin>} />
         <Route path="/survey-walks" element={<SurveyWalkList user={user!} />} />
       </Route>
 
