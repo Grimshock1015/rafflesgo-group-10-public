@@ -7,10 +7,6 @@ import {
     SurveyPeriodParamsSchema,
     UpdateSurveyPeriodBodySchema,
     surveyPeriodSchema,
-    JoinSurveyPeriodBodySchema,
-    JoinSurveyPeriodResponseSchema,
-    UnjoinSurveyPeriodBodySchema,
-    UnjoinSurveyPeriodResponseSchema,
 } from '../schemas/surveyPeriod.schema';
 import {
     createSurveyPeriodHandler,
@@ -18,15 +14,13 @@ import {
     getSurveyPeriodHandler,
     listSurveyPeriodsHandler,
     updateSurveyPeriodHandler,
-    joinSurveyPeriodHandler,
-    unjoinSurveyPeriodHandler,
 } from '../handlers/surveyPeriod.handler';
 
 export const surveyPeriodRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
     // List all survey periods
     fastify.get('/api/surveyPeriods', {
-        preHandler: [verifyToken],
+        preHandler: [verifyToken, requireAdminEmail],
         schema: {
             operationId: 'listSurveyPeriods',
             description: 'List all survey periods',
@@ -40,7 +34,7 @@ export const surveyPeriodRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
 
     // Get one survey period
     fastify.get('/api/surveyPeriods/:uid', {
-        preHandler: [verifyToken],
+        preHandler: [verifyToken, requireAdminEmail],
         schema: {
             operationId: 'getSurveyPeriod',
             description: 'Get one survey period by uid',
@@ -98,36 +92,4 @@ export const surveyPeriodRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
             },
         },
     }, deleteSurveyPeriodHandler);
-
-    // Volunteer joins a survey period
-    fastify.post('/api/surveyPeriods/:uid/join', {
-        preHandler: [verifyToken],
-        schema: {
-            operationId: 'joinSurveyPeriod',
-            description: 'Volunteer joins a survey period',
-            tags: ['RafflesGo'],
-            security: [{ bearerAuth: [] }],
-            params: SurveyPeriodParamsSchema,
-            body: JoinSurveyPeriodBodySchema,
-            response: {
-                200: JoinSurveyPeriodResponseSchema,
-            },
-        },
-    }, joinSurveyPeriodHandler);
-
-    // Volunteer unjoins a survey period
-    fastify.post('/api/surveyPeriods/:uid/unjoin', {
-        preHandler: [verifyToken],
-        schema: {
-            operationId: 'unjoinSurveyPeriod',
-            description: 'Volunteer unjoins a survey period',
-            tags: ['RafflesGo'],
-            security: [{ bearerAuth: [] }],
-            params: SurveyPeriodParamsSchema,
-            body: UnjoinSurveyPeriodBodySchema,
-            response: {
-                200: UnjoinSurveyPeriodResponseSchema,
-            },
-        },
-    }, unjoinSurveyPeriodHandler);
 }

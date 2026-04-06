@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { MdDelete, MdModeEdit } from "react-icons/md";
 import { useNavigate } from "react-router-dom";
 import type { User } from 'firebase/auth';
-import { JoinSurveyPeriodButton } from "./JoinSurveyPeriodButton";
 
 type SurveyPeriod = Awaited<ReturnType<typeof RafflesGoService.listSurveyPeriods>>["surveyPeriods"][number];
 
@@ -174,12 +173,6 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                                     </>
                                 )
                             }
-                            <JoinSurveyPeriodButton 
-                                surveyPeriodId={sp.uid} 
-                                volunteerUids={sp.volunteerUids || []} 
-                                onJoined={fetchSurveyPeriods} 
-                                user={user}
-                            />
                         </Card.Footer>
                     </Card.Root>
                 </GridItem>

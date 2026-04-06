@@ -1,7 +1,6 @@
 import { db } from '../lib/firebase-admin';
 import { FIRESTORE_COLLECTIONS } from '../lib/firestore-collections';
 import { SurveyPeriodEntity } from '../entities/surveyPeriod.entity';
-import { FieldValue } from 'firebase-admin/firestore';  // To use arrayUnion for joining volunteers to survey periods
 
 type SurveyPeriodWrite = Omit<SurveyPeriodEntity, 'uid'>;
 
@@ -24,11 +23,6 @@ export class SurveyPeriodRepository {
         }
 
         return this.toEntity(doc.id, doc.data() ?? {});
-    }
-
-    async findByVolunteerUid(volunteerUid: string): Promise<SurveyPeriodEntity[]> {
-        const snapshot = await this.collection().where('volunteerUids', 'array-contains', volunteerUid).get();
-        return snapshot.docs.map((doc) => this.toEntity(doc.id, doc.data()));
     }
 
     async create(payload: SurveyPeriodWrite): Promise<SurveyPeriodEntity> {
@@ -74,35 +68,6 @@ export class SurveyPeriodRepository {
         return true;
     }
 
-    async join(uid: string, volunteerUid: string): Promise<boolean> {
-        const ref = this.collection().doc(uid);
-        const existing = await ref.get();
-        
-        if (!existing.exists) {
-            return false;
-        }
-
-        // Use arrayUnion to prevent race conditions when multiple volunteers join the same survey period simultaneously
-        await ref.update({
-            volunteerUids: FieldValue.arrayUnion(volunteerUid) 
-        });
-        return true;
-    }
-
-    async unjoin(uid: string, volunteerUid: string): Promise<boolean> {
-        const ref = this.collection().doc(uid);
-        const existing = await ref.get();
-        
-        if (!existing.exists) {
-            return false;
-        }
-
-        await ref.update({
-            volunteerUids: FieldValue.arrayRemove(volunteerUid) 
-        });
-        return true;
-    }
-
     private toEntity(uid: string, data: Record<string, unknown>): SurveyPeriodEntity {
         return {
             uid,
@@ -111,8 +76,6 @@ export class SurveyPeriodRepository {
             endDate: this.toDate(data.endDate),
             isFinished: Boolean(data.isFinished),
             minWalks: Number(data.minWalks ?? 0),
-            // Error Handling, because there may be existing survey periods without volunteerUids field (previously created), or with invalid volunteerUids field. In such cases, we default to an empty array.
-            volunteerUids: Array.isArray(data.volunteerUids) ? data.volunteerUids : [], 
         };
     }
 

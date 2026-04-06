@@ -58,31 +58,6 @@ export class SurveyPeriodService {
         return { success: true, uid };
     }
 
-    async joinSurveyPeriod(uid: string, volunteerUid: string): Promise<boolean> {
-        // Check if the survey period exists before attempting to join
-        await this.getSurveyPeriod(uid);
-
-        const joined = await this.surveyPeriodRepository.join(uid, volunteerUid);
-        
-        if (!joined) {
-            throw new NotFoundError('Fail to join Survey Period', uid);
-        }
-
-        return true;
-    }
-
-    async unjoinSurveyPeriod(uid: string, volunteerUid: string): Promise<boolean> {
-        await this.getSurveyPeriod(uid);
-
-        const unjoined = await this.surveyPeriodRepository.unjoin(uid, volunteerUid);
-        
-        if (!unjoined) {
-            throw new NotFoundError('Fail to unjoin Survey Period', uid);
-        }
-
-        return true;
-    }
-
     private validateDates(startDate: Date, endDate: Date): void {
         if (endDate < startDate) {
             throw new BadRequestError('endDate must be greater than or equal to startDate');

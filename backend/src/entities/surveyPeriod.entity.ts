@@ -5,5 +5,4 @@ export interface SurveyPeriodEntity {
     endDate: Date;
     isFinished: boolean;
     minWalks: number;
-    volunteerUids: string[];
 }

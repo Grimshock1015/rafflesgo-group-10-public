@@ -34,12 +34,12 @@ describe('SurveyPeriodService Unit Tests', () => {
                 { 
                     uid: '1', name: 'Spring Survey', 
                     startDate: new Date('2026-03-01'), endDate: new Date('2026-05-01'), 
-                    isFinished: false, minWalks: 2, volunteerUids: [] 
+                    isFinished: false, minWalks: 2
                 },
                 { 
                     uid: '2', name: 'Summer Survey', 
                     startDate: new Date('2026-06-01'), endDate: new Date('2026-08-01'), 
-                    isFinished: false, minWalks: 3, volunteerUids: ['user1'] 
+                    isFinished: false, minWalks: 3
                 }
             ];
             mockRepository.findAll.mockResolvedValue(mockData);
@@ -78,8 +78,7 @@ describe('SurveyPeriodService Unit Tests', () => {
                 startDate: new Date('2026-09-01'), 
                 endDate: new Date('2026-11-01'), 
                 isFinished: false, 
-                minWalks: 1, 
-                volunteerUids: [] 
+                minWalks: 1
             };
             mockRepository.findById.mockResolvedValue(mockData);
 
@@ -191,8 +190,7 @@ describe('SurveyPeriodService Unit Tests', () => {
             startDate: new Date('2026-03-01'),
             endDate: new Date('2026-05-01'),
             isFinished: false,
-            minWalks: 2,
-            volunteerUids: []
+            minWalks: 2
         };
 
         // Failure Path 1: Target period doesn't exist
@@ -375,123 +373,5 @@ describe('SurveyPeriodService Unit Tests', () => {
         });
     });
 
-    // ==========================================
-    // Test Block 6: joinSurveyPeriod
-    // ==========================================
-    describe('joinSurveyPeriod', () => {
-        const mockUid = 'survey-uid-123';
-        const mockVolunteerUid = 'volunteer-uid-456';
-        
-        // A valid existing survey period to pass the initial getSurveyPeriod check
-        const existingSurveyPeriod: SurveyPeriodEntity = {
-            uid: mockUid,
-            name: 'Existing Survey',
-            startDate: new Date('2026-01-01'),
-            endDate: new Date('2026-02-01'),
-            isFinished: false,
-            minWalks: 1,
-            volunteerUids: []
-        };
 
-        // Failure Path 1: Survey period does not exist
-        it('[TC-SP-SRV-18] should throw NotFoundError and NOT call repository.join if survey period does not exist', async () => {
-            // Arrange
-            mockRepository.findById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(service.joinSurveyPeriod(mockUid, mockVolunteerUid)).rejects.toThrow(NotFoundError);
-            
-            // Assert
-            expect(mockRepository.join).not.toHaveBeenCalled();
-        });
-
-        // Failure Path 2: repository.join returns false
-        it('[TC-SP-SRV-19] should throw NotFoundError if repository.join fails and returns false', async () => {
-            // Arrange
-            mockRepository.findById.mockResolvedValue(existingSurveyPeriod);
-            mockRepository.join.mockResolvedValue(false);
-
-            // Act & Assert
-            await expect(service.joinSurveyPeriod(mockUid, mockVolunteerUid)).rejects.toThrow(NotFoundError);
-            
-            // Assert
-            expect(mockRepository.join).toHaveBeenCalledWith(mockUid, mockVolunteerUid);
-            expect(mockRepository.join).toHaveBeenCalledOnce();
-        });
-
-        // Success Path
-        it('[TC-SP-SRV-20] should return true when successfully joined the survey period', async () => {
-            // Arrange
-            mockRepository.findById.mockResolvedValue(existingSurveyPeriod);
-            mockRepository.join.mockResolvedValue(true);
-
-            // Act
-            const result = await service.joinSurveyPeriod(mockUid, mockVolunteerUid);
-
-            // Assert
-            expect(result).toBe(true);
-            expect(mockRepository.join).toHaveBeenCalledWith(mockUid, mockVolunteerUid);
-            expect(mockRepository.join).toHaveBeenCalledOnce();
-        });
-    });
-
-    // ==========================================
-    // Test Block 7: unjoinSurveyPeriod
-    // ==========================================
-    describe('unjoinSurveyPeriod', () => {
-        const mockUid = 'survey-uid-123';
-        const mockVolunteerUid = 'volunteer-uid-456';
-        
-        // A valid existing survey period to pass the initial getSurveyPeriod check
-        const existingSurveyPeriod: SurveyPeriodEntity = {
-            uid: mockUid,
-            name: 'Existing Survey',
-            startDate: new Date('2026-01-01'),
-            endDate: new Date('2026-02-01'),
-            isFinished: false,
-            minWalks: 1,
-            volunteerUids: [mockVolunteerUid]
-        };
-
-        // Failure Path 1: Survey period does not exist
-        it('[TC-SP-SRV-21] should throw NotFoundError and not call repository.unjoin if survey period does not exist', async () => {
-            // Arrange
-            mockRepository.findById.mockResolvedValue(null);
-
-            // Act & Assert
-            await expect(service.unjoinSurveyPeriod(mockUid, mockVolunteerUid)).rejects.toThrow(NotFoundError);
-            
-            // Assert
-            expect(mockRepository.unjoin).not.toHaveBeenCalled();
-        });
-
-        // Failure Path 2: repository.unjoin returns false
-        it('[TC-SP-SRV-22] should throw NotFoundError if repository.unjoin fails and returns false', async () => {
-            // Arrange
-            mockRepository.findById.mockResolvedValue(existingSurveyPeriod);
-            mockRepository.unjoin.mockResolvedValue(false);
-
-            // Act & Assert
-            await expect(service.unjoinSurveyPeriod(mockUid, mockVolunteerUid)).rejects.toThrow(NotFoundError);
-            
-            // Assert
-            expect(mockRepository.unjoin).toHaveBeenCalledWith(mockUid, mockVolunteerUid);
-            expect(mockRepository.unjoin).toHaveBeenCalledOnce();
-        });
-
-        // Success Path
-        it('[TC-SP-SRV-23] should return true when successfully unjoined from the survey period', async () => {
-            // Arrange
-            mockRepository.findById.mockResolvedValue(existingSurveyPeriod);
-            mockRepository.unjoin.mockResolvedValue(true);
-
-            // Act
-            const result = await service.unjoinSurveyPeriod(mockUid, mockVolunteerUid);
-
-            // Assert
-            expect(result).toBe(true);
-            expect(mockRepository.unjoin).toHaveBeenCalledWith(mockUid, mockVolunteerUid);
-            expect(mockRepository.unjoin).toHaveBeenCalledOnce();
-        });
-    });
 });

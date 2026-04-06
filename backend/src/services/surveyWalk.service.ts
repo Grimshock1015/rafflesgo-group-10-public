@@ -25,15 +25,15 @@ export class SurveyWalkService {
         return this.surveyWalkRepository.findBySurveyPeriodUid(surveyPeriodUid);
     }
 
-    async getSurveyWalksForJoinedPeriods(volunteerUid: string): Promise<SurveyWalkEntity[]> {
-        const joinedPeriods = await this.surveyPeriodRepository.findByVolunteerUid(volunteerUid);
-        const periodUids = joinedPeriods.map((period) => period.uid);
+    async getSurveyWalksForJoinedPeriods(): Promise<SurveyWalkEntity[]> {
+        const allPeriods = await this.surveyPeriodRepository.findAll();
+        const activePeriodsUids = allPeriods.filter((period) => !period.isFinished).map((period) => period.uid);
 
-        if (periodUids.length === 0) {
+        if (activePeriodsUids.length === 0) {
             return [];
         }
 
-        return this.surveyWalkRepository.findBySurveyPeriodUids(periodUids);
+        return this.surveyWalkRepository.findBySurveyPeriodUids(activePeriodsUids);
     }
 
     async getSurveyWalk(uid: string): Promise<SurveyWalkEntity> {
@@ -81,6 +81,15 @@ export class SurveyWalkService {
 
     async joinSurveyWalk(uid: string, volunteerUid: string): Promise<SurveyWalkEntity> {
         const surveyWalk = await this.getSurveyWalk(uid);
+
+        // Check if the survey period is finished
+        const surveyPeriod = await this.surveyPeriodRepository.findById(surveyWalk.surveyPeriodUid);
+        if (!surveyPeriod) {
+            throw new NotFoundError('Survey period', surveyWalk.surveyPeriodUid);
+        }
+        if (surveyPeriod.isFinished) {
+            throw new BadRequestError('Cannot join a survey walk from a finished survey period');
+        }
 
         if (surveyWalk.volunteerUids.includes(volunteerUid)) {
             return surveyWalk;

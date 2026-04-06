@@ -61,7 +61,10 @@ describe('Sighting Service', () => {
             expect(result.createdAt).toEqual(expect.any(String));
 
             // Verify Firebase interaction
-            const mockCollection = db.collection as unknown as ReturnType<typeof vi.fn>;
+            const mockCollection = db.collection as unknown as () => {
+                doc: () => { set: ReturnType<typeof vi.fn> };
+                where: () => { get: ReturnType<typeof vi.fn> };
+            };
             expect(mockCollection).toHaveBeenCalledWith('sightings');
 
             const mockDoc = mockCollection().doc;
@@ -101,7 +104,11 @@ describe('Sighting Service', () => {
             expect(result.submittedBy).toBe('anonymous');
 
             // Verify Firebase Database operation applies default values appropriately
-            const mockSet = (db.collection as unknown as ReturnType<typeof vi.fn>)().doc().set;
+            const mockCollection = db.collection as unknown as () => {
+                doc: () => { set: ReturnType<typeof vi.fn> };
+                where: () => { get: ReturnType<typeof vi.fn> };
+            };
+            const mockSet = mockCollection().doc().set;
             expect(mockSet).toHaveBeenCalledWith(expect.objectContaining({
                 id: 'mock-uuid-1234',
                 result: 'not_sighted',
@@ -172,7 +179,10 @@ describe('Sighting Service', () => {
                 },
             ];
 
-            const mockCollection = db.collection as unknown as ReturnType<typeof vi.fn>;
+            const mockCollection = db.collection as unknown as () => {
+                doc: () => { set: ReturnType<typeof vi.fn> };
+                where: () => { get: ReturnType<typeof vi.fn> };
+            };
             const collectionResult = mockCollection();
             collectionResult.where().get.mockResolvedValue({ docs });
 

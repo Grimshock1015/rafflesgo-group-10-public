@@ -17,8 +17,7 @@ describe('SurveyWalkService Unit Tests', () => {
 		startDate: new Date('2026-03-01T00:00:00.000Z'),
 		endDate: new Date('2026-05-31T00:00:00.000Z'),
 		isFinished: false,
-		minWalks: 2,
-		volunteerUids: [],
+		minWalks: 2
 	};
 
 	const walk: SurveyWalkEntity = {
@@ -93,22 +92,22 @@ describe('SurveyWalkService Unit Tests', () => {
 
 	describe('getSurveyWalksForJoinedPeriods', () => {
 		it('should return empty array when user has no joined periods', async () => {
-			mockSurveyPeriodRepository.findByVolunteerUid.mockResolvedValue([]);
+			mockSurveyPeriodRepository.findAll.mockResolvedValue([]);
 
-			const result = await service.getSurveyWalksForJoinedPeriods('volunteer-1');
+			const result = await service.getSurveyWalksForJoinedPeriods();
 
 			expect(result).toEqual([]);
 			expect(mockSurveyWalkRepository.findBySurveyPeriodUids).not.toHaveBeenCalled();
 		});
 
 		it('should query walk repository with joined period uids', async () => {
-			mockSurveyPeriodRepository.findByVolunteerUid.mockResolvedValue([
+			mockSurveyPeriodRepository.findAll.mockResolvedValue([
 				period,
 				{ ...period, uid: 'period-2', name: 'Summer 2026' },
 			]);
 			mockSurveyWalkRepository.findBySurveyPeriodUids.mockResolvedValue([walk]);
 
-			const result = await service.getSurveyWalksForJoinedPeriods('volunteer-1');
+			const result = await service.getSurveyWalksForJoinedPeriods();
 
 			expect(result).toEqual([walk]);
 			expect(mockSurveyWalkRepository.findBySurveyPeriodUids).toHaveBeenCalledWith(['period-1', 'period-2']);
@@ -273,6 +272,7 @@ describe('SurveyWalkService Unit Tests', () => {
 		it('should return existing walk when volunteer already joined', async () => {
 			const joinedWalk = { ...walk, volunteerUids: ['volunteer-1'], leader: 'volunteer-1' };
 			mockSurveyWalkRepository.findById.mockResolvedValue(joinedWalk);
+			mockSurveyPeriodRepository.findById.mockResolvedValue(period);
 
 			const result = await service.joinSurveyWalk(joinedWalk.uid, 'volunteer-1');
 
@@ -283,6 +283,7 @@ describe('SurveyWalkService Unit Tests', () => {
 		it('should throw BadRequestError when walk is at capacity', async () => {
 			const fullWalk = { ...walk, capacity: 1, volunteerUids: ['volunteer-1'], leader: 'volunteer-1' };
 			mockSurveyWalkRepository.findById.mockResolvedValue(fullWalk);
+			mockSurveyPeriodRepository.findById.mockResolvedValue(period);
 
 			await expect(service.joinSurveyWalk(fullWalk.uid, 'volunteer-2')).rejects.toThrow(BadRequestError);
 			expect(mockSurveyWalkRepository.update).not.toHaveBeenCalled();
@@ -291,6 +292,7 @@ describe('SurveyWalkService Unit Tests', () => {
 		it('should add volunteer and assign leader when none exists', async () => {
 			const updatedWalk = { ...walk, volunteerUids: ['volunteer-1'], leader: 'volunteer-1' };
 			mockSurveyWalkRepository.findById.mockResolvedValue(walk);
+			mockSurveyPeriodRepository.findById.mockResolvedValue(period);
 			mockSurveyWalkRepository.update.mockResolvedValue(updatedWalk);
 
 			const result = await service.joinSurveyWalk(walk.uid, 'volunteer-1');
