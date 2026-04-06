@@ -3,6 +3,7 @@ import type { SightingDraftFormData } from '../types/sightingDrafts';
 export function createEmptySightingForm(): SightingDraftFormData {
   return {
     result: null,
+    surveyWalkUid: '',
     date: '',
     time: '',
     location: '',

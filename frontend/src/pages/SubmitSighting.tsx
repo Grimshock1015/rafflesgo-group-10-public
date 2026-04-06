@@ -3,7 +3,7 @@ import type { User } from 'firebase/auth';
 // import { Navigation } from '../components/Navigation';
 import { Link } from 'react-router-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { SightingsService, OpenAPI } from '../api';
+import { SightingsService, OpenAPI, RafflesGoService } from '../api';
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../lib/firebase";
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
@@ -42,8 +42,7 @@ function LocationMarker({ position, setPosition }: { position: L.LatLng | null, 
 }
 
 const SPECIES_OPTIONS = ["Raffles' Banded Langur", "Macaque", "Wild Boar", "Other"];
-// Mocked routes based on SRS survey walks (Replace with actual data fetch)
-const ROUTE_OPTIONS = ["Thomson Nature Park Route A", "Old Upper Thomson Route B", "Springleaf Route C"];
+type SurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalksForCurrentUser>>['surveyWalks'][number];
 
 const isPrimate = (species: string) => species === "Raffles' Banded Langur" || species === "Macaque";
 
@@ -51,7 +50,10 @@ export default function SubmitSightingPage({ user }: { user: User }) {
   const [result, setResult] = useState<'sighted' | 'not_sighted'>('sighted');
 
   // Basic Walk Info
-  const [route, setRoute] = useState(ROUTE_OPTIONS[0]);
+  const [leaderSurveyWalks, setLeaderSurveyWalks] = useState<SurveyWalk[]>([]);
+  const [selectedSurveyWalkUid, setSelectedSurveyWalkUid] = useState('');
+  const [loadingSurveyWalks, setLoadingSurveyWalks] = useState(true);
+  const [surveyWalksError, setSurveyWalksError] = useState<string | null>(null);
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [notes, setNotes] = useState('');
@@ -76,6 +78,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const navigate = useNavigate();
+  const selectedSurveyWalk = leaderSurveyWalks.find((walk) => walk.uid === selectedSurveyWalkUid) ?? null;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -107,9 +110,10 @@ export default function SubmitSightingPage({ user }: { user: User }) {
 
     return {
       result,
+      surveyWalkUid: selectedSurveyWalkUid,
       date,
       time,
-      location: route,
+      location: selectedSurveyWalk?.name || '',
       species: result === 'sighted' ? finalSpecies : '',
       latitude: result === 'sighted' ? position?.lat ?? null : null,
       longitude: result === 'sighted' ? position?.lng ?? null : null,
@@ -178,7 +182,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
       setCreatedAt(draft.createdAt);
 
       setResult(draft.formData.result ?? 'sighted');
-      setRoute(draft.formData.location || ROUTE_OPTIONS[0]);
+      setSelectedSurveyWalkUid(draft.formData.surveyWalkUid || '');
       setDate(draft.formData.date);
       setTime(draft.formData.time);
       setNotes(draft.formData.notes);
@@ -225,6 +229,11 @@ export default function SubmitSightingPage({ user }: { user: User }) {
     setMessage(null);
 
     try {
+      if (!selectedSurveyWalkUid || !selectedSurveyWalk) {
+        setMessage('Please choose a survey walk that you lead.');
+        return;
+      }
+
       const token = await user.getIdToken();
       OpenAPI.HEADERS = { Authorization: `Bearer ${token}` };
 
@@ -244,8 +253,9 @@ export default function SubmitSightingPage({ user }: { user: User }) {
 
       // Call API
       await SightingsService.postApiSightings({
+        surveyWalkUid: selectedSurveyWalkUid,
         result,
-        location: route, // Backend expects 'location'
+        location: selectedSurveyWalk.name,
         date,
         time,
         notes: notes || undefined,
@@ -256,7 +266,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
           adults: typeof adults === 'number' ? adults : undefined,
           juveniles: typeof juveniles === 'number' ? juveniles : undefined,
           behaviour: behaviour || undefined,
-          mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined, // Array of URLs
+          mediaUrl: mediaUrls[0] ?? undefined,
         })
       });
 
@@ -268,6 +278,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
 
       // Reset form
       setResult('sighted');
+      setSelectedSurveyWalkUid(leaderSurveyWalks[0]?.uid ?? '');
       setDate('');
       setTime('');
       setNotes('');
@@ -289,6 +300,35 @@ export default function SubmitSightingPage({ user }: { user: User }) {
       setSubmitting(false);
     }
   };
+  useEffect(() => {
+    async function loadLeaderSurveyWalks() {
+      setLoadingSurveyWalks(true);
+      setSurveyWalksError(null);
+
+      try {
+        const token = await user.getIdToken();
+        OpenAPI.HEADERS = { Authorization: `Bearer ${token}` };
+        const response = await RafflesGoService.listSurveyWalksForCurrentUser();
+        const leaderWalks = response.surveyWalks.filter((walk) => walk.leader.uid === user.uid);
+        setLeaderSurveyWalks(leaderWalks);
+
+        setSelectedSurveyWalkUid((current) => {
+          if (current && leaderWalks.some((walk) => walk.uid === current)) {
+            return current;
+          }
+          return leaderWalks[0]?.uid ?? '';
+        });
+      } catch (error) {
+        console.error('Failed to load survey walks for sighting submission:', error);
+        setSurveyWalksError('Could not load your leader survey walks. Please refresh and try again.');
+      } finally {
+        setLoadingSurveyWalks(false);
+      }
+    }
+
+    void loadLeaderSurveyWalks();
+  }, [user]);
+
   useEffect(() => {
     const existingDraftId = searchParams.get('draftId');
     if (existingDraftId) {
@@ -349,10 +389,28 @@ export default function SubmitSightingPage({ user }: { user: User }) {
           <div className="card section-container" style={{ marginBottom: '1.5rem', padding: '1rem', border: '1px solid #ccc', borderRadius: '8px' }}>
             <h3>Walk Details</h3>
             <div style={{ marginBottom: '1rem', marginTop: '0.5rem' }}>
-              <label htmlFor="route">Survey Route</label>
-              <select id="route" value={route} onChange={(e) => setRoute(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '4px' }}>
-                {ROUTE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              <label htmlFor="surveyWalk">Survey Walk (Leader Only)</label>
+              <select
+                id="surveyWalk"
+                value={selectedSurveyWalkUid}
+                onChange={(e) => setSelectedSurveyWalkUid(e.target.value)}
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '4px' }}
+                disabled={loadingSurveyWalks || leaderSurveyWalks.length === 0}
+                required
+              >
+                {leaderSurveyWalks.map((walk) => (
+                  <option key={walk.uid} value={walk.uid}>
+                    {walk.name} - {new Date(walk.date).toLocaleDateString('en-SG', { timeZone: 'UTC' })} ({walk.startTime}-{walk.endTime})
+                  </option>
+                ))}
               </select>
+              {loadingSurveyWalks ? <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#666' }}>Loading your leader survey walks...</p> : null}
+              {surveyWalksError ? <p style={{ marginTop: '0.5rem', color: '#c53030', fontSize: '0.85rem' }}>{surveyWalksError}</p> : null}
+              {!loadingSurveyWalks && !surveyWalksError && leaderSurveyWalks.length === 0 ? (
+                <p style={{ marginTop: '0.5rem', color: '#c53030', fontSize: '0.85rem' }}>
+                  You are not currently the leader of any survey walk. Only walk leaders can submit sightings.
+                </p>
+              ) : null}
             </div>
 
             <div className="form-row">
@@ -473,14 +531,14 @@ export default function SubmitSightingPage({ user }: { user: User }) {
           </div>
 
           <div className="sighting-actions">
-            <button type="submit" className="btn-primary sighting-action-button" disabled={submitting}>
+            <button type="submit" className="btn-primary sighting-action-button" disabled={submitting || loadingSurveyWalks || leaderSurveyWalks.length === 0}>
               {submitting ? 'Submitting...' : 'Submit Report'}
             </button>
             <button
               type="button"
               className="btn-secondary sighting-action-button"
               onClick={handleSaveDraft}
-              disabled={submitting}
+              disabled={submitting || loadingSurveyWalks || leaderSurveyWalks.length === 0}
             >
               Save Draft
             </button>

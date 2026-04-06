@@ -4,6 +4,7 @@ export type DraftStatus = 'draft' | 'pending_sync' | 'syncing' | 'submitted' | '
 
 export interface SightingDraftFormData {
   result: SightingResult | null;
+  surveyWalkUid: string;
   date: string;
   time: string;
   location: string;
