@@ -48,7 +48,7 @@ function DeleteSurveyWalkButton({ surveyWalkId, onDeleted }: DeleteSurveyWalkBut
     return (
         <Dialog.Root size={"sm"} open={open} onOpenChange={(event) => setOpen(event.open)}>
             <Dialog.Trigger asChild>
-                <Button variant="outline" size={"xs"} px={2}>
+                <Button variant="outline" size={"sm"} px={2}>
                     <MdDelete />
                     Delete
                 </Button>
@@ -201,10 +201,10 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                                     <Select.HiddenSelect />
                                     <Select.Label>Select participant</Select.Label>
                                     <Select.Control>
-                                        <Select.Trigger px={3}>
-                                        <Select.ValueText placeholder="Select participant" />
+                                        <Select.Trigger px={3} py={2}>
+                                        <Select.ValueText px={1} placeholder="Select a participant"/>
                                         </Select.Trigger>
-                                        <Select.IndicatorGroup>
+                                        <Select.IndicatorGroup pr={2}>
                                         <Select.Indicator />
                                         </Select.IndicatorGroup>
                                     </Select.Control>
@@ -243,19 +243,20 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
     }
     
     return (
-        <GridItem key={sw.uid}>
-            <Collapsible.Root open={open} onOpenChange={(event) => setOpen(event.open)}>   
-            <Card.Root h="100%" p={0} overflow="hidden">
+        <GridItem key={sw.uid} h="100%">
+            <Collapsible.Root open={open} onOpenChange={(event) => setOpen(event.open)} display="flex" flexDirection="column" h="100%">   
+            <Card.Root h="100%" w="100%" p={0} overflow="hidden" display="flex" flexDirection="column">
                 <Image
-                    src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1874&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    src="src/assets/monkey.jpg"
                     alt="Survey walk cover"
                     w="100%"
                     h="160px"
                     objectFit="cover"
                     objectPosition="center"
                     display="block"
+                    flexShrink={0}
                 />
-                <Card.Body p={3}>
+                <Card.Body p={3} flex="1" overflowY="auto">
                     <Stack gap={2}>
                         <Stack direction="row" justify="space-between" align="flex-start">
                             <Card.Title>{sw.name}</Card.Title>
@@ -307,14 +308,14 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                         </Stack>
                     </Stack>
                 </Card.Body>
-                <Card.Footer justifyContent={"flex-end"} p={3} pt={0} gap={2}>
+                <Card.Footer justifyContent={"flex-end"} p={3} pt={0} gap={1} flexWrap={"wrap"} flexShrink={0}>
                     <Collapsible.Trigger asChild>
-                        <Button size={"xs"} px={2} variant="outline">
+                        <Button size={"sm"} px={2} variant="outline">
                             {open ? <><FaEyeSlash />Hide Details</> : <><FaEye /> View Details</>}
                         </Button>
                     </Collapsible.Trigger>
                     <Button 
-                        size={"xs"} 
+                        size={"sm"} 
                         px={2} 
                         onClick={hasJoined ? handleQuit : handleJoin}
                         disabled={sw.isFinished || (isFull && !hasJoined)}
@@ -326,12 +327,13 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                     {isLeader && (
                         <ReassignLeaderButton surveyWalkId={sw.uid} volunteers={sw.volunteers} onDeleted={onJoin}></ReassignLeaderButton>
                     )}
+                    <Box flexBasis="100%" height={0} />
                     {role === "admin" && (
                         <>
                             <DeleteSurveyWalkButton surveyWalkId={sw.uid} onDeleted={async () => {
                                 onJoin();
                             }} />
-                            <Button size={"xs"} px={2} onClick={() => onEdit(sw.uid)}>
+                            <Button size={"sm"} px={2} onClick={() => onEdit(sw.uid)}>
                                 <MdModeEdit />Edit
                             </Button>
                         </>
@@ -424,8 +426,8 @@ export default function SurveyWalkGrid({user}: {user: User}) {
     
     return ( isInitialLoading ? <Text>Loading survey walks...</Text> : surveyWalks.length === 0 ? <Text>No survey walks found.</Text> :
         <>
-            <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-                <Text>{role === "admin" && !onlyActive ? "Displaying all survey walks:" : "Displaying survey walks for registered survey periods:"}</Text>
+            <Box display="flex" alignItems="center" justifyContent="space-between" mb={0}>
+                <Text mb={0}>{role === "admin" && !onlyActive ? "Displaying all survey walks:" : "Displaying survey walks for registered survey periods:"}</Text>
                 {isRefreshing && <Text fontSize="sm" color="gray.500">Refreshing...</Text>}
             </Box>
             {
@@ -440,7 +442,7 @@ export default function SurveyWalkGrid({user}: {user: User}) {
                         }}
                         size="sm"
                         width="320px"
-                        mb={2}
+                        mb={5}
                     >
                         <Select.HiddenSelect />
                         <Select.Label />
@@ -467,7 +469,7 @@ export default function SurveyWalkGrid({user}: {user: User}) {
                     </Select.Root>
                 )
             }
-            <Grid templateColumns="repeat(auto-fill, minmax(320px, 1fr))" gap={4} mt={3}>
+            <Grid templateColumns="repeat(auto-fill, minmax(320px, 1fr))" gridAutoRows="1fr" gap={4} mt={3}>
                 {surveyWalks.map((sw) => (
                     <SurveyWalkCard
                         key={sw.uid}

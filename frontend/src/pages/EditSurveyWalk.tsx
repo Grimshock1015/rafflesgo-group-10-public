@@ -8,10 +8,16 @@ import { useNavigate, useParams } from "react-router-dom";
 type SurveyPeriodOption = {
     uid: string;
     name: string;
+    startDate: string;
+    endDate: string;
 };
 
 function toUtcIsoDate(date: string): string {
     return new Date(`${date}T00:00:00.000Z`).toISOString();
+}
+
+function getDateFromIso(isoString: string): string {
+    return isoString.split('T')[0];
 }
 
 export default function EditSurveyWalk() {
@@ -52,6 +58,8 @@ export default function EditSurveyWalk() {
                 const options = periodResponse.surveyPeriods.map((period) => ({
                     uid: period.uid,
                     name: period.name,
+                    startDate: period.startDate,
+                    endDate: period.endDate,
                 }));
                 setSurveyPeriods(options);
 
@@ -142,10 +150,10 @@ export default function EditSurveyWalk() {
                             <Select.HiddenSelect />
                             <Select.Label>Survey Period</Select.Label>
                             <Select.Control>
-                                <Select.Trigger px={3}>
-                                    <Select.ValueText placeholder="Select a survey period" />
+                                <Select.Trigger px={3} py={2}>
+                                <Select.ValueText px={1} placeholder={"Select a survey period"}/>
                                 </Select.Trigger>
-                                <Select.IndicatorGroup>
+                                <Select.IndicatorGroup pr={2}>
                                     <Select.Indicator />
                                 </Select.IndicatorGroup>
                             </Select.Control>
@@ -172,21 +180,44 @@ export default function EditSurveyWalk() {
                             <Field.Label>
                                 Date <Field.RequiredIndicator />
                             </Field.Label>
-                            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} required disabled={isLoading} />
+                            <Input
+                                type="date"
+                                value={date}
+                                onChange={(e) => setDate(e.target.value)}
+                                required
+                                disabled={isLoading}
+                                min={surveyPeriodUid[0] ? getDateFromIso(surveyPeriods.find((p) => p.uid === surveyPeriodUid[0])?.startDate || '') : undefined}
+                                max={surveyPeriodUid[0] ? getDateFromIso(surveyPeriods.find((p) => p.uid === surveyPeriodUid[0])?.endDate || '') : undefined}
+                                style={{ lineHeight: 1.5, paddingTop: "0.1875rem", paddingBottom: "0.1875rem" }}
+                            />
                         </Field.Root>
 
                         <Field.Root required>
                             <Field.Label>
                                 Start time <Field.RequiredIndicator />
                             </Field.Label>
-                            <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} required disabled={isLoading} />
+                            <Input
+                                type="time"
+                                value={startTime}
+                                onChange={(e) => setStartTime(e.target.value)}
+                                required
+                                disabled={isLoading}
+                                style={{ lineHeight: 1.5, paddingTop: "0.1875rem", paddingBottom: "0.1875rem" }}
+                            />
                         </Field.Root>
 
                         <Field.Root required>
                             <Field.Label>
                                 End time <Field.RequiredIndicator />
                             </Field.Label>
-                            <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required disabled={isLoading} />
+                            <Input
+                                type="time"
+                                value={endTime}
+                                onChange={(e) => setEndTime(e.target.value)}
+                                required
+                                disabled={isLoading}
+                                style={{ lineHeight: 1.5, paddingTop: "0.1875rem", paddingBottom: "0.1875rem" }}
+                            />
                         </Field.Root>
 
                         <Field.Root required>

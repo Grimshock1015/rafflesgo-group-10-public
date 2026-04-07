@@ -1,6 +1,6 @@
 import { RafflesGoService } from "@/api";
 import { toaster } from "@/components/ui/toaster";
-import { Badge, Box, Button, Card, CloseButton, Container, Dialog, Grid, GridItem, IconButton, Portal, Select, Stack, Text, createListCollection } from "@chakra-ui/react";
+import { Badge, Box, Button, Card, CloseButton, Container, Dialog, Grid, GridItem, IconButton, Image, Portal, Select, Stack, Text, createListCollection } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import { MdDelete, MdModeEdit } from "react-icons/md";
 import { FaCheck } from "react-icons/fa";
@@ -220,8 +220,17 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
             <Grid templateColumns="repeat(auto-fill, minmax(320px, 1fr))" gap={4} mt={5}>
                 {surveyPeriods.map((sp) => (
                     <GridItem key={sp.uid}>
-                        <Card.Root h="100%" p={3}>
-                            <Card.Body>
+                        <Card.Root h="100%" p={0} overflow="hidden">
+                            <Image
+                                src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1874&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                                alt="Survey walk cover"
+                                w="100%"
+                                h="160px"
+                                objectFit="cover"
+                                objectPosition="center"
+                                display="block"
+                            />
+                            <Card.Body p={3}>
                                 <Stack>
                                     <Stack direction="row" justify="space-between" align="flex-start">
                                         <Card.Title>{sp.name}</Card.Title>
@@ -260,7 +269,7 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                                     </Stack>
                                 </Stack>
                             </Card.Body>
-                            <Card.Footer justifyContent={"flex-end"} gap={2}>
+                            <Card.Footer justifyContent={"flex-end"} gap={2} p={3}>
                                 {
                                     role === "admin" && (
                                         <>
