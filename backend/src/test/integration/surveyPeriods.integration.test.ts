@@ -56,6 +56,7 @@ describe('Survey Periods Integration', () => {
         startDate: '2026-03-24T00:00:00.000Z',
         endDate: '2026-03-30T00:00:00.000Z',
         isFinished: false,
+        isActive: false,
         minWalks: 5,
     };
 
@@ -189,6 +190,29 @@ describe('Survey Periods Integration', () => {
         // Verify in DB
         const doc = await docRef.get();
         expect(doc.data()?.name).toBe('Updated Period Name');
+    });
+
+    it('POST /api/surveyPeriods/:uid/activate should set exactly one active period (Admin)', async () => {
+        mockAdminUser();
+
+        const inactivePeriodRef = await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({ ...mockPeriod, name: 'Inactive Period' });
+        const activePeriodRef = await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({ ...mockPeriod, name: 'Another Period' });
+
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/surveyPeriods/${activePeriodRef.id}/activate`,
+            headers: { authorization: 'Bearer fake-token' },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const data = response.json();
+        expect(data.uid).toBe(activePeriodRef.id);
+        expect(data.isActive).toBe(true);
+
+        const activeDoc = await activePeriodRef.get();
+        const inactiveDoc = await inactivePeriodRef.get();
+        expect(activeDoc.data()?.isActive).toBe(true);
+        expect(inactiveDoc.data()?.isActive).toBe(false);
     });
 
     it('POST /api/surveyPeriods should return 400 when minWalks is negative (Admin)', async () => {

@@ -357,6 +357,7 @@
                           "startDate",
                           "endDate",
                           "isFinished",
+                          "isActive",
                           "minWalks"
                         ],
                         "properties": {
@@ -375,6 +376,9 @@
                             "type": "string"
                           },
                           "isFinished": {
+                            "type": "boolean"
+                          },
+                          "isActive": {
                             "type": "boolean"
                           },
                           "minWalks": {
@@ -424,6 +428,9 @@
                   "isFinished": {
                     "type": "boolean"
                   },
+                  "isActive": {
+                    "type": "boolean"
+                  },
                   "minWalks": {
                     "minimum": 0,
                     "type": "integer"
@@ -452,6 +459,7 @@
                     "startDate",
                     "endDate",
                     "isFinished",
+                    "isActive",
                     "minWalks"
                   ],
                   "properties": {
@@ -470,6 +478,9 @@
                       "type": "string"
                     },
                     "isFinished": {
+                      "type": "boolean"
+                    },
+                    "isActive": {
                       "type": "boolean"
                     },
                     "minWalks": {
@@ -518,6 +529,7 @@
                     "startDate",
                     "endDate",
                     "isFinished",
+                    "isActive",
                     "minWalks"
                   ],
                   "properties": {
@@ -536,6 +548,9 @@
                       "type": "string"
                     },
                     "isFinished": {
+                      "type": "boolean"
+                    },
+                    "isActive": {
                       "type": "boolean"
                     },
                     "minWalks": {
@@ -575,6 +590,9 @@
                   "isFinished": {
                     "type": "boolean"
                   },
+                  "isActive": {
+                    "type": "boolean"
+                  },
                   "minWalks": {
                     "minimum": 0,
                     "type": "integer"
@@ -612,6 +630,7 @@
                     "startDate",
                     "endDate",
                     "isFinished",
+                    "isActive",
                     "minWalks"
                   ],
                   "properties": {
@@ -630,6 +649,9 @@
                       "type": "string"
                     },
                     "isFinished": {
+                      "type": "boolean"
+                    },
+                    "isActive": {
                       "type": "boolean"
                     },
                     "minWalks": {
@@ -680,6 +702,76 @@
                     },
                     "uid": {
                       "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/surveyPeriods/{uid}/activate": {
+      "post": {
+        "operationId": "setActiveSurveyPeriod",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Set the currently active survey period (admin only)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "uid",
+                    "name",
+                    "startDate",
+                    "endDate",
+                    "isFinished",
+                    "isActive",
+                    "minWalks"
+                  ],
+                  "properties": {
+                    "uid": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "startDate": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "endDate": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "isFinished": {
+                      "type": "boolean"
+                    },
+                    "isActive": {
+                      "type": "boolean"
+                    },
+                    "minWalks": {
+                      "type": "integer"
                     }
                   }
                 }

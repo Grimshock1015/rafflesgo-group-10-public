@@ -27,7 +27,7 @@ export class SurveyWalkService {
 
     async getSurveyWalksForJoinedPeriods(): Promise<SurveyWalkEntity[]> {
         const allPeriods = await this.surveyPeriodRepository.findAll();
-        const activePeriodsUids = allPeriods.filter((period) => !period.isFinished).map((period) => period.uid);
+        const activePeriodsUids = allPeriods.filter((period) => period.isActive).map((period) => period.uid);
 
         if (activePeriodsUids.length === 0) {
             return [];

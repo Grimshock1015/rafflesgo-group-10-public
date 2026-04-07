@@ -10,6 +10,7 @@ import {
 } from '../schemas/surveyPeriod.schema';
 import {
     createSurveyPeriodHandler,
+    activateSurveyPeriodHandler,
     deleteSurveyPeriodHandler,
     getSurveyPeriodHandler,
     listSurveyPeriodsHandler,
@@ -77,6 +78,21 @@ export const surveyPeriodRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
             },
         },
     }, updateSurveyPeriodHandler);
+
+    // Set active survey period (admin only)
+    fastify.post('/api/surveyPeriods/:uid/activate', {
+        preHandler: [verifyToken, requireAdminEmail],
+        schema: {
+            operationId: 'setActiveSurveyPeriod',
+            description: 'Set the currently active survey period (admin only)',
+            tags: ['RafflesGo'],
+            security: [{ bearerAuth: [] }],
+            params: SurveyPeriodParamsSchema,
+            response: {
+                200: surveyPeriodSchema,
+            },
+        },
+    }, activateSurveyPeriodHandler);
 
     // Delete survey period (admin only)
     fastify.delete('/api/surveyPeriods/:uid', {

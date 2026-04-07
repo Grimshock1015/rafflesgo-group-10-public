@@ -26,7 +26,10 @@ export class SurveyPeriodService {
         this.validateDates(input.startDate, input.endDate);
         this.validateMinWalks(input.minWalks);
 
-        return this.surveyPeriodRepository.create(input);
+        return this.surveyPeriodRepository.create({
+            ...input,
+            isActive: input.isActive ?? false,
+        });
     }
 
     async updateSurveyPeriod(uid: string, input: UpdateSurveyPeriodInput): Promise<SurveyPeriodEntity> {
@@ -56,6 +59,15 @@ export class SurveyPeriodService {
         }
 
         return { success: true, uid };
+    }
+
+    async setActiveSurveyPeriod(uid: string): Promise<SurveyPeriodEntity> {
+        const updated = await this.surveyPeriodRepository.setActive(uid);
+        if (!updated) {
+            throw new NotFoundError('Survey period', uid);
+        }
+
+        return updated;
     }
 
     private validateDates(startDate: Date, endDate: Date): void {
