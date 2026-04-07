@@ -46,7 +46,7 @@ function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPer
     return (
         <Dialog.Root size={"sm"} open={open} onOpenChange={(event) => setOpen(event.open)}>
             <Dialog.Trigger asChild>
-                <Button variant="subtle" size={"sm"} px={2}>
+                <Button variant="outline" size={"sm"} px={2}>
                     <MdDelete />
                     Delete
                 </Button>
@@ -265,7 +265,7 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                                     role === "admin" && (
                                         <>
                                             <DeleteSurveyPeriodButton surveyPeriodId={sp.uid} onDeleted={fetchSurveyPeriods} />
-                                            <Button variant="subtle" size={"sm"} px={2} onClick={() => navigate('/edit-survey-period/' + sp.uid)}>
+                                            <Button variant="outline" size={"sm"} px={2} onClick={() => navigate('/edit-survey-period/' + sp.uid)}>
                                                 <MdModeEdit />
                                                 Edit
                                             </Button>
