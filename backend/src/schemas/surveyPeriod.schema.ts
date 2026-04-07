@@ -6,6 +6,7 @@ export const surveyPeriodSchema = Type.Object({
     startDate: Type.String({ format: 'date-time' }),
     endDate: Type.String({ format: 'date-time' }),
     isFinished: Type.Boolean(),
+    isActive: Type.Boolean(),
     minWalks: Type.Integer(),
 });
 
@@ -18,6 +19,7 @@ export const CreateSurveyPeriodBodySchema = Type.Object({
     startDate: Type.String({ format: 'date-time' }),
     endDate: Type.String({ format: 'date-time' }),
     isFinished: Type.Boolean(),
+    isActive: Type.Optional(Type.Boolean()),
     minWalks: Type.Integer({ minimum: 0 }),
 });
 

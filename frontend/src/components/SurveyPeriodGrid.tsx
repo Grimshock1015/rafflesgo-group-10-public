@@ -83,6 +83,7 @@ function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPer
 export default function SurveyPeriodGrid({ user }: { user: User }) {
     const [surveyPeriods, setSurveyPeriods] = useState<SurveyPeriod[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSettingActiveUid, setIsSettingActiveUid] = useState<string | null>(null);
     const [role, setRole] = useState<string>("user");
 
     const navigate = useNavigate();
@@ -117,6 +118,30 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
         }
     };
 
+    const setActiveSurveyPeriod = async (surveyPeriodId: string) => {
+        try {
+            setIsSettingActiveUid(surveyPeriodId);
+            await RafflesGoService.setActiveSurveyPeriod(surveyPeriodId);
+            await fetchSurveyPeriods();
+            toaster.create({
+                type: "success",
+                title: "Active survey period updated",
+                description: "The selected survey period is now active.",
+                closable: true,
+            });
+        } catch (error) {
+            console.error("Failed to set active survey period:", error);
+            toaster.create({
+                type: "error",
+                title: "Update failed",
+                description: "Unable to set active survey period. Please try again.",
+                closable: true,
+            });
+        } finally {
+            setIsSettingActiveUid(null);
+        }
+    };
+
     useEffect(() => {
         fetchSurveyPeriods();
     }, []);
@@ -140,10 +165,10 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                     <Card.Root h="100%" p={3}>
                         <Card.Body>
                             <Stack>
-                                <Stack direction="row" justify="space-between" align="center">
+                                <Stack direction="row" justify="space-between" align="flex-start">
                                     <Card.Title>{sp.name}</Card.Title>
-                                    <Badge colorPalette={sp.isFinished ? "green" : "orange"} p={1}>
-                                        {sp.isFinished ? "Finished" : "Ongoing"}
+                                    <Badge colorPalette={sp.isActive ? "blue" : sp.isFinished ? "green" : "orange"} p={1}>
+                                        {sp.isActive ? "Active" : sp.isFinished ? "Finished" : "Ongoing"}
                                     </Badge>
                                 </Stack>
 
@@ -168,6 +193,9 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                             {
                                 role === "admin" && (
                                     <>
+                                        <Button size={"sm"} px={2} onClick={() => setActiveSurveyPeriod(sp.uid)} loading={isSettingActiveUid === sp.uid} disabled={sp.isActive}>
+                                            {sp.isActive ? 'Active' : 'Set Active'}
+                                        </Button>
                                         <DeleteSurveyPeriodButton surveyPeriodId={sp.uid} onDeleted={fetchSurveyPeriods} />
                                         <Button size={"sm"} px={2} onClick={() => navigate('/edit-survey-period/' + sp.uid)}><MdModeEdit />Edit</Button>
                                     </>

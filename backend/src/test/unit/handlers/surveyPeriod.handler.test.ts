@@ -4,7 +4,8 @@ import {
     getSurveyPeriodHandler,
     createSurveyPeriodHandler,
     updateSurveyPeriodHandler,
-    deleteSurveyPeriodHandler
+    deleteSurveyPeriodHandler,
+    activateSurveyPeriodHandler
 } from '../../../handlers/surveyPeriod.handler';
 import { getContainer } from '../../../container';
 import { SurveyPeriodService } from '../../../services/surveyPeriod.service';
@@ -30,6 +31,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             createSurveyPeriod: vi.fn(),
             updateSurveyPeriod: vi.fn(),
             deleteSurveyPeriod: vi.fn(),
+            setActiveSurveyPeriod: vi.fn(),
         } as unknown as Mocked<SurveyPeriodService>;
 
         vi.mocked(getContainer).mockReturnValue({
@@ -56,6 +58,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                     startDate: mockDate1,
                     endDate: mockDate2,
                     isFinished: false,
+                    isActive: false,
                     minWalks: 1
                 }
             ];
@@ -74,6 +77,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                         startDate: '2026-01-01T00:00:00.000Z', // DTO should be ISO string
                         endDate: '2026-02-01T00:00:00.000Z',
                         isFinished: false,
+                        isActive: false,
                         minWalks: 1
                     }
                 ]
@@ -113,6 +117,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             startDate: mockDate1,
             endDate: mockDate2,
             isFinished: true,
+            isActive: false,
             minWalks: 5
         };
 
@@ -132,6 +137,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                 startDate: '2026-03-01T00:00:00.000Z', // DTO should be ISO string
                 endDate: '2026-05-01T00:00:00.000Z',
                 isFinished: true,
+                isActive: false,
                 minWalks: 5
             });
         });
@@ -165,6 +171,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             startDate: '2026-01-01T00:00:00.000Z',
             endDate: '2026-02-01T00:00:00.000Z',
             isFinished: false,
+            isActive: false,
             minWalks: 3
         };
 
@@ -208,6 +215,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                 startDate: new Date(validBody.startDate),
                 endDate: new Date(validBody.endDate),
                 isFinished: validBody.isFinished,
+                isActive: false,
                 minWalks: validBody.minWalks
             };
             mockSurveyPeriodService.createSurveyPeriod.mockResolvedValue(createdEntity);
@@ -221,6 +229,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                 startDate: expect.any(Date),
                 endDate: expect.any(Date),
                 isFinished: validBody.isFinished,
+                isActive: false,
                 minWalks: validBody.minWalks
             });
             expect(mockReply.code).toHaveBeenCalledWith(201);
@@ -230,6 +239,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                 startDate: validBody.startDate,
                 endDate: validBody.endDate,
                 isFinished: validBody.isFinished,
+                isActive: false,
                 minWalks: validBody.minWalks
             });
         });
@@ -284,6 +294,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                 startDate: new Date('2026-01-01'),
                 endDate: new Date('2026-02-01'),
                 isFinished: false,
+                isActive: false,
                 minWalks: 1
             };
             mockSurveyPeriodService.updateSurveyPeriod.mockResolvedValue(mockEntity);
@@ -297,6 +308,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                 startDate: undefined,
                 endDate: undefined,
                 isFinished: undefined,
+                isActive: undefined,
                 minWalks: undefined
             });
         });
@@ -312,6 +324,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                     startDate: startDateStr,
                     endDate: endDateStr,
                     isFinished: true,
+                    isActive: false,
                     minWalks: 10
                 }
             } as unknown as Parameters<typeof updateSurveyPeriodHandler>[0];
@@ -322,6 +335,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                 startDate: new Date(startDateStr),
                 endDate: new Date(endDateStr),
                 isFinished: true,
+                isActive: false,
                 minWalks: 10
             };
             mockSurveyPeriodService.updateSurveyPeriod.mockResolvedValue(mockEntity);
@@ -344,7 +358,45 @@ describe('SurveyPeriod Handler Unit Tests', () => {
     });
 
     // ==========================================
-    // Test Block 5: deleteSurveyPeriodHandler
+    // Test Block 5: activateSurveyPeriodHandler
+    // ==========================================
+    describe('activateSurveyPeriodHandler', () => {
+        const mockUid = 'activate-uid-000';
+        const mockRequest = {
+            params: { uid: mockUid }
+        } as unknown as Parameters<typeof activateSurveyPeriodHandler>[0];
+        const mockReply = {} as unknown as Parameters<typeof activateSurveyPeriodHandler>[1];
+
+        it('[TC-SP-HDL-12] should activate a survey period and return the mapped DTO', async () => {
+            const mockEntity: SurveyPeriodEntity = {
+                uid: mockUid,
+                name: 'Activated Survey',
+                startDate: new Date('2026-01-01T00:00:00.000Z'),
+                endDate: new Date('2026-02-01T00:00:00.000Z'),
+                isFinished: false,
+                isActive: true,
+                minWalks: 2,
+            };
+
+            mockSurveyPeriodService.setActiveSurveyPeriod.mockResolvedValue(mockEntity);
+
+            const result = await activateSurveyPeriodHandler(mockRequest, mockReply);
+
+            expect(mockSurveyPeriodService.setActiveSurveyPeriod).toHaveBeenCalledWith(mockUid);
+            expect(result).toEqual({
+                uid: mockUid,
+                name: 'Activated Survey',
+                startDate: '2026-01-01T00:00:00.000Z',
+                endDate: '2026-02-01T00:00:00.000Z',
+                isFinished: false,
+                isActive: true,
+                minWalks: 2,
+            });
+        });
+    });
+
+    // ==========================================
+    // Test Block 6: deleteSurveyPeriodHandler
     // ==========================================
     describe('deleteSurveyPeriodHandler', () => {
         const mockUid = 'delete-uid-000';

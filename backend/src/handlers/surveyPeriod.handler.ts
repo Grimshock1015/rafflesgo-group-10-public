@@ -46,6 +46,13 @@ const DeleteSurveyPeriodSchema = {
     },
 };
 
+const ActivateSurveyPeriodSchema = {
+    params: SurveyPeriodParamsSchema,
+    response: {
+        200: surveyPeriodSchema,
+    },
+};
+
 function toDto(surveyPeriod: SurveyPeriodEntity) {
     return {
         uid: surveyPeriod.uid,
@@ -53,6 +60,7 @@ function toDto(surveyPeriod: SurveyPeriodEntity) {
         startDate: surveyPeriod.startDate.toISOString(),
         endDate: surveyPeriod.endDate.toISOString(),
         isFinished: surveyPeriod.isFinished,
+        isActive: surveyPeriod.isActive,
         minWalks: surveyPeriod.minWalks,
     };
 }
@@ -94,6 +102,7 @@ export async function createSurveyPeriodHandler(
         startDate: parseDateString(request.body.startDate, 'startDate'),
         endDate: parseDateString(request.body.endDate, 'endDate'),
         isFinished: request.body.isFinished,
+        isActive: request.body.isActive || false,
         minWalks: request.body.minWalks,
     });
 
@@ -123,4 +132,13 @@ export async function deleteSurveyPeriodHandler(
 ) {
     const { surveyPeriodService } = getContainer();
     return surveyPeriodService.deleteSurveyPeriod(request.params.uid);
+}
+
+export async function activateSurveyPeriodHandler(
+    request: FastifyRequestTypeBox<typeof ActivateSurveyPeriodSchema>,
+    _reply: FastifyReplyTypeBox<typeof ActivateSurveyPeriodSchema>
+) {
+    const { surveyPeriodService } = getContainer();
+    const updated = await surveyPeriodService.setActiveSurveyPeriod(request.params.uid);
+    return toDto(updated);
 }

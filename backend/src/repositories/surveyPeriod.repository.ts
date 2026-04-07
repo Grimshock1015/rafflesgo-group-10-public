@@ -68,6 +68,26 @@ export class SurveyPeriodRepository {
         return true;
     }
 
+    async setActive(uid: string): Promise<SurveyPeriodEntity | null> {
+        const target = await this.findById(uid);
+        if (!target) {
+            return null;
+        }
+
+        const snapshot = await this.collection().get();
+        const batch = db.batch();
+
+        snapshot.docs.forEach((doc) => {
+            batch.update(doc.ref, { isActive: doc.id === uid });
+        });
+
+        if (snapshot.docs.length > 0) {
+            await batch.commit();
+        }
+
+        return this.findById(uid);
+    }
+
     private toEntity(uid: string, data: Record<string, unknown>): SurveyPeriodEntity {
         return {
             uid,
@@ -75,6 +95,7 @@ export class SurveyPeriodRepository {
             startDate: this.toDate(data.startDate),
             endDate: this.toDate(data.endDate),
             isFinished: Boolean(data.isFinished),
+            isActive: Boolean(data.isActive),
             minWalks: Number(data.minWalks ?? 0),
         };
     }

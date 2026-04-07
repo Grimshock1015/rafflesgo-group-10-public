@@ -17,6 +17,7 @@ describe('SurveyWalkService Unit Tests', () => {
 		startDate: new Date('2026-03-01T00:00:00.000Z'),
 		endDate: new Date('2026-05-31T00:00:00.000Z'),
 		isFinished: false,
+		isActive: true,
 		minWalks: 2
 	};
 
@@ -103,14 +104,14 @@ describe('SurveyWalkService Unit Tests', () => {
 		it('should query walk repository with joined period uids', async () => {
 			mockSurveyPeriodRepository.findAll.mockResolvedValue([
 				period,
-				{ ...period, uid: 'period-2', name: 'Summer 2026' },
+				{ ...period, uid: 'period-2', name: 'Summer 2026', isActive: false },
 			]);
 			mockSurveyWalkRepository.findBySurveyPeriodUids.mockResolvedValue([walk]);
 
 			const result = await service.getSurveyWalksForJoinedPeriods();
 
 			expect(result).toEqual([walk]);
-			expect(mockSurveyWalkRepository.findBySurveyPeriodUids).toHaveBeenCalledWith(['period-1', 'period-2']);
+			expect(mockSurveyWalkRepository.findBySurveyPeriodUids).toHaveBeenCalledWith(['period-1']);
 		});
 	});
 

@@ -16,6 +16,7 @@ describe('SurveyPeriodService Unit Tests', () => {
             create: vi.fn(),
             update: vi.fn(),
             delete: vi.fn(),
+            setActive: vi.fn(),
             join: vi.fn(),
             unjoin: vi.fn(),
         } as unknown as Mocked<SurveyPeriodRepository>;
@@ -34,12 +35,12 @@ describe('SurveyPeriodService Unit Tests', () => {
                 { 
                     uid: '1', name: 'Spring Survey', 
                     startDate: new Date('2026-03-01'), endDate: new Date('2026-05-01'), 
-                    isFinished: false, minWalks: 2
+                    isFinished: false, isActive: false, minWalks: 2
                 },
                 { 
                     uid: '2', name: 'Summer Survey', 
                     startDate: new Date('2026-06-01'), endDate: new Date('2026-08-01'), 
-                    isFinished: false, minWalks: 3
+                    isFinished: false, isActive: false, minWalks: 3
                 }
             ];
             mockRepository.findAll.mockResolvedValue(mockData);
@@ -78,6 +79,7 @@ describe('SurveyPeriodService Unit Tests', () => {
                 startDate: new Date('2026-09-01'), 
                 endDate: new Date('2026-11-01'), 
                 isFinished: false, 
+                isActive: false,
                 minWalks: 1
             };
             mockRepository.findById.mockResolvedValue(mockData);
@@ -122,6 +124,7 @@ describe('SurveyPeriodService Unit Tests', () => {
                 startDate: new Date('2026-01-01'),
                 endDate: new Date('2026-02-01'),
                 isFinished: false,
+                isActive: false,
                 minWalks: invalidMinWalks,
                 volunteerUids: []
             };
@@ -141,6 +144,7 @@ describe('SurveyPeriodService Unit Tests', () => {
                 startDate: new Date('2026-02-01'), // February
                 endDate: new Date('2026-01-01'),   // January (Invalid)
                 isFinished: false,
+                isActive: false,
                 minWalks: 1,
                 volunteerUids: []
             };
@@ -160,6 +164,7 @@ describe('SurveyPeriodService Unit Tests', () => {
                 startDate: new Date('2026-01-01'),
                 endDate: new Date('2026-02-01'),
                 isFinished: false,
+                isActive: false,
                 minWalks: 2,
                 volunteerUids: []
             };
@@ -190,6 +195,7 @@ describe('SurveyPeriodService Unit Tests', () => {
             startDate: new Date('2026-03-01'),
             endDate: new Date('2026-05-01'),
             isFinished: false,
+            isActive: false,
             minWalks: 2
         };
 
