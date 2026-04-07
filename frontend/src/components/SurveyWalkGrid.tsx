@@ -48,7 +48,7 @@ function DeleteSurveyWalkButton({ surveyWalkId, onDeleted }: DeleteSurveyWalkBut
     return (
         <Dialog.Root size={"sm"} open={open} onOpenChange={(event) => setOpen(event.open)}>
             <Dialog.Trigger asChild>
-                <Button variant="outline" size={"sm"} px={2}>
+                <Button variant="outline" size={"xs"} px={2}>
                     <MdDelete />
                     Delete
                 </Button>
@@ -279,16 +279,16 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                         </Stack>
 
                         <Stack gap={1}>
-                            <Text lineHeight={1.35}>
+                            <Text lineHeight={0.5}>
                                 Time: {new Date(sw.date).toLocaleDateString("en-SG", { timeZone: "UTC" })}, {sw.startTime} - {sw.endTime}
                             </Text>
-                            <Text lineHeight={1.35}>
+                            <Text lineHeight={0.5}>
                                 Volunteer no.: {sw.volunteers.length} / {sw.capacity}
                             </Text>
-                            <Text lineHeight={1.35}>
+                            <Text lineHeight={0.5}>
                                 Leader: {sw.leader.name || "N/A"} {isLeader && "(You)"}
                             </Text>
-                            <Text lineHeight={1.35}>
+                            <Text lineHeight={0.5}>
                                 Contributes to: {sw.surveyPeriodName}
                             </Text>
                                 <Collapsible.Content>
@@ -309,12 +309,12 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                 </Card.Body>
                 <Card.Footer justifyContent={"flex-end"} p={3} pt={0} gap={2}>
                     <Collapsible.Trigger asChild>
-                        <Button size={"sm"} px={2} variant="outline">
+                        <Button size={"xs"} px={2} variant="outline">
                             {open ? <><FaEyeSlash />Hide Details</> : <><FaEye /> View Details</>}
                         </Button>
                     </Collapsible.Trigger>
                     <Button 
-                        size={"sm"} 
+                        size={"xs"} 
                         px={2} 
                         onClick={hasJoined ? handleQuit : handleJoin}
                         disabled={sw.isFinished || (isFull && !hasJoined)}
@@ -331,7 +331,7 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                             <DeleteSurveyWalkButton surveyWalkId={sw.uid} onDeleted={async () => {
                                 onJoin();
                             }} />
-                            <Button size={"sm"} px={2} onClick={() => onEdit(sw.uid)}>
+                            <Button size={"xs"} px={2} onClick={() => onEdit(sw.uid)}>
                                 <MdModeEdit />Edit
                             </Button>
                         </>
