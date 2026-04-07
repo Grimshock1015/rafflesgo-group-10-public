@@ -115,13 +115,13 @@ export default function Dashboard({ user }: { user: User }) {
   return (
     <main className="main-content">
       <div className="container" style={{ paddingBottom: '3rem' }}>
-        <header className="welcome-header">
+        <header className="welcome-header" style = {sectionStyle}>
           <h1>
-            <span>Welcome back </span>
+            <span>Welcome back, </span>
             <span id="volunteerName">{displayName}</span>
           </h1>
-          {displayRole ? <p>{displayRole}</p> : null}
-          {userEmail ? <p>{userEmail}</p> : null}
+          {displayRole ? <p>Role: {displayRole}</p> : null}
+          {userEmail ? <p>Email: {userEmail}</p> : null}
           {detailsError ? (
             <p className="text-error">Something went wrong getting your details. Please try again later.</p>
           ) : null}
