@@ -1,6 +1,6 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { getContainer } from '../container';
-import { createSighting, getMySightingsDashboard } from '../services/sighting.service';
+import { createSighting, deleteSighting, getAllSightings, getMySightingsDashboard } from '../services/sighting.service';
 
 export async function createSightingHandler(
   request: FastifyRequest,
@@ -84,6 +84,40 @@ export async function getMySightingsHandler(
     request.log.error(error);
     return reply.code(500).send({
       message: 'Failed to fetch your sightings',
+    });
+  }
+}
+
+export async function getAllSightingsHandler(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  try {
+    const sightings = await getAllSightings();
+    return reply.code(200).send({ sightings });
+  } catch (error) {
+    request.log.error(error);
+    return reply.code(500).send({
+      message: 'Failed to fetch sightings',
+    });
+  }
+}
+
+export async function deleteSightingHandler(
+  request: FastifyRequest,
+  reply: FastifyReply,
+) {
+  try {
+    const { id } = request.params as { id: string };
+    await deleteSighting(id);
+    return reply.code(200).send({
+      success: true,
+      id,
+    });
+  } catch (error) {
+    request.log.error(error);
+    return reply.code(500).send({
+      message: 'Failed to delete sighting',
     });
   }
 }

@@ -140,6 +140,11 @@ export default function Dashboard({ user }: { user: User }) {
             <Link to="/drafts" className="btn btn-secondary">
               Saved Drafts {draftCount > 0 ? `(${draftCount})` : ''}
             </Link>
+            {userRole === 'admin' ? (
+              <Link to="/admin" className="btn btn-secondary">
+                Admin Dashboard
+              </Link>
+            ) : null}
           </div>
         </section>
 

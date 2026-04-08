@@ -4,7 +4,7 @@ import { signOut } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import type { User } from 'firebase/auth'
 import { Button } from '@chakra-ui/react'
-import { RafflesGoService } from '@/api'
+import { RafflesGoService } from '../api'
 
 interface NavigationProps {
   user: User
@@ -144,6 +144,14 @@ export function Navigation({ user }: NavigationProps) {
                 Dashboard
               </Button>
             </li>
+
+            {role === 'admin' && (
+              <li>
+                <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/admin');}} px={2}>
+                  Admin
+                </Button>
+              </li>
+            )}
           </ul>
 
           <div className="nav-actions">

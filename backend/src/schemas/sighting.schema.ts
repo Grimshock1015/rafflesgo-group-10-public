@@ -126,3 +126,58 @@ export const MySightingsResponseSchema = {
     },
   },
 } as const;
+
+const SightingSchema = {
+  type: 'object',
+  required: [
+    'id',
+    'surveyWalkUid',
+    'result',
+    'date',
+    'time',
+    'location',
+    'notes',
+    'submittedBy',
+    'createdAt',
+  ],
+  properties: {
+    id: { type: 'string' },
+    surveyWalkUid: { type: 'string' },
+    result: { type: 'string' },
+    date: { type: 'string' },
+    time: { type: 'string' },
+    location: { type: 'string' },
+    species: { type: 'string' },
+    latitude: { type: 'number' },
+    longitude: { type: 'number' },
+    adults: { type: 'number' },
+    juveniles: { type: 'number' },
+    behaviour: { type: 'string' },
+    notes: { type: 'string' },
+    submittedBy: { type: 'string' },
+    mediaUrl: { type: 'string' },
+    createdAt: { type: 'string' },
+  },
+} as const;
+
+export const AdminSightingsResponseSchema = {
+  $id: 'AdminSightingsResponse',
+  type: 'object',
+  required: ['sightings'],
+  properties: {
+    sightings: {
+      type: 'array',
+      items: SightingSchema,
+    },
+  },
+} as const;
+
+export const DeleteSightingResponseSchema = {
+  $id: 'DeleteSightingResponse',
+  type: 'object',
+  required: ['success', 'id'],
+  properties: {
+    success: { type: 'boolean' },
+    id: { type: 'string' },
+  },
+} as const;

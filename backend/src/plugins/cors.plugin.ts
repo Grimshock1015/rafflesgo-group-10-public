@@ -12,7 +12,7 @@ const corsPlugin: FastifyPluginAsync<CorsPluginOptions> = async (fastify, option
   await fastify.register(fastifyCors, {
     origin: process.env.NODE_ENV === 'production' ? false : allowedOrigins,
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 };
