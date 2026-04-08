@@ -1,5 +1,5 @@
 import { UserRepository } from '../repositories/user.repository';
-import { User, ChangeRoleResponse } from '../schemas/user.schema';
+import { User, ChangeRoleResponse, UpdateUserStatusResponse } from '../schemas/user.schema';
 import { Role } from '../config';
 
 export class UserService {
@@ -12,5 +12,10 @@ export class UserService {
   async changeRole(email: string, role: Role): Promise<ChangeRoleResponse> {
     await this.userRepository.setRoleByEmail(email, role);
     return { success: true, email, role };
+  }
+
+  async updateStatus(uid: string, disabled: boolean): Promise<UpdateUserStatusResponse> {
+    await this.userRepository.setDisabled(uid, disabled);
+    return { success: true, uid, disabled };
   }
 }

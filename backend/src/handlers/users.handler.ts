@@ -5,6 +5,7 @@ import {
   MeResponseSchema,
 } from '../schemas/user.schema';
 import { FastifyRequestTypeBox, FastifyReplyTypeBox } from '../types/fastify';
+import type { FastifyRequest, FastifyReply } from 'fastify';
 import { getContainer } from '../container';
 import { config } from '../config';
 
@@ -61,4 +62,14 @@ export async function changeRoleHandler(
   const { userService } = getContainer();
   const { email, role } = request.body;
   return userService.changeRole(email, role);
+}
+
+export async function updateUserStatusHandler(
+  request: FastifyRequest,
+  _reply: FastifyReply
+) {
+  const { userService } = getContainer();
+  const { uid } = request.params as { uid: string };
+  const { disabled } = request.body as { disabled: boolean };
+  return userService.updateStatus(uid, disabled);
 }

@@ -4,6 +4,7 @@ import { signOut } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import type { User } from 'firebase/auth'
 import { Button } from '@chakra-ui/react'
+import { RafflesGoService } from '../api'
 
 interface NavigationProps {
   user: User
@@ -12,6 +13,7 @@ interface NavigationProps {
 export function Navigation({ user }: NavigationProps) {
   const navigate = useNavigate()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   const handleLogout = async () => {
     await signOut(auth)
@@ -26,6 +28,28 @@ export function Navigation({ user }: NavigationProps) {
   }
 
   // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchRole = async () => {
+      try {
+        const response = await RafflesGoService.getCurrentUser()
+        if (!isMounted) return
+        setIsAdmin(response.role === 'admin')
+      } catch (error) {
+        console.error('Failed to fetch current user role:', error)
+        if (!isMounted) return
+        setIsAdmin(false)
+      }
+    }
+
+    void fetchRole()
+
+    return () => {
+      isMounted = false
+    }
+  }, [user.uid])
+
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden'
@@ -116,6 +140,13 @@ export function Navigation({ user }: NavigationProps) {
                 Dashboard
               </Button>
             </li>
+            {isAdmin ? (
+              <li>
+                <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/admin');}} px={2}>
+                  Admin
+                </Button>
+              </li>
+            ) : null}
           </ul>
 
           <div className="nav-actions">

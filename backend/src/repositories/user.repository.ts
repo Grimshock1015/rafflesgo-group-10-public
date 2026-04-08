@@ -27,4 +27,8 @@ export class UserRepository {
     const user = await auth.getUserByEmail(email);
     await auth.setCustomUserClaims(user.uid, { role });
   }
+
+  async setDisabled(uid: string, disabled: boolean): Promise<void> {
+    await auth.updateUser(uid, { disabled });
+  }
 }
