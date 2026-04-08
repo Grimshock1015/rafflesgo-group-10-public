@@ -15,6 +15,7 @@ vi.mock('../api', () => ({
   RafflesGoService: {
     sayHello: vi.fn(),
     getCurrentUser: vi.fn(),
+    listSurveyWalksForCurrentUser: vi.fn(),
   },
   SightingsService: {
     getMySightingsDashboard: vi.fn(),
@@ -50,6 +51,39 @@ describe('Dashboard', () => {
       role: 'user',
     });
     vi.mocked(getAllDrafts).mockResolvedValue([]);
+    vi.mocked(RafflesGoService.listSurveyWalksForCurrentUser).mockResolvedValue({
+      surveyWalks: [
+        {
+          uid: 'walk-upcoming',
+          surveyPeriodUid: 'period-1',
+          surveyPeriodName: 'April 2026 Survey Period',
+          name: 'MacRitchie Reservoir Loop',
+          date: '2099-04-12T00:00:00.000Z',
+          startTime: '07:30',
+          endTime: '09:30',
+          capacity: 8,
+          isFinished: false,
+          volunteers: [
+            { uid: 'test-uid-123', name: 'John Doe' },
+            { uid: 'user-2', name: 'Jane Tan' },
+          ],
+          leader: { uid: 'leader-1', name: 'Alicia Lim' },
+        },
+        {
+          uid: 'walk-later',
+          surveyPeriodUid: 'period-1',
+          surveyPeriodName: 'April 2026 Survey Period',
+          name: 'Springleaf Trail',
+          date: '2099-04-14T00:00:00.000Z',
+          startTime: '08:00',
+          endTime: '10:00',
+          capacity: 10,
+          isFinished: false,
+          volunteers: [{ uid: 'test-uid-123', name: 'John Doe' }],
+          leader: { uid: 'leader-2', name: 'Benjamin Ng' },
+        },
+      ],
+    });
     vi.mocked(SightingsService.getMySightingsDashboard).mockResolvedValue({
       stats: {
         totalSubmissions: 2,
@@ -102,7 +136,7 @@ describe('Dashboard', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/welcome back/i)).toBeInTheDocument();
-      expect(screen.getByText(/John Doe/i)).toBeInTheDocument(); // Name is in a <span>
+      expect(screen.getByText('John Doe', { selector: '#volunteerName' })).toBeInTheDocument();
       expect(screen.getByText(/john@example.com/i)).toBeInTheDocument(); // Emal is displayed below the H1
     });
   });
@@ -118,6 +152,7 @@ describe('Dashboard', () => {
     await waitFor(() => {
       expect(RafflesGoService.getCurrentUser).toHaveBeenCalled();
       expect(SightingsService.getMySightingsDashboard).toHaveBeenCalled();
+      expect(RafflesGoService.listSurveyWalksForCurrentUser).toHaveBeenCalled();
       expect(screen.getByText(/john@example.com/i)).toBeInTheDocument();
     });
   });
@@ -162,6 +197,37 @@ describe('Dashboard', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('link', { name: /saved drafts/i })).toBeInTheDocument();
+    });
+  });
+
+  it('renders the volunteer next upcoming walk', async () => {
+    render(
+      <BrowserRouter>
+        <Dashboard user={mockUser as User} />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /next upcoming walk/i })).toBeInTheDocument();
+      expect(screen.getByText(/MacRitchie Reservoir Loop/i)).toBeInTheDocument();
+      expect(screen.getByText(/Leader: Alicia Lim/i)).toBeInTheDocument();
+      expect(screen.getByText(/Volunteers: John Doe, Jane Tan/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows an empty state when there are no upcoming walks', async () => {
+    vi.mocked(RafflesGoService.listSurveyWalksForCurrentUser).mockResolvedValueOnce({
+      surveyWalks: [],
+    });
+
+    render(
+      <BrowserRouter>
+        <Dashboard user={mockUser as User} />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/you do not have any upcoming survey walks/i)).toBeInTheDocument();
     });
   });
 });
