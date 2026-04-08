@@ -20,6 +20,10 @@ type DeleteSurveyWalkButtonProps = {
 function DeleteSurveyWalkButton({ surveyWalkId, onDeleted }: DeleteSurveyWalkButtonProps) {
     const [open, setOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const { effectiveTheme } = useTheme();
+    const outlineButtonColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.700";
+    const outlineButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.500" : "gray.300";
+    const outlineButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.200" : "gray.100";
 
     const handleDelete = async () => {
         try {
@@ -49,7 +53,7 @@ function DeleteSurveyWalkButton({ surveyWalkId, onDeleted }: DeleteSurveyWalkBut
     return (
         <Dialog.Root size={"sm"} open={open} onOpenChange={(event) => setOpen(event.open)}>
             <Dialog.Trigger asChild>
-                <Button variant="outline" size={"sm"} px={2}>
+                <Button variant="outline" size={"sm"} px={2} color={outlineButtonColor} borderColor={outlineButtonBorder} _hover={{ bg: outlineButtonHoverBg }}>
                     <MdDelete />
                     Delete
                 </Button>
@@ -66,7 +70,7 @@ function DeleteSurveyWalkButton({ surveyWalkId, onDeleted }: DeleteSurveyWalkBut
                         </Dialog.Body>
                         <Dialog.Footer>
                             <Dialog.ActionTrigger asChild>
-                                <Button variant="outline" px={2} disabled={isDeleting}>
+                                <Button variant="outline" px={2} disabled={isDeleting} color={outlineButtonColor} borderColor={outlineButtonBorder} _hover={{ bg: outlineButtonHoverBg }}>
                                     Cancel
                                 </Button>
                             </Dialog.ActionTrigger>
@@ -94,6 +98,14 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
     const selectBg = effectiveTheme === "dark" ? "gray.800" : "white";
     const selectBorder = effectiveTheme === "dark" ? "gray.600" : "gray.200";
     const selectItemHoverBg = effectiveTheme === "dark" ? "gray.700" : "gray.50";
+    const cardBg = effectiveTheme === "dark" ? "gray.900" : "white";
+    const cardBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.200";
+    const cardShadow = effectiveTheme === "dark" ? "0 12px 28px rgba(0, 0, 0, 0.38)" : "sm";
+    const cardTextColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
+    const cardSubtleTextColor = effectiveTheme === "dark" ? "whiteAlpha.800" : "gray.700";
+    const outlineButtonColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.700";
+    const outlineButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.500" : "gray.300";
+    const outlineButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.200" : "gray.100";
 
     function handleJoin() {
         setIsLoading(true);
@@ -189,7 +201,7 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
         return (
             <Dialog.Root size={"sm"} open={open} onOpenChange={(event) => setOpen(event.open)}>
                 <Dialog.Trigger asChild>
-                    <Button variant="outline" size={"sm"} px={2}>
+                    <Button variant="outline" size={"sm"} px={2} color={outlineButtonColor} borderColor={outlineButtonBorder} _hover={{ bg: outlineButtonHoverBg }}>
                         <BiTransfer />
                         Reassign
                     </Button>
@@ -229,7 +241,7 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                             </Dialog.Body>
                             <Dialog.Footer>
                                 <Dialog.ActionTrigger asChild>
-                                    <Button variant="outline" px={2} disabled={isDeleting}>
+                                    <Button variant="outline" px={2} disabled={isDeleting} color={outlineButtonColor} borderColor={outlineButtonBorder} _hover={{ bg: outlineButtonHoverBg }}>
                                         Cancel
                                     </Button>
                                 </Dialog.ActionTrigger>
@@ -250,7 +262,7 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
     return (
         <GridItem key={sw.uid} h="100%">
             <Collapsible.Root open={open} onOpenChange={(event) => setOpen(event.open)} display="flex" flexDirection="column" h="100%">   
-            <Card.Root h="100%" w="100%" p={0} overflow="hidden" display="flex" flexDirection="column">
+            <Card.Root h="100%" w="100%" p={0} overflow="hidden" display="flex" flexDirection="column" bg={cardBg} borderWidth="1px" borderColor={cardBorder} boxShadow={cardShadow}>
                 <Image
                     src="src/assets/monkey.jpg"
                     alt="Survey walk cover"
@@ -261,10 +273,10 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                     display="block"
                     flexShrink={0}
                 />
-                <Card.Body p={3} flex="1" overflowY="auto">
+                <Card.Body p={3} flex="1" overflowY="auto" color={cardTextColor}>
                     <Stack gap={2}>
                         <Stack direction="row" justify="space-between" align="flex-start">
-                            <Card.Title>{sw.name}</Card.Title>
+                            <Card.Title color={cardTextColor}>{sw.name}</Card.Title>
                             <Box display="flex" gap={1.5} alignItems="center" justifyContent="flex-end" ml="auto" mt="1px">
                                 <Badge colorPalette={sw.isFinished ? "green" : "orange"} p={1}>
                                     {sw.isFinished ? "Finished" : "Upcoming"}
@@ -285,20 +297,20 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                         </Stack>
 
                         <Stack gap={1}>
-                            <Text lineHeight={0.5}>
+                            <Text lineHeight={0.5} color={cardSubtleTextColor}>
                                 Time: {new Date(sw.date).toLocaleDateString("en-SG", { timeZone: "UTC" })}, {sw.startTime} - {sw.endTime}
                             </Text>
-                            <Text lineHeight={0.5}>
+                            <Text lineHeight={0.5} color={cardSubtleTextColor}>
                                 Volunteer no.: {sw.volunteers.length} / {sw.capacity}
                             </Text>
-                            <Text lineHeight={0.5}>
+                            <Text lineHeight={0.5} color={cardSubtleTextColor}>
                                 Leader: {sw.leader.name || "N/A"} {isLeader && "(You)"}
                             </Text>
-                            <Text lineHeight={0.5}>
+                            <Text lineHeight={0.5} color={cardSubtleTextColor}>
                                 Contributes to: {sw.surveyPeriodName}
                             </Text>
                                 <Collapsible.Content>
-                                    <Text>
+                                    <Text color={cardSubtleTextColor}>
                                         Participants:
                                         <List.Root>
                                             {sw.volunteers.map((v) => (
@@ -315,7 +327,7 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                 </Card.Body>
                 <Card.Footer justifyContent={"flex-end"} p={3} pt={0} gap={1} flexWrap={"wrap"} flexShrink={0}>
                     <Collapsible.Trigger asChild>
-                        <Button size={"sm"} px={2} variant="outline">
+                        <Button size={"sm"} px={2} variant="outline" color={outlineButtonColor} borderColor={outlineButtonBorder} _hover={{ bg: outlineButtonHoverBg }}>
                             {open ? <><FaEyeSlash />Hide Details</> : <><FaEye /> View Details</>}
                         </Button>
                     </Collapsible.Trigger>
@@ -326,6 +338,9 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                         disabled={sw.isFinished || (isFull && !hasJoined)}
                         loading={isLoading}
                         variant="outline"
+                        color={outlineButtonColor}
+                        borderColor={outlineButtonBorder}
+                        _hover={{ bg: outlineButtonHoverBg }}
                     >
                         {hasJoined ? <><MdGroupRemove /> Quit</> : <><MdGroupAdd /> Join</>}
                     </Button>
@@ -338,7 +353,7 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                             <DeleteSurveyWalkButton surveyWalkId={sw.uid} onDeleted={async () => {
                                 onJoin();
                             }} />
-                            <Button size={"sm"} px={2} onClick={() => onEdit(sw.uid)}>
+                            <Button size={"sm"} px={2} variant="outline" color={outlineButtonColor} borderColor={outlineButtonBorder} _hover={{ bg: outlineButtonHoverBg }} onClick={() => onEdit(sw.uid)}>
                                 <MdModeEdit />Edit
                             </Button>
                         </>
