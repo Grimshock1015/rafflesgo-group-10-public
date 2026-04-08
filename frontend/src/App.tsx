@@ -15,6 +15,7 @@ import CreateSurveyPeriod from './pages/CreateSurveyPeriod'
 import EditSurveyPeriod from './pages/EditSurveyPeriod'
 import { Navigation } from './components/Navigation'
 import SurveyWalkList from './pages/SurveyWalkList'
+import { RafflesGoService } from './api'
 import AdminDashboard from './pages/AdminDashboard'
 
 function RequireAuth({ user, children }: { user: User | null; children: ReactNode }) {
@@ -23,6 +24,49 @@ function RequireAuth({ user, children }: { user: User | null; children: ReactNod
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />
   }
+  return children
+}
+
+function RequireAdmin({ children }: { children: ReactNode }) {
+  const location = useLocation()
+  const [isLoading, setIsLoading] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    let isMounted = true
+
+    const checkAdmin = async () => {
+      try {
+        const currentUser = await RafflesGoService.getCurrentUser()
+        if (isMounted) {
+          setIsAdmin(currentUser.role === 'admin')
+        }
+      } catch {
+        if (isMounted) {
+          setIsAdmin(false)
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    checkAdmin()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  if (isLoading) {
+    return <div style={{ padding: 24 }}>Checking access...</div>
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/dashboard" replace state={{ from: location.pathname }} />
+  }
+
   return children
 }
 
@@ -78,12 +122,12 @@ export default function App() {
       {/* protected */}
       <Route element={<ProtectedLayout user={user} />}>
         <Route path="/dashboard" element={<Dashboard user={user!} />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
         <Route path="/submit-sighting" element={<SubmitSightingPage user={user!} />} />
-        <Route path="/survey-periods" element={<SurveyPeriodList user={user!} />} />
-        <Route path="/create-survey-period" element={<CreateSurveyPeriod />} />
+        <Route path="/survey-periods" element={<RequireAdmin><SurveyPeriodList user={user!} /></RequireAdmin>} />
+        <Route path="/create-survey-period" element={<RequireAdmin><CreateSurveyPeriod /></RequireAdmin>} />
         <Route path="/drafts" element={<DraftsPage user={user!} />} />
-        <Route path="/edit-survey-period/:surveyPeriodId" element={<EditSurveyPeriod />} />
+        <Route path="/edit-survey-period/:surveyPeriodId" element={<RequireAdmin><EditSurveyPeriod /></RequireAdmin>} />
         <Route path="/survey-walks" element={<SurveyWalkList user={user!} />} />
       </Route>
 

@@ -56,6 +56,7 @@ describe('Survey Periods Integration', () => {
         startDate: '2026-03-24T00:00:00.000Z',
         endDate: '2026-03-30T00:00:00.000Z',
         isFinished: false,
+        isActive: false,
         minWalks: 5,
     };
 
@@ -122,8 +123,8 @@ describe('Survey Periods Integration', () => {
     it('GET /api/surveyPeriods should list all periods (Admin)', async () => {
         mockAdminUser();
 
-        await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({ ...mockPeriod, volunteerUids: [] });
-        await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({ ...mockPeriod, name: 'Test Period 2', volunteerUids: [] });
+        await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({ ...mockPeriod });
+        await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({ ...mockPeriod, name: 'Test Period 2' });
 
         const response = await app.inject({
             method: 'GET',
@@ -173,7 +174,7 @@ describe('Survey Periods Integration', () => {
     it('PUT /api/surveyPeriods/:uid should update an existing period (Admin)', async () => {
         mockAdminUser();
 
-        const docRef = await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({ ...mockPeriod, volunteerUids: [] });
+        const docRef = await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({ ...mockPeriod });
 
         const response = await app.inject({
             method: 'PUT',
@@ -189,6 +190,29 @@ describe('Survey Periods Integration', () => {
         // Verify in DB
         const doc = await docRef.get();
         expect(doc.data()?.name).toBe('Updated Period Name');
+    });
+
+    it('POST /api/surveyPeriods/:uid/activate should set exactly one active period (Admin)', async () => {
+        mockAdminUser();
+
+        const inactivePeriodRef = await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({ ...mockPeriod, name: 'Inactive Period' });
+        const activePeriodRef = await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({ ...mockPeriod, name: 'Another Period' });
+
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/surveyPeriods/${activePeriodRef.id}/activate`,
+            headers: { authorization: 'Bearer fake-token' },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const data = response.json();
+        expect(data.uid).toBe(activePeriodRef.id);
+        expect(data.isActive).toBe(true);
+
+        const activeDoc = await activePeriodRef.get();
+        const inactiveDoc = await inactivePeriodRef.get();
+        expect(activeDoc.data()?.isActive).toBe(true);
+        expect(inactiveDoc.data()?.isActive).toBe(false);
     });
 
     it('POST /api/surveyPeriods should return 400 when minWalks is negative (Admin)', async () => {
@@ -223,7 +247,7 @@ describe('Survey Periods Integration', () => {
     it('DELETE /api/surveyPeriods/:uid should delete a period (Admin)', async () => {
         mockAdminUser();
 
-        const docRef = await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({ ...mockPeriod, volunteerUids: [] });
+        const docRef = await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({ ...mockPeriod });
 
         const response = await app.inject({
             method: 'DELETE',
@@ -247,109 +271,6 @@ describe('Survey Periods Integration', () => {
             method: 'DELETE',
             url: `/api/surveyPeriods/nonexistent-id`,
             headers: { authorization: 'Bearer fake-token' },
-        });
-
-        expect(response.statusCode).toBe(404);
-    });
-
-    it('POST /api/surveyPeriods/:uid/join should add user to volunteers array (User)', async () => {
-        mockRegularUser();
-
-        const docRef = await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({ ...mockPeriod, volunteerUids: [] });
-
-        const response = await app.inject({
-            method: 'POST',
-            url: `/api/surveyPeriods/${docRef.id}/join`,
-            headers: { authorization: 'Bearer fake-token' },
-            payload: { volunteerUid: 'user-456' },
-        });
-
-        expect(response.statusCode).toBe(200);
-        expect(response.json().success).toBe(true);
-
-        // Verify in DB
-        const doc = await docRef.get();
-        expect(doc.data()?.volunteerUids).toContain('user-456');
-    });
-
-    it('POST /api/surveyPeriods/:uid/join should return 404 for non-existent period (User)', async () => {
-        mockRegularUser();
-
-        const response = await app.inject({
-            method: 'POST',
-            url: `/api/surveyPeriods/nonexistent-id/join`,
-            headers: { authorization: 'Bearer fake-token' },
-            payload: { volunteerUid: 'user-456' },
-        });
-
-        expect(response.statusCode).toBe(404);
-    });
-
-    it('POST /api/surveyPeriods/:uid/join should return 400 for missing volunteerUid (User)', async () => {
-        mockRegularUser();
-
-        const docRef = await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({ ...mockPeriod, volunteerUids: [] });
-
-        const response = await app.inject({
-            method: 'POST',
-            url: `/api/surveyPeriods/${docRef.id}/join`,
-            headers: { authorization: 'Bearer fake-token' },
-            payload: {}, // Missing volunteerUid
-        });
-
-        expect(response.statusCode).toBe(400);
-    });
-
-    it('POST /api/surveyPeriods/:uid/join should not add duplicate volunteerUid (User)', async () => {
-        mockRegularUser();
-
-        const docRef = await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({ ...mockPeriod, volunteerUids: ['user-456'] });
-
-        const response = await app.inject({
-            method: 'POST',
-            url: `/api/surveyPeriods/${docRef.id}/join`,
-            headers: { authorization: 'Bearer fake-token' },
-            payload: { volunteerUid: 'user-456' },
-        });
-
-        expect(response.statusCode).toBe(200);
-        expect(response.json().success).toBe(true);
-
-        // Verify in DB - should still only have one instance of 'user-456'
-        const doc = await docRef.get();
-        const volunteerUids = doc.data()?.volunteerUids || [];
-        expect(volunteerUids.filter((uid: string) => uid === 'user-456').length).toBe(1);
-    });
-
-    it('POST /api/surveyPeriods/:uid/unjoin should remove user from volunteers array (User)', async () => {
-        mockRegularUser();
-
-        const docRef = await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({ ...mockPeriod, volunteerUids: ['user-456', 'other-user'] });
-
-        const response = await app.inject({
-            method: 'POST',
-            url: `/api/surveyPeriods/${docRef.id}/unjoin`,
-            headers: { authorization: 'Bearer fake-token' },
-            payload: { volunteerUid: 'user-456' },
-        });
-
-        expect(response.statusCode).toBe(200);
-        expect(response.json().success).toBe(true);
-
-        // Verify in DB
-        const doc = await docRef.get();
-        expect(doc.data()?.volunteerUids).not.toContain('user-456');
-        expect(doc.data()?.volunteerUids).toContain('other-user');
-    });
-
-    it('POST /api/surveyPeriods/:uid/unjoin should return 404 for non-existent period (User)', async () => {
-        mockRegularUser();
-
-        const response = await app.inject({
-            method: 'POST',
-            url: `/api/surveyPeriods/nonexistent-id/unjoin`,
-            headers: { authorization: 'Bearer fake-token' },
-            payload: { volunteerUid: 'user-456' },
         });
 
         expect(response.statusCode).toBe(404);

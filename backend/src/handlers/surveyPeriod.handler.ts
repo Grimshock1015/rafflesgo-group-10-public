@@ -6,10 +6,6 @@ import {
     SurveyPeriodParamsSchema,
     UpdateSurveyPeriodBodySchema,
     surveyPeriodSchema,
-    JoinSurveyPeriodBodySchema,
-    JoinSurveyPeriodResponseSchema,
-    UnjoinSurveyPeriodBodySchema,
-    UnjoinSurveyPeriodResponseSchema
 } from '../schemas/surveyPeriod.schema';
 import { getContainer } from '../container';
 import { SurveyPeriodEntity } from '../entities/surveyPeriod.entity';
@@ -50,19 +46,10 @@ const DeleteSurveyPeriodSchema = {
     },
 };
 
-const JoinSurveyPeriodSchema = {
+const ActivateSurveyPeriodSchema = {
     params: SurveyPeriodParamsSchema,
-    body: JoinSurveyPeriodBodySchema,
     response: {
-        200: JoinSurveyPeriodResponseSchema,
-    },
-};
-
-const UnjoinSurveyPeriodSchema = {
-    params: SurveyPeriodParamsSchema,
-    body: UnjoinSurveyPeriodBodySchema,
-    response: {
-        200: UnjoinSurveyPeriodResponseSchema,
+        200: surveyPeriodSchema,
     },
 };
 
@@ -73,8 +60,8 @@ function toDto(surveyPeriod: SurveyPeriodEntity) {
         startDate: surveyPeriod.startDate.toISOString(),
         endDate: surveyPeriod.endDate.toISOString(),
         isFinished: surveyPeriod.isFinished,
+        isActive: surveyPeriod.isActive,
         minWalks: surveyPeriod.minWalks,
-        volunteerUids: surveyPeriod.volunteerUids,
     };
 }
 
@@ -115,8 +102,8 @@ export async function createSurveyPeriodHandler(
         startDate: parseDateString(request.body.startDate, 'startDate'),
         endDate: parseDateString(request.body.endDate, 'endDate'),
         isFinished: request.body.isFinished,
+        isActive: request.body.isActive || false,
         minWalks: request.body.minWalks,
-        volunteerUids: [],
     });
 
     return reply.code(201).send(toDto(created));
@@ -147,31 +134,11 @@ export async function deleteSurveyPeriodHandler(
     return surveyPeriodService.deleteSurveyPeriod(request.params.uid);
 }
 
-export async function joinSurveyPeriodHandler(
-    request: FastifyRequestTypeBox<typeof JoinSurveyPeriodSchema>,
-    _reply: FastifyReplyTypeBox<typeof JoinSurveyPeriodSchema>
+export async function activateSurveyPeriodHandler(
+    request: FastifyRequestTypeBox<typeof ActivateSurveyPeriodSchema>,
+    _reply: FastifyReplyTypeBox<typeof ActivateSurveyPeriodSchema>
 ) {
     const { surveyPeriodService } = getContainer();
-
-    // Call joinSurveyPeriod
-    await surveyPeriodService.joinSurveyPeriod(
-        request.params.uid,
-        request.body.volunteerUid
-    );
-
-    return { success: true };
-}
-
-export async function unjoinSurveyPeriodHandler(
-    request: FastifyRequestTypeBox<typeof UnjoinSurveyPeriodSchema>,
-    _reply: FastifyReplyTypeBox<typeof UnjoinSurveyPeriodSchema>
-) {
-    const { surveyPeriodService } = getContainer();
-
-    await surveyPeriodService.unjoinSurveyPeriod(
-        request.params.uid,
-        request.body.volunteerUid
-    );
-
-    return { success: true };
+    const updated = await surveyPeriodService.setActiveSurveyPeriod(request.params.uid);
+    return toDto(updated);
 }

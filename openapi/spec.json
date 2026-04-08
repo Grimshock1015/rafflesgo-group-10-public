@@ -427,8 +427,8 @@
                           "startDate",
                           "endDate",
                           "isFinished",
-                          "minWalks",
-                          "volunteerUids"
+                          "isActive",
+                          "minWalks"
                         ],
                         "properties": {
                           "uid": {
@@ -448,14 +448,11 @@
                           "isFinished": {
                             "type": "boolean"
                           },
+                          "isActive": {
+                            "type": "boolean"
+                          },
                           "minWalks": {
                             "type": "integer"
-                          },
-                          "volunteerUids": {
-                            "type": "array",
-                            "items": {
-                              "type": "string"
-                            }
                           }
                         }
                       }
@@ -501,6 +498,9 @@
                   "isFinished": {
                     "type": "boolean"
                   },
+                  "isActive": {
+                    "type": "boolean"
+                  },
                   "minWalks": {
                     "minimum": 0,
                     "type": "integer"
@@ -529,8 +529,8 @@
                     "startDate",
                     "endDate",
                     "isFinished",
-                    "minWalks",
-                    "volunteerUids"
+                    "isActive",
+                    "minWalks"
                   ],
                   "properties": {
                     "uid": {
@@ -550,14 +550,11 @@
                     "isFinished": {
                       "type": "boolean"
                     },
+                    "isActive": {
+                      "type": "boolean"
+                    },
                     "minWalks": {
                       "type": "integer"
-                    },
-                    "volunteerUids": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
                     }
                   }
                 }
@@ -602,8 +599,8 @@
                     "startDate",
                     "endDate",
                     "isFinished",
-                    "minWalks",
-                    "volunteerUids"
+                    "isActive",
+                    "minWalks"
                   ],
                   "properties": {
                     "uid": {
@@ -623,14 +620,11 @@
                     "isFinished": {
                       "type": "boolean"
                     },
+                    "isActive": {
+                      "type": "boolean"
+                    },
                     "minWalks": {
                       "type": "integer"
-                    },
-                    "volunteerUids": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
                     }
                   }
                 }
@@ -664,6 +658,9 @@
                     "type": "string"
                   },
                   "isFinished": {
+                    "type": "boolean"
+                  },
+                  "isActive": {
                     "type": "boolean"
                   },
                   "minWalks": {
@@ -703,8 +700,8 @@
                     "startDate",
                     "endDate",
                     "isFinished",
-                    "minWalks",
-                    "volunteerUids"
+                    "isActive",
+                    "minWalks"
                   ],
                   "properties": {
                     "uid": {
@@ -724,14 +721,11 @@
                     "isFinished": {
                       "type": "boolean"
                     },
+                    "isActive": {
+                      "type": "boolean"
+                    },
                     "minWalks": {
                       "type": "integer"
-                    },
-                    "volunteerUids": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
                     }
                   }
                 }
@@ -787,32 +781,13 @@
         }
       }
     },
-    "/api/surveyPeriods/{uid}/join": {
+    "/api/surveyPeriods/{uid}/activate": {
       "post": {
-        "operationId": "joinSurveyPeriod",
+        "operationId": "setActiveSurveyPeriod",
         "tags": [
           "RafflesGo"
         ],
-        "description": "Volunteer joins a survey period",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "volunteerUid"
-                ],
-                "properties": {
-                  "volunteerUid": {
-                    "minLength": 1,
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        },
+        "description": "Set the currently active survey period (admin only)",
         "parameters": [
           {
             "schema": {
@@ -836,74 +811,37 @@
                 "schema": {
                   "type": "object",
                   "required": [
-                    "success"
+                    "uid",
+                    "name",
+                    "startDate",
+                    "endDate",
+                    "isFinished",
+                    "isActive",
+                    "minWalks"
                   ],
                   "properties": {
-                    "success": {
+                    "uid": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "startDate": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "endDate": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "isFinished": {
                       "type": "boolean"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/surveyPeriods/{uid}/unjoin": {
-      "post": {
-        "operationId": "unjoinSurveyPeriod",
-        "tags": [
-          "RafflesGo"
-        ],
-        "description": "Volunteer unjoins a survey period",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "volunteerUid"
-                ],
-                "properties": {
-                  "volunteerUid": {
-                    "minLength": 1,
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "uid",
-            "required": true
-          }
-        ],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "success"
-                  ],
-                  "properties": {
-                    "success": {
+                    },
+                    "isActive": {
                       "type": "boolean"
+                    },
+                    "minWalks": {
+                      "type": "integer"
                     }
                   }
                 }

@@ -4,6 +4,6 @@ export interface SurveyPeriodEntity {
     startDate: Date;
     endDate: Date;
     isFinished: boolean;
+    isActive: boolean;
     minWalks: number;
-    volunteerUids: string[];
 }

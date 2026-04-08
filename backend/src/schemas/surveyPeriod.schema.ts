@@ -6,8 +6,8 @@ export const surveyPeriodSchema = Type.Object({
     startDate: Type.String({ format: 'date-time' }),
     endDate: Type.String({ format: 'date-time' }),
     isFinished: Type.Boolean(),
+    isActive: Type.Boolean(),
     minWalks: Type.Integer(),
-    volunteerUids: Type.Array(Type.String())
 });
 
 export const SurveyPeriodParamsSchema = Type.Object({
@@ -19,6 +19,7 @@ export const CreateSurveyPeriodBodySchema = Type.Object({
     startDate: Type.String({ format: 'date-time' }),
     endDate: Type.String({ format: 'date-time' }),
     isFinished: Type.Boolean(),
+    isActive: Type.Optional(Type.Boolean()),
     minWalks: Type.Integer({ minimum: 0 }),
 });
 
@@ -33,17 +34,7 @@ export const DeleteSurveyPeriodResponseSchema = Type.Object({
     uid: Type.String(),
 });
 
-export const JoinSurveyPeriodBodySchema = Type.Object({
-    volunteerUid: Type.String({ minLength: 1 }),
-});
 
-export const JoinSurveyPeriodResponseSchema = Type.Object({
-    success: Type.Boolean(),
-});
-
-// --- Unjoin schemas (reusing Join schemas for consistency) ---
-export const UnjoinSurveyPeriodBodySchema = JoinSurveyPeriodBodySchema;
-export const UnjoinSurveyPeriodResponseSchema = JoinSurveyPeriodResponseSchema;
 
 export type SurveyPeriod = Static<typeof surveyPeriodSchema>
 export type SurveyPeriodParams = Static<typeof SurveyPeriodParamsSchema>;
@@ -51,7 +42,3 @@ export type CreateSurveyPeriodBody = Static<typeof CreateSurveyPeriodBodySchema>
 export type UpdateSurveyPeriodBody = Static<typeof UpdateSurveyPeriodBodySchema>;
 export type ListSurveyPeriods = Static<typeof ListSurveyPeriodsResponseSchema>;
 export type DeleteSurveyPeriodResponse = Static<typeof DeleteSurveyPeriodResponseSchema>;
-export type JoinSurveyPeriodBody = Static<typeof JoinSurveyPeriodBodySchema>;
-export type JoinSurveyPeriodResponse = Static<typeof JoinSurveyPeriodResponseSchema>;
-export type UnjoinSurveyPeriodBody = Static<typeof UnjoinSurveyPeriodBodySchema>;
-export type UnjoinSurveyPeriodResponse = Static<typeof UnjoinSurveyPeriodResponseSchema>;

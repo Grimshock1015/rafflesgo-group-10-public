@@ -20,12 +20,10 @@ export default function LoginPage({ user }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // ✅ Minimal addition: backend status (same pattern as your App.tsx)
   const [backendStatus, setBackendStatus] = useState<'loading' | 'healthy' | 'error'>('loading')
 
-// ✅ call only after login
-useEffect(() => {
-    if (!user) return
+  useEffect(() => {
+    // if (!user) return
   
     const checkHealth = async () => {
       try {

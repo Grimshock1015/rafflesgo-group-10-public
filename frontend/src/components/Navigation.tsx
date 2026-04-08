@@ -13,7 +13,7 @@ interface NavigationProps {
 export function Navigation({ user }: NavigationProps) {
   const navigate = useNavigate()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isAdmin, setIsAdmin] = useState(false)
+  const [role, setRole] = useState<'user' | 'admin'>('user')
 
   const handleLogout = async () => {
     await signOut(auth)
@@ -28,28 +28,6 @@ export function Navigation({ user }: NavigationProps) {
   }
 
   // Prevent body scroll when mobile menu is open
-  useEffect(() => {
-    let isMounted = true
-
-    const fetchRole = async () => {
-      try {
-        const response = await RafflesGoService.getCurrentUser()
-        if (!isMounted) return
-        setIsAdmin(response.role === 'admin')
-      } catch (error) {
-        console.error('Failed to fetch current user role:', error)
-        if (!isMounted) return
-        setIsAdmin(false)
-      }
-    }
-
-    void fetchRole()
-
-    return () => {
-      isMounted = false
-    }
-  }, [user.uid])
-
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden'
@@ -92,6 +70,29 @@ export function Navigation({ user }: NavigationProps) {
     }
   }, [isMobileMenuOpen])
 
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchRole = async () => {
+      try {
+        const response = await RafflesGoService.getCurrentUser()
+        if (isMounted) {
+          setRole(response.role)
+        }
+      } catch {
+        if (isMounted) {
+          setRole('user')
+        }
+      }
+    }
+
+    fetchRole()
+
+    return () => {
+      isMounted = false
+    }
+  }, [user.uid])
+
   return (
     <nav className="main-nav">
       <div className="nav-container">
@@ -111,11 +112,14 @@ export function Navigation({ user }: NavigationProps) {
 
         <div className={`nav-menu-wrapper ${isMobileMenuOpen ? 'open' : ''}`}>
           <ul className="nav-menu">
-            <li>
+            {role === 'admin' && (
+              <li>
                 <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/survey-periods');}} px={2}>
                   Survey Periods
                 </Button>
-            </li>
+              </li>
+            )}
+
 
             <li>
                 <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/survey-walks');}} px={2}>
@@ -140,13 +144,14 @@ export function Navigation({ user }: NavigationProps) {
                 Dashboard
               </Button>
             </li>
-            {isAdmin ? (
+
+            {role === 'admin' && (
               <li>
                 <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/admin');}} px={2}>
                   Admin
                 </Button>
               </li>
-            ) : null}
+            )}
           </ul>
 
           <div className="nav-actions">

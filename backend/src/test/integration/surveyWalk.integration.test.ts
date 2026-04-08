@@ -41,12 +41,13 @@ describe('Survey Walks Integration', () => {
         });
     }
 
-    async function createSurveyPeriod(): Promise<string> {
+    async function createSurveyPeriod(isActive = false): Promise<string> {
         const periodRef = await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({
             name: 'Spring 2026',
             startDate: new Date('2026-03-01T00:00:00.000Z'),
             endDate: new Date('2026-05-31T00:00:00.000Z'),
             isFinished: false,
+            isActive,
             minWalks: 2,
             volunteerUids: [],
         });
@@ -143,5 +144,47 @@ describe('Survey Walks Integration', () => {
         const doc = await existingWalkRef.get();
         expect(doc.data()?.startTime).toBe('08:00');
         expect(doc.data()?.endTime).toBe('10:00');
+    });
+
+    it('GET /api/surveyWalks/joined should return only walks from active periods', async () => {
+        mockAdminUser();
+
+        const activePeriodUid = await createSurveyPeriod(true);
+        const inactivePeriodUid = await createSurveyPeriod(false);
+
+        await db.collection(FIRESTORE_COLLECTIONS.SURVEYWALKS).add({
+            surveyPeriodUid: activePeriodUid,
+            name: 'Active Period Walk',
+            date: new Date('2026-04-10T00:00:00.000Z'),
+            startTime: '08:00',
+            endTime: '10:00',
+            capacity: 4,
+            isFinished: false,
+            volunteerUids: [],
+            leader: '',
+        });
+
+        await db.collection(FIRESTORE_COLLECTIONS.SURVEYWALKS).add({
+            surveyPeriodUid: inactivePeriodUid,
+            name: 'Inactive Period Walk',
+            date: new Date('2026-04-10T00:00:00.000Z'),
+            startTime: '08:00',
+            endTime: '10:00',
+            capacity: 4,
+            isFinished: false,
+            volunteerUids: [],
+            leader: '',
+        });
+
+        const response = await app.inject({
+            method: 'GET',
+            url: '/api/surveyWalks/joined',
+            headers: { authorization: 'Bearer fake-token' },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const data = response.json();
+        expect(data.surveyWalks).toHaveLength(1);
+        expect(data.surveyWalks[0].name).toBe('Active Period Walk');
     });
 });

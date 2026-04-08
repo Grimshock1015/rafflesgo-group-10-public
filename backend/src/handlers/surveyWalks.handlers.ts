@@ -197,7 +197,7 @@ export async function listSurveyWalksForCurrentUserHandler(
     }
 
     const { surveyWalkService } = getContainer();
-    const surveyWalks = await surveyWalkService.getSurveyWalksForJoinedPeriods(request.user.uid);
+    const surveyWalks = await surveyWalkService.getSurveyWalksForJoinedPeriods();
     const enrichedWalks = await Promise.all(
         surveyWalks.map(async (walk) => {
             const [periodName, volunteersData] = await Promise.all([

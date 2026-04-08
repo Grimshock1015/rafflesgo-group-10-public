@@ -5,8 +5,7 @@ import {
     createSurveyPeriodHandler,
     updateSurveyPeriodHandler,
     deleteSurveyPeriodHandler,
-    joinSurveyPeriodHandler,
-    unjoinSurveyPeriodHandler
+    activateSurveyPeriodHandler
 } from '../../../handlers/surveyPeriod.handler';
 import { getContainer } from '../../../container';
 import { SurveyPeriodService } from '../../../services/surveyPeriod.service';
@@ -32,8 +31,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             createSurveyPeriod: vi.fn(),
             updateSurveyPeriod: vi.fn(),
             deleteSurveyPeriod: vi.fn(),
-            joinSurveyPeriod: vi.fn(),
-            unjoinSurveyPeriod: vi.fn(),
+            setActiveSurveyPeriod: vi.fn(),
         } as unknown as Mocked<SurveyPeriodService>;
 
         vi.mocked(getContainer).mockReturnValue({
@@ -60,8 +58,8 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                     startDate: mockDate1,
                     endDate: mockDate2,
                     isFinished: false,
-                    minWalks: 1,
-                    volunteerUids: ['user-1']
+                    isActive: false,
+                    minWalks: 1
                 }
             ];
             mockSurveyPeriodService.getAllSurveyPeriods.mockResolvedValue(mockEntities);
@@ -79,8 +77,8 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                         startDate: '2026-01-01T00:00:00.000Z', // DTO should be ISO string
                         endDate: '2026-02-01T00:00:00.000Z',
                         isFinished: false,
-                        minWalks: 1,
-                        volunteerUids: ['user-1']
+                        isActive: false,
+                        minWalks: 1
                     }
                 ]
             });
@@ -119,8 +117,8 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             startDate: mockDate1,
             endDate: mockDate2,
             isFinished: true,
-            minWalks: 5,
-            volunteerUids: ['user-A', 'user-B']
+            isActive: false,
+            minWalks: 5
         };
 
         it('[TC-SP-HDL-03] should extract uid from params, call service, and return the mapped DTO', async () => {
@@ -139,8 +137,8 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                 startDate: '2026-03-01T00:00:00.000Z', // DTO should be ISO string
                 endDate: '2026-05-01T00:00:00.000Z',
                 isFinished: true,
-                minWalks: 5,
-                volunteerUids: ['user-A', 'user-B']
+                isActive: false,
+                minWalks: 5
             });
         });
 
@@ -173,6 +171,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             startDate: '2026-01-01T00:00:00.000Z',
             endDate: '2026-02-01T00:00:00.000Z',
             isFinished: false,
+            isActive: false,
             minWalks: 3
         };
 
@@ -216,8 +215,8 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                 startDate: new Date(validBody.startDate),
                 endDate: new Date(validBody.endDate),
                 isFinished: validBody.isFinished,
-                minWalks: validBody.minWalks,
-                volunteerUids: []
+                isActive: false,
+                minWalks: validBody.minWalks
             };
             mockSurveyPeriodService.createSurveyPeriod.mockResolvedValue(createdEntity);
 
@@ -230,8 +229,8 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                 startDate: expect.any(Date),
                 endDate: expect.any(Date),
                 isFinished: validBody.isFinished,
-                minWalks: validBody.minWalks,
-                volunteerUids: []
+                isActive: false,
+                minWalks: validBody.minWalks
             });
             expect(mockReply.code).toHaveBeenCalledWith(201);
             expect(mockReply.send).toHaveBeenCalledWith({
@@ -240,8 +239,8 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                 startDate: validBody.startDate,
                 endDate: validBody.endDate,
                 isFinished: validBody.isFinished,
-                minWalks: validBody.minWalks,
-                volunteerUids: []
+                isActive: false,
+                minWalks: validBody.minWalks
             });
         });
     });
@@ -295,8 +294,8 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                 startDate: new Date('2026-01-01'),
                 endDate: new Date('2026-02-01'),
                 isFinished: false,
-                minWalks: 1,
-                volunteerUids: []
+                isActive: false,
+                minWalks: 1
             };
             mockSurveyPeriodService.updateSurveyPeriod.mockResolvedValue(mockEntity);
 
@@ -309,6 +308,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                 startDate: undefined,
                 endDate: undefined,
                 isFinished: undefined,
+                isActive: undefined,
                 minWalks: undefined
             });
         });
@@ -324,6 +324,7 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                     startDate: startDateStr,
                     endDate: endDateStr,
                     isFinished: true,
+                    isActive: false,
                     minWalks: 10
                 }
             } as unknown as Parameters<typeof updateSurveyPeriodHandler>[0];
@@ -334,8 +335,8 @@ describe('SurveyPeriod Handler Unit Tests', () => {
                 startDate: new Date(startDateStr),
                 endDate: new Date(endDateStr),
                 isFinished: true,
-                minWalks: 10,
-                volunteerUids: []
+                isActive: false,
+                minWalks: 10
             };
             mockSurveyPeriodService.updateSurveyPeriod.mockResolvedValue(mockEntity);
 
@@ -357,7 +358,45 @@ describe('SurveyPeriod Handler Unit Tests', () => {
     });
 
     // ==========================================
-    // Test Block 5: deleteSurveyPeriodHandler
+    // Test Block 5: activateSurveyPeriodHandler
+    // ==========================================
+    describe('activateSurveyPeriodHandler', () => {
+        const mockUid = 'activate-uid-000';
+        const mockRequest = {
+            params: { uid: mockUid }
+        } as unknown as Parameters<typeof activateSurveyPeriodHandler>[0];
+        const mockReply = {} as unknown as Parameters<typeof activateSurveyPeriodHandler>[1];
+
+        it('[TC-SP-HDL-12] should activate a survey period and return the mapped DTO', async () => {
+            const mockEntity: SurveyPeriodEntity = {
+                uid: mockUid,
+                name: 'Activated Survey',
+                startDate: new Date('2026-01-01T00:00:00.000Z'),
+                endDate: new Date('2026-02-01T00:00:00.000Z'),
+                isFinished: false,
+                isActive: true,
+                minWalks: 2,
+            };
+
+            mockSurveyPeriodService.setActiveSurveyPeriod.mockResolvedValue(mockEntity);
+
+            const result = await activateSurveyPeriodHandler(mockRequest, mockReply);
+
+            expect(mockSurveyPeriodService.setActiveSurveyPeriod).toHaveBeenCalledWith(mockUid);
+            expect(result).toEqual({
+                uid: mockUid,
+                name: 'Activated Survey',
+                startDate: '2026-01-01T00:00:00.000Z',
+                endDate: '2026-02-01T00:00:00.000Z',
+                isFinished: false,
+                isActive: true,
+                minWalks: 2,
+            });
+        });
+    });
+
+    // ==========================================
+    // Test Block 6: deleteSurveyPeriodHandler
     // ==========================================
     describe('deleteSurveyPeriodHandler', () => {
         const mockUid = 'delete-uid-000';
@@ -390,104 +429,6 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             // Act & Assert: Verify the handler throws the same error
             await expect(deleteSurveyPeriodHandler(mockRequest, mockReply))
                 .rejects.toThrow(mockError);
-        });
-    });
-
-    // ==========================================
-    // Test Block 6: joinSurveyPeriodHandler
-    // ==========================================
-    describe('joinSurveyPeriodHandler', () => {
-        const mockUid = 'survey-uid-123';
-        const mockVolunteerUid = 'volunteer-uid-456';
-
-        // Arrange: Mock request and reply using Parameters utility 
-        const mockRequest = {
-            params: { uid: mockUid },
-            body: { volunteerUid: mockVolunteerUid }
-        } as unknown as Parameters<typeof joinSurveyPeriodHandler>[0];
-        const mockReply = {} as unknown as Parameters<typeof joinSurveyPeriodHandler>[1];
-
-        it('[TC-SP-HDL-14] should call service with uids from params and body and return success true', async () => {
-            // Arrange: Mock the service to resolve successfully
-            mockSurveyPeriodService.joinSurveyPeriod.mockResolvedValue(true);
-
-            // Act: Call the handler
-            const result = await joinSurveyPeriodHandler(mockRequest, mockReply);
-
-            // Assert: Verify service was called with correct parameters
-            expect(mockSurveyPeriodService.joinSurveyPeriod).toHaveBeenCalledWith(
-                mockUid,
-                mockVolunteerUid
-            );
-            expect(mockSurveyPeriodService.joinSurveyPeriod).toHaveBeenCalledOnce();
-            
-            // Assert: Verify the hardcoded return value
-            expect(result).toEqual({ success: true });
-        });
-
-        it('[TC-SP-HDL-15] should propagate errors thrown by the service (e.g., NotFoundError)', async () => {
-            // Arrange: Mock the service to throw an error
-            const mockError = new Error('Survey period not found');
-            mockSurveyPeriodService.joinSurveyPeriod.mockRejectedValue(mockError);
-
-            // Act & Assert: Verify the handler throws the same error
-            await expect(joinSurveyPeriodHandler(mockRequest, mockReply))
-                .rejects.toThrow(mockError);
-            
-            // Assert: Verify service was still called
-            expect(mockSurveyPeriodService.joinSurveyPeriod).toHaveBeenCalledWith(
-                mockUid,
-                mockVolunteerUid
-            );
-        });
-    });
-
-    // ==========================================
-    // Test Block 7: unjoinSurveyPeriodHandler
-    // ==========================================
-    describe('unjoinSurveyPeriodHandler', () => {
-        const mockUid = 'survey-uid-123';
-        const mockVolunteerUid = 'volunteer-uid-456';
-
-        // Arrange: Mock request and reply using Parameters utility 
-        const mockRequest = {
-            params: { uid: mockUid },
-            body: { volunteerUid: mockVolunteerUid }
-        } as unknown as Parameters<typeof unjoinSurveyPeriodHandler>[0];
-        const mockReply = {} as unknown as Parameters<typeof unjoinSurveyPeriodHandler>[1];
-
-        it('[TC-SP-HDL-16] should call service with uids from params and body and return success true', async () => {
-            // Arrange: Mock the service to resolve successfully
-            mockSurveyPeriodService.unjoinSurveyPeriod.mockResolvedValue(true);
-
-            // Act: Call the handler
-            const result = await unjoinSurveyPeriodHandler(mockRequest, mockReply);
-
-            // Assert: Verify service was called with correct parameters
-            expect(mockSurveyPeriodService.unjoinSurveyPeriod).toHaveBeenCalledWith(
-                mockUid,
-                mockVolunteerUid
-            );
-            expect(mockSurveyPeriodService.unjoinSurveyPeriod).toHaveBeenCalledOnce();
-            
-            // Assert: Verify the expected return value
-            expect(result).toEqual({ success: true });
-        });
-
-        it('[TC-SP-HDL-17] should propagate errors thrown by the service (e.g., NotFoundError)', async () => {
-            // Arrange: Mock the service to throw an error
-            const mockError = new Error('Fail to unjoin Survey Period');
-            mockSurveyPeriodService.unjoinSurveyPeriod.mockRejectedValue(mockError);
-
-            // Act & Assert: Verify the handler throws the same error
-            await expect(unjoinSurveyPeriodHandler(mockRequest, mockReply))
-                .rejects.toThrow(mockError);
-            
-            // Assert: Verify service was still called
-            expect(mockSurveyPeriodService.unjoinSurveyPeriod).toHaveBeenCalledWith(
-                mockUid,
-                mockVolunteerUid
-            );
         });
     });
 });

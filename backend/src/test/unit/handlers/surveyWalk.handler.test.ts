@@ -171,7 +171,7 @@ describe('SurveyWalk Handler Unit Tests', () => {
 				{} as Parameters<typeof listSurveyWalksForCurrentUserHandler>[1],
 			);
 
-			expect(mockSurveyWalkService.getSurveyWalksForJoinedPeriods).toHaveBeenCalledWith('user-1');
+			expect(mockSurveyWalkService.getSurveyWalksForJoinedPeriods).toHaveBeenCalledOnce();
 			expect(result.surveyWalks[0].leader).toEqual({ uid: 'user-1', name: 'Volunteer Name' });
 		});
 	});

@@ -3,7 +3,7 @@ import { screen, waitFor, fireEvent } from '@testing-library/react';
 import { render } from '../test-utils';
 import SurveyPeriodGrid from '../../components/SurveyPeriodGrid';
 import { BrowserRouter } from 'react-router-dom';
-import { RafflesGoService } from '../../api';
+import { RafflesGoService } from '@/api';
 import { toaster } from '../../components/ui/toaster';
 import type { User } from 'firebase/auth';
 
@@ -17,6 +17,7 @@ vi.mock('@/api', () => ({
         listSurveyPeriods: vi.fn(),
         deleteSurveyPeriod: vi.fn(),
         getCurrentUser: vi.fn(),
+        setActiveSurveyPeriod: vi.fn(),
     },
 }));
 
@@ -130,7 +131,7 @@ describe('SurveyPeriodGrid', () => {
         );
 
         await waitFor(() => {
-            expect(screen.getByText('Spring Survey 2026')).toBeInTheDocument();
+            expect(screen.getByRole('heading', { name: 'Spring Survey 2026' })).toBeInTheDocument();
         });
 
         // Click Delete button on the card

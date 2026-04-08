@@ -1,63 +1,13 @@
+import type { RafflesGoService } from '../api';
+import type { listAllAdminSightings } from '../lib/adminSightings';
 import * as XLSX from 'xlsx';
 
-type AdminUser = {
-  uid: string;
-  email?: string;
-  displayName?: string;
-  photoURL?: string;
-  disabled: boolean;
-  createdAt?: string;
-  role: 'user' | 'admin';
+type AdminUser = Awaited<ReturnType<typeof RafflesGoService.listUsers>>['users'][number];
+type AdminSighting = Awaited<ReturnType<typeof listAllAdminSightings>>['sightings'][number];
+type SurveyPeriod = Awaited<ReturnType<typeof RafflesGoService.listSurveyPeriods>>['surveyPeriods'][number] & {
+  volunteerUids?: string[];
 };
-
-type AdminSighting = {
-  id: string;
-  surveyWalkUid: string;
-  result: string;
-  date: string;
-  time: string;
-  location: string;
-  species?: string;
-  latitude?: number;
-  longitude?: number;
-  adults?: number;
-  juveniles?: number;
-  behaviour?: string;
-  notes: string;
-  submittedBy: string;
-  mediaUrl?: string;
-  createdAt: string;
-};
-
-type SurveyPeriod = {
-  uid: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-  isFinished: boolean;
-  minWalks: number;
-  volunteerUids: string[];
-};
-
-type SurveyWalk = {
-  uid: string;
-  surveyPeriodUid: string;
-  surveyPeriodName: string;
-  name: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  capacity: number;
-  isFinished: boolean;
-  volunteers: Array<{
-    uid: string;
-    name: string;
-  }>;
-  leader: {
-    uid: string;
-    name: string;
-  };
-};
+type SurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalks>>['surveyWalks'][number];
 
 type ExportPayload = {
   users: AdminUser[];
@@ -103,16 +53,20 @@ export function exportAdminDataToGoogleSheets(payload: ExportPayload) {
     photoURL: user.photoURL ?? '',
   }));
 
-  const surveyPeriodRows = payload.surveyPeriods.map((surveyPeriod) => ({
-    uid: surveyPeriod.uid,
-    name: surveyPeriod.name,
-    startDate: surveyPeriod.startDate,
-    endDate: surveyPeriod.endDate,
-    isFinished: surveyPeriod.isFinished,
-    minWalks: surveyPeriod.minWalks,
-    volunteerCount: surveyPeriod.volunteerUids.length,
-    volunteerUids: joinList(surveyPeriod.volunteerUids),
-  }));
+  const surveyPeriodRows = payload.surveyPeriods.map((surveyPeriod) => {
+    const volunteerUids = surveyPeriod.volunteerUids ?? [];
+
+    return {
+      uid: surveyPeriod.uid,
+      name: surveyPeriod.name,
+      startDate: surveyPeriod.startDate,
+      endDate: surveyPeriod.endDate,
+      isFinished: surveyPeriod.isFinished,
+      minWalks: surveyPeriod.minWalks,
+      volunteerCount: volunteerUids.length,
+      volunteerUids: joinList(volunteerUids),
+    };
+  });
 
   const surveyWalkRows = payload.surveyWalks.map((surveyWalk) => ({
     uid: surveyWalk.uid,

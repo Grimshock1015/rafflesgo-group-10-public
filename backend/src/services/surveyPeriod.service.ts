@@ -26,7 +26,10 @@ export class SurveyPeriodService {
         this.validateDates(input.startDate, input.endDate);
         this.validateMinWalks(input.minWalks);
 
-        return this.surveyPeriodRepository.create(input);
+        return this.surveyPeriodRepository.create({
+            ...input,
+            isActive: input.isActive ?? false,
+        });
     }
 
     async updateSurveyPeriod(uid: string, input: UpdateSurveyPeriodInput): Promise<SurveyPeriodEntity> {
@@ -58,29 +61,13 @@ export class SurveyPeriodService {
         return { success: true, uid };
     }
 
-    async joinSurveyPeriod(uid: string, volunteerUid: string): Promise<boolean> {
-        // Check if the survey period exists before attempting to join
-        await this.getSurveyPeriod(uid);
-
-        const joined = await this.surveyPeriodRepository.join(uid, volunteerUid);
-        
-        if (!joined) {
-            throw new NotFoundError('Fail to join Survey Period', uid);
+    async setActiveSurveyPeriod(uid: string): Promise<SurveyPeriodEntity> {
+        const updated = await this.surveyPeriodRepository.setActive(uid);
+        if (!updated) {
+            throw new NotFoundError('Survey period', uid);
         }
 
-        return true;
-    }
-
-    async unjoinSurveyPeriod(uid: string, volunteerUid: string): Promise<boolean> {
-        await this.getSurveyPeriod(uid);
-
-        const unjoined = await this.surveyPeriodRepository.unjoin(uid, volunteerUid);
-        
-        if (!unjoined) {
-            throw new NotFoundError('Fail to unjoin Survey Period', uid);
-        }
-
-        return true;
+        return updated;
     }
 
     private validateDates(startDate: Date, endDate: Date): void {
