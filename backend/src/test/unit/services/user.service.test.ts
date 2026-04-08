@@ -15,6 +15,7 @@ describe('UserService', () => {
   let mockUserRepository: {
     findAll: ReturnType<typeof vi.fn>;
     setRoleByEmail: ReturnType<typeof vi.fn>;
+    setDisabled: ReturnType<typeof vi.fn>;
   };
   let userService: UserService;
 
@@ -23,6 +24,7 @@ describe('UserService', () => {
     mockUserRepository = {
       findAll: vi.fn(),
       setRoleByEmail: vi.fn(),
+      setDisabled: vi.fn(),
     };
 
     // Inject mock into service - this is DI in action!
@@ -71,6 +73,21 @@ describe('UserService', () => {
 
       await expect(userService.changeRole('nobody@test.com', 'admin'))
         .rejects.toThrow('User not found');
+    });
+  });
+
+  describe('updateStatus', () => {
+    it('should update disabled status and return success response', async () => {
+      mockUserRepository.setDisabled.mockResolvedValue(undefined);
+
+      const result = await userService.updateStatus('user-123', true);
+
+      expect(result).toEqual({
+        success: true,
+        uid: 'user-123',
+        disabled: true,
+      });
+      expect(mockUserRepository.setDisabled).toHaveBeenCalledWith('user-123', true);
     });
   });
 });

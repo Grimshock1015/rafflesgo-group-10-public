@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createSighting, getMySightingsDashboard } from '../../../services/sighting.service';
+import { createSighting, deleteSighting, getAllSightings, getMySightingsDashboard } from '../../../services/sighting.service';
 import { db } from '../../../lib/firebase-admin';
 import { FIRESTORE_COLLECTIONS } from '../../../lib/firestore-collections';
 
@@ -11,10 +11,11 @@ vi.mock('crypto', () => ({
 // Mock Firebase implementation details for tracking arguments and interactions
 vi.mock('../../../lib/firebase-admin', () => {
     const set = vi.fn().mockResolvedValue(undefined);
+    const deleteFn = vi.fn().mockResolvedValue(undefined);
     const get = vi.fn().mockResolvedValue({ docs: [] });
     const where = vi.fn(() => ({ get }));
-    const doc = vi.fn(() => ({ set }));
-    const collection = vi.fn(() => ({ doc, where }));
+    const doc = vi.fn(() => ({ set, delete: deleteFn }));
+    const collection = vi.fn(() => ({ doc, where, get }));
     return {
         db: {
             collection,
@@ -203,6 +204,34 @@ describe('Sighting Service', () => {
                     { species: 'Raffles Banded Langur', count: 2 },
                 ],
             });
+        });
+    });
+
+    describe('getAllSightings', () => {
+        it('should return all sightings sorted by createdAt descending', async () => {
+            const docs = [
+                { data: () => ({ id: 'older', createdAt: '2026-03-24T09:00:00.000Z' }) },
+                { data: () => ({ id: 'newer', createdAt: '2026-03-25T09:00:00.000Z' }) },
+            ];
+
+            const mockCollection = db.collection as unknown as ReturnType<typeof vi.fn>;
+            mockCollection().get.mockResolvedValue({ docs });
+
+            const result = await getAllSightings();
+
+            expect(result.map((sighting) => sighting.id)).toEqual(['newer', 'older']);
+        });
+    });
+
+    describe('deleteSighting', () => {
+        it('should delete a sighting by id', async () => {
+            const mockCollection = db.collection as unknown as ReturnType<typeof vi.fn>;
+
+            await deleteSighting('sighting-123');
+
+            expect(mockCollection).toHaveBeenCalledWith(FIRESTORE_COLLECTIONS.SIGHTINGS);
+            expect(mockCollection().doc).toHaveBeenCalledWith('sighting-123');
+            expect(mockCollection().doc().delete).toHaveBeenCalledOnce();
         });
     });
 });

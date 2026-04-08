@@ -1,0 +1,335 @@
+import { useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
+import { Link, Navigate } from 'react-router-dom';
+import { RafflesGoService, SightingsService } from '../api';
+
+type AdminUser = Awaited<ReturnType<typeof RafflesGoService.listUsers>>['users'][number];
+type AdminSighting = Awaited<ReturnType<typeof SightingsService.listAllSightings>>['sightings'][number];
+
+const sectionStyle: CSSProperties = {
+  background: 'var(--color-surface)',
+  border: '1px solid var(--color-border, rgba(255, 255, 255, 0.08))',
+  borderRadius: '16px',
+  padding: '1.5rem',
+  marginTop: '1.5rem',
+};
+
+const cardStyle: CSSProperties = {
+  background: 'rgba(255, 255, 255, 0.03)',
+  border: '1px solid var(--color-border, rgba(255, 255, 255, 0.08))',
+  borderRadius: '14px',
+  padding: '1rem 1.25rem',
+};
+
+const avatarStyle: CSSProperties = {
+  width: '56px',
+  height: '56px',
+  borderRadius: '50%',
+  objectFit: 'cover',
+  border: '1px solid var(--color-border, rgba(255, 255, 255, 0.08))',
+  background: 'rgba(255, 255, 255, 0.06)',
+  flexShrink: 0,
+};
+
+const gridStyle: CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+  gap: '1rem',
+  marginTop: '1rem',
+};
+
+function formatDate(value?: string) {
+  if (!value) return 'Unknown';
+  return new Intl.DateTimeFormat('en-SG', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(new Date(value));
+}
+
+export default function AdminDashboard() {
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [sightings, setSightings] = useState<AdminSighting[]>([]);
+  const [busyUserId, setBusyUserId] = useState<string | null>(null);
+  const [busySightingId, setBusySightingId] = useState<string | null>(null);
+
+  const loadAdminData = async () => {
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const [usersResponse, sightingsResponse] = await Promise.all([
+        RafflesGoService.listUsers(),
+        SightingsService.listAllSightings(),
+      ]);
+
+      setUsers(usersResponse.users);
+      setSightings(sightingsResponse.sightings);
+    } catch (loadError) {
+      console.error('Failed to load admin data:', loadError);
+      setError('Unable to load admin data right now.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkAccess = async () => {
+      try {
+        const me = await RafflesGoService.getCurrentUser();
+        if (!isMounted) return;
+
+        if (me.role !== 'admin') {
+          setIsAdmin(false);
+          setIsCheckingAccess(false);
+          return;
+        }
+
+        setIsAdmin(true);
+        setIsCheckingAccess(false);
+        await loadAdminData();
+      } catch (accessError) {
+        console.error('Failed to verify admin access:', accessError);
+        if (!isMounted) return;
+        setIsAdmin(false);
+        setIsCheckingAccess(false);
+      }
+    };
+
+    void checkAccess();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleRoleChange = async (email: string | undefined, role: 'user' | 'admin') => {
+    if (!email) return;
+
+    try {
+      setBusyUserId(email);
+      await RafflesGoService.changeUserRole({ email, role });
+      await loadAdminData();
+    } catch (updateError) {
+      console.error('Failed to update role:', updateError);
+      setError('Unable to update user role.');
+    } finally {
+      setBusyUserId(null);
+    }
+  };
+
+  const handleStatusToggle = async (uid: string, disabled: boolean) => {
+    try {
+      setBusyUserId(uid);
+      await RafflesGoService.updateUserStatus(uid, { disabled });
+      await loadAdminData();
+    } catch (updateError) {
+      console.error('Failed to update user status:', updateError);
+      setError('Unable to update user status.');
+    } finally {
+      setBusyUserId(null);
+    }
+  };
+
+  const handleDeleteSighting = async (id: string) => {
+    const confirmed = window.confirm('Delete this sighting permanently?');
+    if (!confirmed) return;
+
+    try {
+      setBusySightingId(id);
+      await SightingsService.deleteSighting(id);
+      await loadAdminData();
+    } catch (deleteError) {
+      console.error('Failed to delete sighting:', deleteError);
+      setError('Unable to delete sighting.');
+    } finally {
+      setBusySightingId(null);
+    }
+  };
+
+  if (isCheckingAccess) {
+    return <main className="main-content"><div className="container"><p>Checking admin access...</p></div></main>;
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  const adminCount = users.filter((user) => user.role === 'admin').length;
+  const disabledCount = users.filter((user) => user.disabled).length;
+  const sightedCount = sightings.filter((sighting) => sighting.result === 'sighted').length;
+
+  return (
+    <main className="main-content">
+      <div className="container" style={{ paddingBottom: '3rem' }}>
+        <header className="welcome-header">
+          <h1>Admin Dashboard</h1>
+          <p>Manage volunteers, control account access, and moderate submitted sightings.</p>
+        </header>
+
+        <section style={sectionStyle}>
+          <h2>Admin Overview</h2>
+          <div style={gridStyle}>
+            <article style={cardStyle}>
+              <p>Total users</p>
+              <strong style={{ fontSize: '2rem' }}>{users.length}</strong>
+            </article>
+            <article style={cardStyle}>
+              <p>Admins</p>
+              <strong style={{ fontSize: '2rem' }}>{adminCount}</strong>
+            </article>
+            <article style={cardStyle}>
+              <p>Disabled accounts</p>
+              <strong style={{ fontSize: '2rem' }}>{disabledCount}</strong>
+            </article>
+            <article style={cardStyle}>
+              <p>Total sightings</p>
+              <strong style={{ fontSize: '2rem' }}>{sightings.length}</strong>
+            </article>
+            <article style={cardStyle}>
+              <p>Confirmed sightings</p>
+              <strong style={{ fontSize: '2rem' }}>{sightedCount}</strong>
+            </article>
+          </div>
+
+          <div className="action-buttons" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1rem' }}>
+            <Link to="/survey-periods" className="btn btn-secondary">Manage Survey Periods</Link>
+            <Link to="/survey-walks" className="btn btn-secondary">Manage Survey Walks</Link>
+            <Link to="/dashboard" className="btn btn-secondary">Back to Dashboard</Link>
+          </div>
+        </section>
+
+        <section style={sectionStyle}>
+          <h2>User Management</h2>
+          <p>Change roles and disable or re-enable accounts without leaving the dashboard.</p>
+          {error ? <p className="text-error">{error}</p> : null}
+          {isLoading ? (
+            <p>Loading users...</p>
+          ) : (
+            <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
+              {users.map((managedUser) => {
+                const isBusy = busyUserId === managedUser.uid || busyUserId === managedUser.email;
+
+                return (
+                  <article key={managedUser.uid} style={cardStyle}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                        {managedUser.photoURL ? (
+                          <img
+                            src={managedUser.photoURL}
+                            alt={`${managedUser.displayName || managedUser.email || managedUser.uid} profile`}
+                            style={avatarStyle}
+                          />
+                        ) : (
+                          <div
+                            aria-hidden="true"
+                            style={{
+                              ...avatarStyle,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 700,
+                            }}
+                          >
+                            {(managedUser.displayName || managedUser.email || managedUser.uid).slice(0, 1).toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <h3 style={{ marginBottom: '0.35rem' }}>{managedUser.displayName || managedUser.email || managedUser.uid}</h3>
+                          <p>{managedUser.email || managedUser.uid}</p>
+                          <p>Created: {formatDate(managedUser.createdAt)}</p>
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <p>Role: {managedUser.role}</p>
+                        <p>Status: {managedUser.disabled ? 'Disabled' : 'Active'}</p>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1rem' }}>
+                      <button
+                        className="btn btn-secondary"
+                        type="button"
+                        onClick={() => handleRoleChange(managedUser.email, managedUser.role === 'admin' ? 'user' : 'admin')}
+                        disabled={isBusy || !managedUser.email}
+                      >
+                        {managedUser.role === 'admin' ? 'Make Volunteer' : 'Make Admin'}
+                      </button>
+                      <button
+                        className="btn btn-secondary"
+                        type="button"
+                        onClick={() => handleStatusToggle(managedUser.uid, !managedUser.disabled)}
+                        disabled={isBusy}
+                      >
+                        {managedUser.disabled ? 'Enable Account' : 'Disable Account'}
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        <section style={sectionStyle}>
+          <h2>Sighting Moderation</h2>
+          <p>Review recent submissions across all volunteers and remove invalid records.</p>
+          {isLoading ? (
+            <p>Loading sightings...</p>
+          ) : sightings.length === 0 ? (
+            <p>No sightings found.</p>
+          ) : (
+            <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
+              {sightings.map((sighting) => (
+                <article key={sighting.id} style={cardStyle}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                    <div>
+                      <h3 style={{ marginBottom: '0.35rem' }}>
+                        {sighting.result === 'sighted' ? (sighting.species || 'Sighted submission') : 'Zero-sighting walk'}
+                      </h3>
+                      <p>{sighting.location}</p>
+                      <p>Submitted by: {sighting.submittedBy}</p>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <p>{sighting.date} at {sighting.time}</p>
+                      <p>{formatDate(sighting.createdAt)}</p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+                    <span>Result: {sighting.result === 'sighted' ? 'Sighted' : 'Not sighted'}</span>
+                    {typeof sighting.adults === 'number' ? <span>Adults: {sighting.adults}</span> : null}
+                    {typeof sighting.juveniles === 'number' ? <span>Juveniles: {sighting.juveniles}</span> : null}
+                    {sighting.behaviour ? <span>Behaviour: {sighting.behaviour}</span> : null}
+                  </div>
+
+                  {sighting.notes ? (
+                    <p style={{ marginTop: '0.75rem' }}>
+                      <strong>Notes:</strong> {sighting.notes}
+                    </p>
+                  ) : null}
+
+                  <div style={{ marginTop: '1rem' }}>
+                    <button
+                      className="btn btn-secondary"
+                      type="button"
+                      onClick={() => handleDeleteSighting(sighting.id)}
+                      disabled={busySightingId === sighting.id}
+                    >
+                      Delete Sighting
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+    </main>
+  );
+}
