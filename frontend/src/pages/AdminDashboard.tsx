@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { RafflesGoService, SightingsService } from '../api';
+import { listAllAdminSightings } from '../lib/adminSightings';
+import { exportAdminDataToGoogleSheets } from '../utils/googleSheetsExport';
 
 type AdminUser = Awaited<ReturnType<typeof RafflesGoService.listUsers>>['users'][number];
-type AdminSighting = Awaited<ReturnType<typeof SightingsService.listAllSightings>>['sightings'][number];
+type AdminSighting = Awaited<ReturnType<typeof listAllAdminSightings>>['sightings'][number];
 
 const sectionStyle: CSSProperties = {
   background: 'var(--color-surface)',
@@ -55,6 +57,7 @@ export default function AdminDashboard() {
   const [sightings, setSightings] = useState<AdminSighting[]>([]);
   const [busyUserId, setBusyUserId] = useState<string | null>(null);
   const [busySightingId, setBusySightingId] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   const loadAdminData = async () => {
     setError(null);
@@ -63,7 +66,7 @@ export default function AdminDashboard() {
     try {
       const [usersResponse, sightingsResponse] = await Promise.all([
         RafflesGoService.listUsers(),
-        SightingsService.listAllSightings(),
+        listAllAdminSightings(),
       ]);
 
       setUsers(usersResponse.users);
@@ -152,6 +155,32 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleExportGoogleSheets = async () => {
+    try {
+      setError(null);
+      setIsExporting(true);
+
+      const [usersResponse, surveyPeriodsResponse, surveyWalksResponse, sightingsResponse] = await Promise.all([
+        RafflesGoService.listUsers(),
+        RafflesGoService.listSurveyPeriods(),
+        RafflesGoService.listSurveyWalks(),
+        listAllAdminSightings(),
+      ]);
+
+      exportAdminDataToGoogleSheets({
+        users: usersResponse.users,
+        surveyPeriods: surveyPeriodsResponse.surveyPeriods,
+        surveyWalks: surveyWalksResponse.surveyWalks,
+        sightings: sightingsResponse.sightings,
+      });
+    } catch (exportError) {
+      console.error('Failed to export admin data:', exportError);
+      setError('Unable to export admin data right now.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (isCheckingAccess) {
     return <main className="main-content"><div className="container"><p>Checking admin access...</p></div></main>;
   }
@@ -200,6 +229,9 @@ export default function AdminDashboard() {
           <div className="action-buttons" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1rem' }}>
             <Link to="/survey-periods" className="btn btn-secondary">Manage Survey Periods</Link>
             <Link to="/survey-walks" className="btn btn-secondary">Manage Survey Walks</Link>
+            <button className="btn btn-secondary" type="button" onClick={handleExportGoogleSheets} disabled={isLoading || isExporting}>
+              {isExporting ? 'Exporting…' : 'Export to Google Sheets'}
+            </button>
             <Link to="/dashboard" className="btn btn-secondary">Back to Dashboard</Link>
           </div>
         </section>

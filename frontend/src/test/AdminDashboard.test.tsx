@@ -4,18 +4,29 @@ import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router-dom';
 import { render } from './test-utils';
 import AdminDashboard from '../pages/AdminDashboard';
+import { exportAdminDataToGoogleSheets } from '../utils/googleSheetsExport';
+import { listAllAdminSightings } from '../lib/adminSightings';
 
 vi.mock('../api', () => ({
   RafflesGoService: {
     getCurrentUser: vi.fn(),
     listUsers: vi.fn(),
+    listSurveyPeriods: vi.fn(),
+    listSurveyWalks: vi.fn(),
     changeUserRole: vi.fn(),
     updateUserStatus: vi.fn(),
   },
   SightingsService: {
-    listAllSightings: vi.fn(),
     deleteSighting: vi.fn(),
   },
+}));
+
+vi.mock('../utils/googleSheetsExport', () => ({
+  exportAdminDataToGoogleSheets: vi.fn(),
+}));
+
+vi.mock('../lib/adminSightings', () => ({
+  listAllAdminSightings: vi.fn(),
 }));
 
 import { RafflesGoService, SightingsService } from '../api';
@@ -52,7 +63,37 @@ describe('AdminDashboard', () => {
         },
       ],
     });
-    vi.mocked(SightingsService.listAllSightings).mockResolvedValue({
+    vi.mocked(RafflesGoService.listSurveyPeriods).mockResolvedValue({
+      surveyPeriods: [
+        {
+          uid: 'period-1',
+          name: 'March Census',
+          startDate: '2026-03-01T00:00:00.000Z',
+          endDate: '2026-03-31T23:59:59.000Z',
+          isFinished: false,
+          minWalks: 2,
+          volunteerUids: ['user-2'],
+        },
+      ],
+    });
+    vi.mocked(RafflesGoService.listSurveyWalks).mockResolvedValue({
+      surveyWalks: [
+        {
+          uid: 'walk-1',
+          surveyPeriodUid: 'period-1',
+          surveyPeriodName: 'March Census',
+          name: 'Southern Loop',
+          date: '2026-03-24T00:00:00.000Z',
+          startTime: '09:00',
+          endTime: '11:00',
+          capacity: 6,
+          isFinished: false,
+          volunteers: [{ uid: 'user-2', name: 'Volunteer User' }],
+          leader: { uid: 'admin-1', name: 'Admin User' },
+        },
+      ],
+    });
+    vi.mocked(listAllAdminSightings).mockResolvedValue({
       sightings: [
         {
           id: 'sighting-1',
@@ -136,6 +177,35 @@ describe('AdminDashboard', () => {
 
     await waitFor(() => {
       expect(SightingsService.deleteSighting).toHaveBeenCalledWith('sighting-1');
+    });
+  });
+
+  it('exports the admin dataset to a Google Sheets workbook', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <BrowserRouter>
+        <AdminDashboard />
+      </BrowserRouter>,
+    );
+
+    await user.click(await screen.findByRole('button', { name: /export to google sheets/i }));
+
+    await waitFor(() => {
+      expect(exportAdminDataToGoogleSheets).toHaveBeenCalledWith(expect.objectContaining({
+        users: expect.arrayContaining([
+          expect.objectContaining({ uid: 'admin-1' }),
+        ]),
+        surveyPeriods: expect.arrayContaining([
+          expect.objectContaining({ uid: 'period-1' }),
+        ]),
+        surveyWalks: expect.arrayContaining([
+          expect.objectContaining({ uid: 'walk-1' }),
+        ]),
+        sightings: expect.arrayContaining([
+          expect.objectContaining({ id: 'sighting-1' }),
+        ]),
+      }));
     });
   });
 });
