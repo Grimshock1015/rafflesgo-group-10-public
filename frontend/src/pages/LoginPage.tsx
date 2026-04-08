@@ -47,8 +47,14 @@ export default function LoginPage({ user }: Props) {
       await signInWithPopup(auth, googleProvider)
       navigate('/dashboard', { replace: true })
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Google sign in failed'
-      setError(msg)
+
+      if (err instanceof Error && err.message && err.message.includes("user-disabled")) {
+        setError("Your account has been disabled.")
+      } else {
+        const msg = err instanceof Error ? err.message : 'Google sign in failed';
+        setError(msg);
+      }
+
     } finally {
       setLoading(false)
     }

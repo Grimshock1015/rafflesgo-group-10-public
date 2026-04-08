@@ -26,6 +26,16 @@ export const ChangeRoleResponseSchema = Type.Object({
   role: RoleSchema,
 });
 
+export const UpdateUserStatusBodySchema = Type.Object({
+  disabled: Type.Boolean(),
+});
+
+export const UpdateUserStatusResponseSchema = Type.Object({
+  success: Type.Boolean(),
+  uid: Type.String(),
+  disabled: Type.Boolean(),
+});
+
 export const MeResponseSchema = Type.Object({
   uid: Type.String(),
   email: Type.Optional(Type.String()),
@@ -36,4 +46,6 @@ export type User = Static<typeof UserSchema>;
 export type ListUsersResponse = Static<typeof ListUsersResponseSchema>;
 export type ChangeRoleBody = Static<typeof ChangeRoleBodySchema>;
 export type ChangeRoleResponse = Static<typeof ChangeRoleResponseSchema>;
+export type UpdateUserStatusBody = Static<typeof UpdateUserStatusBodySchema>;
+export type UpdateUserStatusResponse = Static<typeof UpdateUserStatusResponseSchema>;
 export type MeResponse = Static<typeof MeResponseSchema>;

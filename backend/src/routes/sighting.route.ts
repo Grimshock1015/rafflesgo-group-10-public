@@ -1,11 +1,13 @@
 import type { FastifyInstance } from 'fastify';
-import { createSightingHandler, getMySightingsHandler } from '../handlers/sighting.handler';
+import { createSightingHandler, deleteSightingHandler, getAllSightingsHandler, getMySightingsHandler } from '../handlers/sighting.handler';
 import {
+  AdminSightingsResponseSchema,
   CreateSightingBodySchema,
   CreateSightingResponseSchema,
+  DeleteSightingResponseSchema,
   MySightingsResponseSchema,
 } from '../schemas';
-import { verifyToken } from '../middleware/auth.middleware';
+import { requireAdminEmail, verifyToken } from '../middleware/auth.middleware';
 
 
 export async function sightingRoutes(fastify: FastifyInstance) {
@@ -41,5 +43,46 @@ export async function sightingRoutes(fastify: FastifyInstance) {
       preHandler: [verifyToken],
     },
     createSightingHandler,
+  );
+
+  fastify.get(
+    '/api/sightings',
+    {
+      schema: {
+        operationId: 'listAllSightings',
+        description: 'List all sightings (admin only)',
+        tags: ['Sightings'],
+        security: [{ bearerAuth: [] }],
+        response: {
+          200: AdminSightingsResponseSchema,
+        },
+      },
+      preHandler: [verifyToken, requireAdminEmail],
+    },
+    getAllSightingsHandler,
+  );
+
+  fastify.delete(
+    '/api/sightings/:id',
+    {
+      schema: {
+        operationId: 'deleteSighting',
+        description: 'Delete a sighting by id (admin only)',
+        tags: ['Sightings'],
+        security: [{ bearerAuth: [] }],
+        params: {
+          type: 'object',
+          required: ['id'],
+          properties: {
+            id: { type: 'string' },
+          },
+        },
+        response: {
+          200: DeleteSightingResponseSchema,
+        },
+      },
+      preHandler: [verifyToken, requireAdminEmail],
+    },
+    deleteSightingHandler,
   );
 }

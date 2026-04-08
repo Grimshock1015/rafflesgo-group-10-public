@@ -324,6 +324,76 @@
         }
       }
     },
+    "/api/users/{uid}/status": {
+      "patch": {
+        "operationId": "updateUserStatus",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Enable or disable a user account (admin only)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "disabled"
+                ],
+                "properties": {
+                  "disabled": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "uid",
+                    "disabled"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "uid": {
+                      "type": "string"
+                    },
+                    "disabled": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/surveyPeriods": {
       "get": {
         "operationId": "listSurveyPeriods",
@@ -2306,6 +2376,150 @@
                           "type": "string"
                         }
                       }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listAllSightings",
+        "tags": [
+          "Sightings"
+        ],
+        "description": "List all sightings (admin only)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "sightings"
+                  ],
+                  "properties": {
+                    "sightings": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "surveyWalkUid",
+                          "result",
+                          "date",
+                          "time",
+                          "location",
+                          "notes",
+                          "submittedBy",
+                          "createdAt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "surveyWalkUid": {
+                            "type": "string"
+                          },
+                          "result": {
+                            "type": "string"
+                          },
+                          "date": {
+                            "type": "string"
+                          },
+                          "time": {
+                            "type": "string"
+                          },
+                          "location": {
+                            "type": "string"
+                          },
+                          "species": {
+                            "type": "string"
+                          },
+                          "latitude": {
+                            "type": "number"
+                          },
+                          "longitude": {
+                            "type": "number"
+                          },
+                          "adults": {
+                            "type": "number"
+                          },
+                          "juveniles": {
+                            "type": "number"
+                          },
+                          "behaviour": {
+                            "type": "string"
+                          },
+                          "notes": {
+                            "type": "string"
+                          },
+                          "submittedBy": {
+                            "type": "string"
+                          },
+                          "mediaUrl": {
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sightings/{id}": {
+      "delete": {
+        "operationId": "deleteSighting",
+        "tags": [
+          "Sightings"
+        ],
+        "description": "Delete a sighting by id (admin only)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "id"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "id": {
+                      "type": "string"
                     }
                   }
                 }

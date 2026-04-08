@@ -4,8 +4,10 @@ import {
   ListUsersResponseSchema,
   ChangeRoleBodySchema,
   ChangeRoleResponseSchema,
+  UpdateUserStatusBodySchema,
+  UpdateUserStatusResponseSchema,
 } from '../schemas/user.schema';
-import { meHandler, listUsersHandler, changeRoleHandler } from '../handlers/users.handler';
+import { meHandler, listUsersHandler, changeRoleHandler, updateUserStatusHandler } from '../handlers/users.handler';
 import { verifyToken, requireAdminEmail } from '../middleware/auth.middleware';
 
 export const usersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
@@ -51,4 +53,25 @@ export const usersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       },
     },
   }, changeRoleHandler);
+
+  fastify.patch('/api/users/:uid/status', {
+    preHandler: [verifyToken, requireAdminEmail],
+    schema: {
+      operationId: 'updateUserStatus',
+      description: 'Enable or disable a user account (admin only)',
+      tags: ['RafflesGo'],
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: 'object',
+        required: ['uid'],
+        properties: {
+          uid: { type: 'string' },
+        },
+      },
+      body: UpdateUserStatusBodySchema,
+      response: {
+        200: UpdateUserStatusResponseSchema,
+      },
+    },
+  }, updateUserStatusHandler);
 };

@@ -88,10 +88,23 @@ export async function getMySightingsDashboard(submittedBy: string): Promise<MySi
     .where('submittedBy', '==', submittedBy)
     .get();
 
-  const sightings = snapshot.docs
+  const sightings = snapshot.docs.map((doc) => doc.data() as StoredSighting);
+  return buildSightingsDashboard(sightings);
+}
+
+export async function getAllSightings(): Promise<StoredSighting[]> {
+  const snapshot = await db.collection(FIRESTORE_COLLECTIONS.SIGHTINGS).get();
+  return snapshot.docs
     .map((doc) => doc.data() as StoredSighting)
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+}
 
+export async function deleteSighting(id: string): Promise<void> {
+  await db.collection(FIRESTORE_COLLECTIONS.SIGHTINGS).doc(id).delete();
+}
+
+function buildSightingsDashboard(sightingsInput: StoredSighting[]): MySightingsDashboard {
+  const sightings = [...sightingsInput].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   const speciesCounts = new Map<string, number>();
   let sightedCount = 0;
   let notSightedCount = 0;

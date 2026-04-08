@@ -18,6 +18,7 @@ import SurveyWalkList from './pages/SurveyWalkList'
 import CreateSurveyWalk from './pages/CreateSurveyWalk'
 import EditSurveyWalk from './pages/EditSurveyWalk'
 import { RafflesGoService } from './api'
+import AdminDashboard from './pages/AdminDashboard'
 
 function RequireAuth({ user, children }: { user: User | null; children: ReactNode }) {
   const location = useLocation()
@@ -123,6 +124,7 @@ export default function App() {
       {/* protected */}
       <Route element={<ProtectedLayout user={user} />}>
         <Route path="/dashboard" element={<Dashboard user={user!} />} />
+        <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
         <Route path="/submit-sighting" element={<SubmitSightingPage user={user!} />} />
         <Route path="/survey-periods" element={<RequireAdmin><SurveyPeriodList user={user!} /></RequireAdmin>} />
         <Route path="/create-survey-period" element={<RequireAdmin><CreateSurveyPeriod /></RequireAdmin>} />
