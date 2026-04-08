@@ -181,9 +181,10 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                         width="320px"
                     >
                         <Select.HiddenSelect />
+                        <Select.Label mb={0}>Select active survey period:</Select.Label>
                         <Select.Control>
                             <Select.Trigger px={3} py={2}>
-                                <Select.ValueText placeholder="Choose active survey period" px={1}/>
+                                <Select.ValueText placeholder="Select active survey period" px={1}/>
                             </Select.Trigger>
                             <Select.IndicatorGroup pr={2}>
                                 <Select.Indicator />
@@ -211,6 +212,7 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                         }}
                         loading={isSettingActiveUid !== null}
                         disabled={!activeSelectionUid[0]}
+                        alignSelf={"flex-end"}
                     >
                         <FaCheck />
                     </IconButton>
