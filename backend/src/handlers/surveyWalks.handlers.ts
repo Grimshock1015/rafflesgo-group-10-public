@@ -3,6 +3,8 @@ import { SurveyWalkEntity } from "../entities/surveyWalk.entity";
 import { BadRequestError } from "../lib/errors";
 import { auth } from "../lib/firebase-admin";
 import {
+    CompleteSurveyWalkBodySchema,
+    CompleteSurveyWalkResponseSchema,
     CreateSurveyWalkBodySchema,
     DeleteSurveyWalkResponseSchema,
     JoinQuitSurveyWalkResponseSchema,
@@ -73,12 +75,23 @@ const ReassignLeaderSchema = {
     },
 };
 
+const CompleteSurveyWalkSchema = {
+    params: SurveyWalkParamsSchema,
+    body: CompleteSurveyWalkBodySchema,
+    response: {
+        200: CompleteSurveyWalkResponseSchema,
+    },
+};
+
 type UserSummary = {
     uid: string;
     name: string;
 };
 
 function toDto(surveyWalk: SurveyWalkEntity, surveyPeriodName: string, volunteersData: UserSummary[], leaderData?: UserSummary) {
+    const attendees = volunteersData.filter((volunteer) => surveyWalk.attendeeUids.includes(volunteer.uid));
+    const noShows = volunteersData.filter((volunteer) => !surveyWalk.attendeeUids.includes(volunteer.uid));
+
     return {
         uid: surveyWalk.uid,
         surveyPeriodUid: surveyWalk.surveyPeriodUid,
@@ -89,8 +102,12 @@ function toDto(surveyWalk: SurveyWalkEntity, surveyPeriodName: string, volunteer
         endTime: surveyWalk.endTime,
         capacity: surveyWalk.capacity,
         isFinished: surveyWalk.isFinished,
+        completedAt: surveyWalk.completedAt ? surveyWalk.completedAt.toISOString() : null,
         volunteerUids: surveyWalk.volunteerUids,
+        attendeeUids: surveyWalk.attendeeUids,
         volunteers: volunteersData,
+        attendees,
+        noShows,
         leader: leaderData || { uid: "", name: "" },
     };
 }
@@ -231,6 +248,8 @@ export async function createSurveyWalkHandler(
         capacity: request.body.capacity,
         isFinished: request.body.isFinished ?? false,
         volunteerUids: [],
+        attendeeUids: [],
+        completedAt: null,
         leader: request.body.leader ?? '',
     });
 
@@ -317,6 +336,27 @@ export async function reassignSurveyWalkLeaderHandler(
         request.body.newLeaderUid,
     );
 
+    const periodName = await getSurveyPeriodName(surveyWalk.surveyPeriodUid);
+    const volunteersData = await getVolunteersData(surveyWalk.volunteerUids);
+    const leaderData = await getLeaderData(surveyWalk.leader);
+    return { success: true, surveyWalk: toDto(surveyWalk, periodName, volunteersData, leaderData) };
+}
+
+export async function completeSurveyWalkHandler(
+    request: FastifyRequestTypeBox<typeof CompleteSurveyWalkSchema>,
+    _reply: FastifyReplyTypeBox<typeof CompleteSurveyWalkSchema>
+) {
+    if (!request.user) {
+        throw new Error('User not found in request');
+    }
+
+    const { surveyWalkService } = getContainer();
+    const surveyWalk = await surveyWalkService.completeSurveyWalk(
+        request.params.uid,
+        request.user.uid,
+        request.body.attendeeUids,
+        request.user.role === 'admin',
+    );
     const periodName = await getSurveyPeriodName(surveyWalk.surveyPeriodUid);
     const volunteersData = await getVolunteersData(surveyWalk.volunteerUids);
     const leaderData = await getLeaderData(surveyWalk.leader);

@@ -41,6 +41,15 @@ describe('Survey Walks Integration', () => {
         });
     }
 
+    function mockUser(uid: string, role: 'user' | 'admin' = 'user') {
+        // @ts-ignore
+        vi.mocked(auth.verifyIdToken).mockResolvedValue({
+            uid,
+            email: `${uid}@example.com`,
+            role,
+        });
+    }
+
     async function createSurveyPeriod(isActive = false): Promise<string> {
         const periodRef = await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({
             name: 'Spring 2026',
@@ -86,6 +95,8 @@ describe('Survey Walks Integration', () => {
         const doc = await db.collection(FIRESTORE_COLLECTIONS.SURVEYWALKS).doc(data.uid).get();
         expect(doc.exists).toBe(true);
         expect(doc.data()?.name).toBe(payload.name);
+        expect(doc.data()?.attendeeUids).toEqual([]);
+        expect(doc.data()?.completedAt ?? null).toBeNull();
     });
 
     it('POST /api/surveyWalks should return 400 when startTime is after endTime', async () => {
@@ -126,6 +137,8 @@ describe('Survey Walks Integration', () => {
             capacity: 4,
             isFinished: false,
             volunteerUids: [],
+            attendeeUids: [],
+            completedAt: null,
             leader: '',
         });
 
@@ -161,6 +174,8 @@ describe('Survey Walks Integration', () => {
             capacity: 4,
             isFinished: false,
             volunteerUids: [],
+            attendeeUids: [],
+            completedAt: null,
             leader: '',
         });
 
@@ -173,6 +188,8 @@ describe('Survey Walks Integration', () => {
             capacity: 4,
             isFinished: false,
             volunteerUids: [],
+            attendeeUids: [],
+            completedAt: null,
             leader: '',
         });
 
@@ -186,5 +203,44 @@ describe('Survey Walks Integration', () => {
         const data = response.json();
         expect(data.surveyWalks).toHaveLength(1);
         expect(data.surveyWalks[0].name).toBe('Active Period Walk');
+    });
+
+    it('POST /api/surveyWalks/:uid/complete should mark the walk complete and store attendees', async () => {
+        mockUser('leader-1');
+        const surveyPeriodUid = await createSurveyPeriod(true);
+
+        const walkRef = await db.collection(FIRESTORE_COLLECTIONS.SURVEYWALKS).add({
+            surveyPeriodUid,
+            name: 'Attendance Walk',
+            date: new Date('2026-04-10T00:00:00.000Z'),
+            startTime: '08:00',
+            endTime: '10:00',
+            capacity: 4,
+            isFinished: false,
+            volunteerUids: ['leader-1', 'user-2'],
+            attendeeUids: [],
+            completedAt: null,
+            leader: 'leader-1',
+        });
+
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/surveyWalks/${walkRef.id}/complete`,
+            headers: { authorization: 'Bearer fake-token' },
+            payload: {
+                attendeeUids: ['leader-1'],
+            },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const data = response.json();
+        expect(data.success).toBe(true);
+        expect(data.surveyWalk.attendeeUids).toEqual(['leader-1']);
+        expect(data.surveyWalk.noShows).toEqual([{ uid: 'user-2', name: '' }]);
+
+        const saved = await walkRef.get();
+        expect(saved.data()?.isFinished).toBe(true);
+        expect(saved.data()?.attendeeUids).toEqual(['leader-1']);
+        expect(saved.data()?.completedAt).toBeTruthy();
     });
 });

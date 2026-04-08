@@ -1,6 +1,6 @@
 import { RafflesGoService } from "@/api";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Grid, GridItem, Stack, Badge, Text, Button, Card, Collapsible, Image, Box, List, Dialog, Portal, CloseButton, Select, createListCollection } from "@chakra-ui/react";
+import { Grid, GridItem, Stack, Badge, Text, Button, Card, Collapsible, Image, Box, List, Dialog, Portal, CloseButton, Select, createListCollection, Checkbox } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import { MdGroupAdd, MdGroupRemove } from "react-icons/md";
 import { FaEye } from "react-icons/fa";
@@ -8,7 +8,7 @@ import { FaEyeSlash } from "react-icons/fa6";
 import { toaster } from "./ui/toaster";
 import type { User } from "firebase/auth";
 import { BiTransfer } from "react-icons/bi";
-import { MdDelete, MdModeEdit } from "react-icons/md";
+import { MdDelete, MdModeEdit, MdDoneAll } from "react-icons/md";
 
 type SurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalks>>["surveyWalks"][number];
 
@@ -17,13 +17,23 @@ type DeleteSurveyWalkButtonProps = {
     onDeleted: () => Promise<void>;
 };
 
+function getWalkEndDateTime(surveyWalk: SurveyWalk) {
+    const walkDate = new Date(surveyWalk.date);
+    const [hours, minutes] = surveyWalk.endTime.split(":").map(Number);
+    walkDate.setUTCHours(hours, minutes, 0, 0);
+    return walkDate;
+}
+
 function DeleteSurveyWalkButton({ surveyWalkId, onDeleted }: DeleteSurveyWalkButtonProps) {
     const [open, setOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const { effectiveTheme } = useTheme();
-    const outlineButtonColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.700";
-    const outlineButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.500" : "gray.300";
-    const outlineButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.200" : "gray.100";
+    const outlineButtonColor = effectiveTheme === "dark" ? "gray.200" : "gray.700";
+    const outlineButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.300";
+    const outlineButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.100" : "gray.100";
+    const dialogBg = effectiveTheme === "dark" ? "gray.900" : "white";
+    const dialogBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.200";
+    const dialogTextColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
 
     const handleDelete = async () => {
         try {
@@ -61,7 +71,7 @@ function DeleteSurveyWalkButton({ surveyWalkId, onDeleted }: DeleteSurveyWalkBut
             <Portal>
                 <Dialog.Backdrop />
                 <Dialog.Positioner position="fixed" inset={0} display="flex" alignItems="center" justifyContent="center">
-                    <Dialog.Content p={5}>
+                    <Dialog.Content p={5} bg={dialogBg} borderWidth="1px" borderColor={dialogBorder} color={dialogTextColor}>
                         <Dialog.Header>
                             <Dialog.Title>Confirm Delete</Dialog.Title>
                         </Dialog.Header>
@@ -94,6 +104,7 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
     const hasJoined = sw.volunteers.some((v) => v.uid === user.uid);
     const isFull = sw.volunteers.length >= sw.capacity;
     const isLeader = sw.leader.uid === user.uid;
+    const hasHappened = getWalkEndDateTime(sw).getTime() <= Date.now();
     const { effectiveTheme } = useTheme();
     const selectBg = effectiveTheme === "dark" ? "gray.800" : "white";
     const selectBorder = effectiveTheme === "dark" ? "gray.600" : "gray.200";
@@ -103,9 +114,12 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
     const cardShadow = effectiveTheme === "dark" ? "0 12px 28px rgba(0, 0, 0, 0.38)" : "sm";
     const cardTextColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
     const cardSubtleTextColor = effectiveTheme === "dark" ? "whiteAlpha.800" : "gray.700";
-    const outlineButtonColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.700";
-    const outlineButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.500" : "gray.300";
-    const outlineButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.200" : "gray.100";
+    const outlineButtonColor = effectiveTheme === "dark" ? "gray.200" : "gray.700";
+    const outlineButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.300";
+    const outlineButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.100" : "gray.100";
+    const dialogBg = effectiveTheme === "dark" ? "gray.900" : "white";
+    const dialogBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.200";
+    const dialogTextColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
 
     function handleJoin() {
         setIsLoading(true);
@@ -209,16 +223,16 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                 <Portal>
                     <Dialog.Backdrop />
                     <Dialog.Positioner position="fixed" inset={0} display="flex" alignItems="center" justifyContent="center">
-                        <Dialog.Content p={5}>
+                        <Dialog.Content p={5} bg={dialogBg} borderWidth="1px" borderColor={dialogBorder} color={dialogTextColor}>
                             <Dialog.Header>
                                 <Dialog.Title>Reassign Leader</Dialog.Title>
                             </Dialog.Header>
                             <Dialog.Body color={"fg"}>
                                 <Select.Root collection={volunteersCollection} value={selectedParticipantUid} onValueChange={(e) => setSelectedParticipantUid(e.value)} size="sm" my={5}>
                                     <Select.HiddenSelect />
-                                    <Select.Label>Select participant</Select.Label>
+                                    <Select.Label color={cardSubtleTextColor}>Select participant</Select.Label>
                                     <Select.Control>
-                                        <Select.Trigger px={3} bg={selectBg} borderColor={selectBorder}>
+                                        <Select.Trigger px={3} bg={selectBg} borderColor={selectBorder} color={cardTextColor}>
                                         <Select.ValueText placeholder="Select participant" />
                                         </Select.Trigger>
                                         <Select.IndicatorGroup pr={2}>
@@ -227,9 +241,9 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                                     </Select.Control>
                                     <Portal>
                                         <Select.Positioner>
-                                        <Select.Content bg={selectBg} borderColor={selectBorder}>
+                                        <Select.Content bg={selectBg} borderColor={selectBorder} color={cardTextColor}>
                                             {volunteersCollection.items.map((volunteer) => (
-                                            <Select.Item item={volunteer} key={volunteer.value} py={2} px={2} bg={selectBg} _highlighted={{ bg: selectItemHoverBg }}>
+                                            <Select.Item item={volunteer} key={volunteer.value} py={2} px={2} bg={selectBg} color={cardTextColor} _highlighted={{ bg: selectItemHoverBg }}>
                                                 {volunteer.label}
                                                 <Select.ItemIndicator />
                                             </Select.Item>
@@ -256,6 +270,156 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                     </Dialog.Positioner>
                 </Portal>
             </Dialog.Root>
+        );
+    }
+
+    function MarkCompleteButton({ surveyWalk }: { surveyWalk: SurveyWalk }) {
+        const [open, setOpen] = useState(false);
+        const [isSubmitting, setIsSubmitting] = useState(false);
+        const [selectedAttendeeUids, setSelectedAttendeeUids] = useState<string[]>(surveyWalk.attendeeUids);
+
+        useEffect(() => {
+            if (open) {
+                setSelectedAttendeeUids(surveyWalk.attendeeUids);
+            }
+        }, [open, surveyWalk.attendeeUids]);
+
+        const toggleAttendee = (uid: string, checked: boolean) => {
+            setSelectedAttendeeUids((current) => checked
+                ? [...current, uid]
+                : current.filter((currentUid) => currentUid !== uid));
+        };
+
+        const handleComplete = async () => {
+            try {
+                setIsSubmitting(true);
+                await RafflesGoService.completeSurveyWalk(surveyWalk.uid, {
+                    attendeeUids: selectedAttendeeUids,
+                });
+                setOpen(false);
+                await onJoin();
+                toaster.create({
+                    type: "success",
+                    title: "Walk marked complete",
+                    description: "Attendance has been recorded for this survey walk.",
+                    closable: true,
+                });
+            } catch (error) {
+                console.error("Failed to complete survey walk:", error);
+                toaster.create({
+                    type: "error",
+                    title: "Unable to save attendance",
+                    description: "Please try again.",
+                    closable: true,
+                });
+            } finally {
+                setIsSubmitting(false);
+            }
+        };
+
+        return (
+          <Dialog.Root
+            size={'sm'}
+            open={open}
+            onOpenChange={(event) => setOpen(event.open)}
+          >
+            <Dialog.Trigger asChild>
+              <Button
+                size={'sm'}
+                px={2}
+                variant="outline"
+                color={outlineButtonColor}
+                borderColor={outlineButtonBorder}
+                _hover={{ bg: outlineButtonHoverBg }}
+              >
+                <MdDoneAll />
+                Mark Complete
+              </Button>
+            </Dialog.Trigger>
+            <Portal>
+              <Dialog.Backdrop />
+              <Dialog.Positioner
+                position="fixed"
+                inset={0}
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+              >
+                <Dialog.Content
+                  p={5}
+                  bg={dialogBg}
+                  borderWidth="1px"
+                  borderColor={dialogBorder}
+                  color={dialogTextColor}
+                >
+                  <Dialog.Header>
+                    <Dialog.Title>Complete Survey Walk</Dialog.Title>
+                  </Dialog.Header>
+                  <Dialog.Body color={'fg'}>
+                    <Text color={cardSubtleTextColor}  mb={3}>
+                      Select the volunteers who actually attended in person.
+                    </Text>
+                    <Stack gap={3}>
+                      {surveyWalk.volunteers.length === 0 ? (
+                        <Text color={cardSubtleTextColor}>
+                          No registered participants.
+                        </Text>
+                      ) : (
+                        surveyWalk.volunteers.map((volunteer) => {
+                          const checked = selectedAttendeeUids.includes(
+                            volunteer.uid,
+                          );
+                          return (
+                            <Checkbox.Root
+                              key={volunteer.uid}
+                              display={'flex'}
+                              checked={checked}
+                              onCheckedChange={(event) =>
+                                toggleAttendee(volunteer.uid, !!event.checked)
+                              }
+                              disabled={isSubmitting}
+                            >
+                              <Checkbox.HiddenInput />
+                              <Checkbox.Control>
+                                <Checkbox.Indicator />
+                              </Checkbox.Control>
+                              <Checkbox.Label>
+                                {volunteer.name || volunteer.uid}
+                              </Checkbox.Label>
+                            </Checkbox.Root>
+                          );
+                        })
+                      )}
+                    </Stack>
+                  </Dialog.Body>
+                  <Dialog.Footer>
+                    <Dialog.ActionTrigger asChild>
+                      <Button
+                        variant="outline"
+                        px={2}
+                        disabled={isSubmitting}
+                        color={outlineButtonColor}
+                        borderColor={outlineButtonBorder}
+                        _hover={{ bg: outlineButtonHoverBg }}
+                      >
+                        Cancel
+                      </Button>
+                    </Dialog.ActionTrigger>
+                    <Button
+                      px={2}
+                      onClick={handleComplete}
+                      loading={isSubmitting}
+                    >
+                      Save Attendance
+                    </Button>
+                  </Dialog.Footer>
+                  <Dialog.CloseTrigger asChild>
+                    <CloseButton size="sm" />
+                  </Dialog.CloseTrigger>
+                </Dialog.Content>
+              </Dialog.Positioner>
+            </Portal>
+          </Dialog.Root>
         );
     }
     
@@ -310,8 +474,8 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                                 Contributes to: {sw.surveyPeriodName}
                             </Text>
                                 <Collapsible.Content>
-                                    <Text color={cardSubtleTextColor}>
-                                        Participants:
+                                    <Box color={cardSubtleTextColor}>
+                                        <Text>Participants:</Text>
                                         <List.Root>
                                             {sw.volunteers.map((v) => (
                                                 <List.Item key={v.uid}>
@@ -319,7 +483,31 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                                                 </List.Item>
                                             ))}
                                         </List.Root>
-                                    </Text>
+                                    </Box>
+                                    {sw.isFinished && (
+                                        <>
+                                            <Box mt={3} color={cardSubtleTextColor}>
+                                                <Text>Attended:</Text>
+                                                <List.Root>
+                                                    {sw.attendees.length === 0 ? <List.Item>None recorded</List.Item> : sw.attendees.map((v) => (
+                                                        <List.Item key={v.uid}>
+                                                            {v.name || v.uid}
+                                                        </List.Item>
+                                                    ))}
+                                                </List.Root>
+                                            </Box>
+                                            <Box mt={3} color={cardSubtleTextColor}>
+                                                <Text>No-shows:</Text>
+                                                <List.Root>
+                                                    {sw.noShows.length === 0 ? <List.Item>None</List.Item> : sw.noShows.map((v) => (
+                                                        <List.Item key={v.uid}>
+                                                            {v.name || v.uid}
+                                                        </List.Item>
+                                                    ))}
+                                                </List.Root>
+                                            </Box>
+                                        </>
+                                    )}
                                     
                                 </Collapsible.Content>
                         </Stack>
@@ -344,6 +532,9 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                     >
                         {hasJoined ? <><MdGroupRemove /> Quit</> : <><MdGroupAdd /> Join</>}
                     </Button>
+                    {isLeader && !sw.isFinished && hasHappened && (
+                        <MarkCompleteButton surveyWalk={sw} />
+                    )}
                     {isLeader && (
                         <ReassignLeaderButton surveyWalkId={sw.uid} volunteers={sw.volunteers} onDeleted={onJoin}></ReassignLeaderButton>
                     )}
@@ -511,4 +702,3 @@ export default function SurveyWalkGrid({user}: {user: User}) {
         
     );
 }
-

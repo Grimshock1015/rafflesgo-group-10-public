@@ -82,6 +82,10 @@ export class SurveyWalkService {
     async joinSurveyWalk(uid: string, volunteerUid: string): Promise<SurveyWalkEntity> {
         const surveyWalk = await this.getSurveyWalk(uid);
 
+        if (surveyWalk.isFinished) {
+            throw new BadRequestError('Cannot join a survey walk that has been marked complete');
+        }
+
         // Check if the survey period is finished
         const surveyPeriod = await this.surveyPeriodRepository.findById(surveyWalk.surveyPeriodUid);
         if (!surveyPeriod) {
@@ -115,6 +119,10 @@ export class SurveyWalkService {
     async quitSurveyWalk(uid: string, volunteerUid: string): Promise<SurveyWalkEntity> {
         const surveyWalk = await this.getSurveyWalk(uid);
 
+        if (surveyWalk.isFinished) {
+            throw new BadRequestError('Cannot quit a survey walk that has been marked complete');
+        }
+
         if (!surveyWalk.volunteerUids.includes(volunteerUid)) {
             throw new BadRequestError('Volunteer is not part of this survey walk');
         }
@@ -134,6 +142,40 @@ export class SurveyWalkService {
         const updated = await this.surveyWalkRepository.update(uid, {
             volunteerUids: remainingVolunteers,
             leader: nextLeader,
+        });
+
+        if (!updated) {
+            throw new NotFoundError('Survey walk', uid);
+        }
+
+        return updated;
+    }
+
+    async completeSurveyWalk(
+        uid: string,
+        requesterUid: string,
+        attendeeUids: string[],
+        isAdmin: boolean,
+    ): Promise<SurveyWalkEntity> {
+        const surveyWalk = await this.getSurveyWalk(uid);
+
+        if (!isAdmin && surveyWalk.leader !== requesterUid) {
+            throw new BadRequestError('Only the survey walk leader can mark attendance');
+        }
+
+        const normalizedAttendeeUids = [...new Set(attendeeUids)];
+        const invalidAttendeeUids = normalizedAttendeeUids.filter(
+            (attendeeUid) => !surveyWalk.volunteerUids.includes(attendeeUid),
+        );
+
+        if (invalidAttendeeUids.length > 0) {
+            throw new BadRequestError('Attendance can only be recorded for registered volunteers');
+        }
+
+        const updated = await this.surveyWalkRepository.update(uid, {
+            isFinished: true,
+            attendeeUids: normalizedAttendeeUids,
+            completedAt: new Date(),
         });
 
         if (!updated) {

@@ -78,7 +78,12 @@ describe('SubmitSightingPage', () => {
         endTime: '11:00',
         capacity: 10,
         isFinished: false,
+        completedAt: null,
+        volunteerUids: ['test-user-123'],
+        attendeeUids: [],
         volunteers: [{ uid: 'test-user-123', name: 'Test User' }],
+        attendees: [],
+        noShows: [{ uid: 'test-user-123', name: 'Test User' }],
         leader: { uid: 'test-user-123', name: 'Test User' },
     };
 

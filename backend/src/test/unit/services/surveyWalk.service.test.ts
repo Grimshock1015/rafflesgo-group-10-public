@@ -31,6 +31,8 @@ describe('SurveyWalkService Unit Tests', () => {
 		capacity: 2,
 		isFinished: false,
 		volunteerUids: [],
+		attendeeUids: [],
+		completedAt: null,
 		leader: '',
 	};
 
@@ -153,6 +155,8 @@ describe('SurveyWalkService Unit Tests', () => {
 					capacity: 3,
 					isFinished: false,
 					volunteerUids: [],
+					attendeeUids: [],
+					completedAt: null,
 					leader: '',
 				})
 			).rejects.toThrow(BadRequestError);
@@ -173,6 +177,8 @@ describe('SurveyWalkService Unit Tests', () => {
 					capacity: 3,
 					isFinished: false,
 					volunteerUids: [],
+					attendeeUids: [],
+					completedAt: null,
 					leader: '',
 				})
 			).rejects.toThrow(BadRequestError);
@@ -384,6 +390,56 @@ describe('SurveyWalkService Unit Tests', () => {
 
 			expect(result).toEqual(updated);
 			expect(mockSurveyWalkRepository.update).toHaveBeenCalledWith(joinedWalk.uid, { leader: 'volunteer-2' });
+		});
+	});
+
+	describe('completeSurveyWalk', () => {
+		it('should throw when requester is not leader or admin', async () => {
+			const joinedWalk = { ...walk, volunteerUids: ['volunteer-1'], leader: 'volunteer-1' };
+			mockSurveyWalkRepository.findById.mockResolvedValue(joinedWalk);
+
+			await expect(
+				service.completeSurveyWalk(joinedWalk.uid, 'volunteer-2', ['volunteer-1'], false)
+			).rejects.toThrow(BadRequestError);
+		});
+
+		it('should throw when attendees include users who did not register', async () => {
+			const joinedWalk = { ...walk, volunteerUids: ['volunteer-1'], leader: 'volunteer-1' };
+			mockSurveyWalkRepository.findById.mockResolvedValue(joinedWalk);
+
+			await expect(
+				service.completeSurveyWalk(joinedWalk.uid, 'volunteer-1', ['volunteer-2'], false)
+			).rejects.toThrow(BadRequestError);
+		});
+
+		it('should mark walk complete and save unique attendee uids', async () => {
+			const joinedWalk = {
+				...walk,
+				volunteerUids: ['volunteer-1', 'volunteer-2'],
+				leader: 'volunteer-1',
+			};
+			const updated = {
+				...joinedWalk,
+				isFinished: true,
+				attendeeUids: ['volunteer-1'],
+				completedAt: new Date('2026-04-01T11:00:00.000Z'),
+			};
+			mockSurveyWalkRepository.findById.mockResolvedValue(joinedWalk);
+			mockSurveyWalkRepository.update.mockResolvedValue(updated);
+
+			const result = await service.completeSurveyWalk(
+				joinedWalk.uid,
+				'volunteer-1',
+				['volunteer-1', 'volunteer-1'],
+				false,
+			);
+
+			expect(result).toEqual(updated);
+			expect(mockSurveyWalkRepository.update).toHaveBeenCalledWith(joinedWalk.uid, {
+				isFinished: true,
+				attendeeUids: ['volunteer-1'],
+				completedAt: expect.any(Date),
+			});
 		});
 	});
 });

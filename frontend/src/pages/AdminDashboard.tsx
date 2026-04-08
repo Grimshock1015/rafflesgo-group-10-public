@@ -7,6 +7,7 @@ import { exportAdminDataToGoogleSheets } from '../utils/googleSheetsExport';
 
 type AdminUser = Awaited<ReturnType<typeof RafflesGoService.listUsers>>['users'][number];
 type AdminSighting = Awaited<ReturnType<typeof listAllAdminSightings>>['sightings'][number];
+type AdminSurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalks>>['surveyWalks'][number];
 
 const sectionStyle: CSSProperties = {
   background: 'var(--color-surface)',
@@ -55,6 +56,7 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [sightings, setSightings] = useState<AdminSighting[]>([]);
+  const [surveyWalks, setSurveyWalks] = useState<AdminSurveyWalk[]>([]);
   const [busyUserId, setBusyUserId] = useState<string | null>(null);
   const [busySightingId, setBusySightingId] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -64,12 +66,14 @@ export default function AdminDashboard() {
     setIsLoading(true);
 
     try {
-      const [usersResponse, sightingsResponse] = await Promise.all([
+      const [usersResponse, surveyWalksResponse, sightingsResponse] = await Promise.all([
         RafflesGoService.listUsers(),
+        RafflesGoService.listSurveyWalks(),
         listAllAdminSightings(),
       ]);
 
       setUsers(usersResponse.users);
+      setSurveyWalks(surveyWalksResponse.surveyWalks);
       setSightings(sightingsResponse.sightings);
     } catch (loadError) {
       console.error('Failed to load admin data:', loadError);
@@ -192,6 +196,8 @@ export default function AdminDashboard() {
   const adminCount = users.filter((user) => user.role === 'admin').length;
   const disabledCount = users.filter((user) => user.disabled).length;
   const sightedCount = sightings.filter((sighting) => sighting.result === 'sighted').length;
+  const completedWalks = surveyWalks.filter((walk) => walk.isFinished);
+  const noShowCount = completedWalks.reduce((count, walk) => count + walk.noShows.length, 0);
 
   return (
     <main className="main-content">
@@ -224,6 +230,14 @@ export default function AdminDashboard() {
               <p>Confirmed sightings</p>
               <strong style={{ fontSize: '2rem' }}>{sightedCount}</strong>
             </article>
+            <article style={cardStyle}>
+              <p>Completed walks</p>
+              <strong style={{ fontSize: '2rem' }}>{completedWalks.length}</strong>
+            </article>
+            <article style={cardStyle}>
+              <p>Total no-shows</p>
+              <strong style={{ fontSize: '2rem' }}>{noShowCount}</strong>
+            </article>
           </div>
 
           <div className="action-buttons" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1rem' }}>
@@ -233,6 +247,35 @@ export default function AdminDashboard() {
               {isExporting ? 'Exporting…' : 'Export to Google Sheets'}
             </button>
             <Link to="/dashboard" className="btn btn-secondary">Back to Dashboard</Link>
+          </div>
+        </section>
+
+        <section style={sectionStyle}>
+          <h2>Attendance Tracking</h2>
+          <p>Completed survey walks keep the attendance list so repeated no-shows are visible to admins.</p>
+          <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
+            {completedWalks.length === 0 ? (
+              <p>No completed survey walks yet.</p>
+            ) : (
+              completedWalks
+                .slice()
+                .sort((a, b) => new Date(b.completedAt ?? b.date).getTime() - new Date(a.completedAt ?? a.date).getTime())
+                .map((walk) => (
+                  <article key={walk.uid} style={cardStyle}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                      <div>
+                        <h3 style={{ marginBottom: '0.35rem' }}>{walk.name}</h3>
+                        <p style={{ margin: 0 }}>Leader: {walk.leader.name || 'Unassigned'}</p>
+                        <p style={{ margin: 0 }}>Completed: {formatDate(walk.completedAt ?? walk.date)}</p>
+                      </div>
+                      <div style={{ minWidth: '220px' }}>
+                        <p style={{ margin: 0 }}>Attended: {walk.attendees.map((user) => user.name || user.uid).join(', ') || 'None recorded'}</p>
+                        <p style={{ margin: 0 }}>No-show: {walk.noShows.map((user) => user.name || user.uid).join(', ') || 'None'}</p>
+                      </div>
+                    </div>
+                  </article>
+                ))
+            )}
           </div>
         </section>
 
