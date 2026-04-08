@@ -1,4 +1,5 @@
 import { RafflesGoService } from "@/api";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Grid, GridItem, Stack, Badge, Text, Button, Card, Collapsible, Box, List, Dialog, Portal, CloseButton, Select, createListCollection } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import { MdGroupAdd, MdGroupRemove } from "react-icons/md";
@@ -16,6 +17,10 @@ function SurveyWalkCard({ sw, onJoin, user }: { sw: SurveyWalk; onJoin: () => vo
     const hasJoined = sw.volunteers.some((v) => v.uid === user.uid);
     const isFull = sw.volunteers.length >= sw.capacity;
     const isLeader = sw.leader.uid === user.uid;
+    const { effectiveTheme } = useTheme();
+    const selectBg = effectiveTheme === "dark" ? "gray.800" : "white";
+    const selectBorder = effectiveTheme === "dark" ? "gray.600" : "gray.200";
+    const selectItemHoverBg = effectiveTheme === "dark" ? "gray.700" : "gray.50";
 
     function handleJoin() {
         setIsLoading(true);
@@ -123,12 +128,12 @@ function SurveyWalkCard({ sw, onJoin, user }: { sw: SurveyWalk; onJoin: () => vo
                             <Dialog.Header>
                                 <Dialog.Title>Reassign Leader</Dialog.Title>
                             </Dialog.Header>
-                            <Dialog.Body color={"black"}>
+                            <Dialog.Body color={"fg"}>
                                 <Select.Root collection={volunteersCollection} value={selectedParticipantUid} onValueChange={(e) => setSelectedParticipantUid(e.value)} size="sm" my={5}>
                                     <Select.HiddenSelect />
                                     <Select.Label>Select participant</Select.Label>
                                     <Select.Control>
-                                        <Select.Trigger px={3}>
+                                        <Select.Trigger px={3} bg={selectBg} borderColor={selectBorder}>
                                         <Select.ValueText placeholder="Select participant" />
                                         </Select.Trigger>
                                         <Select.IndicatorGroup>
@@ -137,9 +142,9 @@ function SurveyWalkCard({ sw, onJoin, user }: { sw: SurveyWalk; onJoin: () => vo
                                     </Select.Control>
                                     <Portal>
                                         <Select.Positioner>
-                                        <Select.Content>
+                                        <Select.Content bg={selectBg} borderColor={selectBorder}>
                                             {volunteersCollection.items.map((volunteer) => (
-                                            <Select.Item item={volunteer} key={volunteer.value} py={2} px={2}>
+                                            <Select.Item item={volunteer} key={volunteer.value} py={2} px={2} bg={selectBg} _highlighted={{ bg: selectItemHoverBg }}>
                                                 {volunteer.label}
                                                 <Select.ItemIndicator />
                                             </Select.Item>
@@ -261,6 +266,10 @@ export default function SurveyWalkGrid({user}: {user: User}) {
     const [onlyActive, setOnlyActive] = useState(true);
     const [role, setRole] = useState<'user' | 'admin'>('user');
     const [adminWalkScope, setAdminWalkScope] = useState<string[]>(["joined"]);
+    const { effectiveTheme } = useTheme();
+    const selectBg = effectiveTheme === "dark" ? "gray.800" : "white";
+    const selectBorder = effectiveTheme === "dark" ? "gray.600" : "gray.200";
+    const selectItemHoverBg = effectiveTheme === "dark" ? "gray.700" : "gray.50";
 
     const adminWalkScopeCollection = useMemo(() => createListCollection({
         items: [
@@ -355,7 +364,7 @@ export default function SurveyWalkGrid({user}: {user: User}) {
                         <Select.Label />
 
                         <Select.Control>
-                            <Select.Trigger px={3} py={2}>
+                            <Select.Trigger px={3} py={2} bg={selectBg} borderColor={selectBorder}>
                             <Select.ValueText px={1} />
                             </Select.Trigger>
                             <Select.IndicatorGroup pr={2}>
@@ -364,9 +373,9 @@ export default function SurveyWalkGrid({user}: {user: User}) {
                         </Select.Control>
 
                         <Select.Positioner>
-                            <Select.Content>
+                            <Select.Content bg={selectBg} borderColor={selectBorder}>
                                 {adminWalkScopeCollection.items.map((item) => (
-                                    <Select.Item item={item} key={item.value} py={2.5} px={3}>
+                                    <Select.Item item={item} key={item.value} py={2.5} px={3} bg={selectBg} _highlighted={{ bg: selectItemHoverBg }}>
                                         {item.label}
                                         <Select.ItemIndicator />
                                     </Select.Item>

@@ -6,6 +6,7 @@ import { SightingsService, RafflesGoService} from '../api';
 import { ChakraProvider, defaultSystem } from '@chakra-ui/react';
 import { saveDraft, getDraft } from '../services/SightingDraftsService';
 import type { SightingDraft } from '../types/sightingDrafts';
+import { ThemeProvider } from '../contexts/ThemeContext';
 
 // Mock the openapi client to prevent actual network calls
 vi.mock('../api', async (importOriginal) => {
@@ -99,9 +100,11 @@ describe('SubmitSightingPage', () => {
     const renderComponent = () => {
     return render(
         <ChakraProvider value={defaultSystem}>
-        <BrowserRouter>
-            <SubmitSightingPage user={mockUser} />
-        </BrowserRouter>
+                    <ThemeProvider>
+                        <BrowserRouter>
+                            <SubmitSightingPage user={mockUser} />
+                        </BrowserRouter>
+                    </ThemeProvider>
         </ChakraProvider>
     );
     };

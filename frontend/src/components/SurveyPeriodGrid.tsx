@@ -1,4 +1,5 @@
 import { RafflesGoService } from "@/api";
+import { useTheme } from "@/contexts/ThemeContext";
 import { toaster } from "@/components/ui/toaster";
 import { Badge, Box, Button, Card, CloseButton, Container, Dialog, Grid, GridItem, IconButton, Portal, Select, Stack, Text, createListCollection } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
@@ -87,6 +88,10 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
     const [isSettingActiveUid, setIsSettingActiveUid] = useState<string | null>(null);
     const [activeSelectionUid, setActiveSelectionUid] = useState<string[]>([]);
     const [role, setRole] = useState<string>("user");
+    const { effectiveTheme } = useTheme();
+    const selectItemBg = effectiveTheme === "dark" ? "gray.800" : "white";
+    const selectBorder = effectiveTheme === "dark" ? "gray.600" : "gray.200";
+    const selectItemHoverBg = effectiveTheme === "dark" ? "gray.700" : "gray.50";
 
     const navigate = useNavigate();
 
@@ -183,7 +188,7 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                         <Select.HiddenSelect />
                         <Select.Label mb={0}>Select active survey period:</Select.Label>
                         <Select.Control>
-                            <Select.Trigger px={3} py={2}>
+                            <Select.Trigger px={3} py={2} bg={selectItemBg} borderColor={selectBorder}>
                                 <Select.ValueText placeholder="Select active survey period" px={1}/>
                             </Select.Trigger>
                             <Select.IndicatorGroup pr={2}>
@@ -191,9 +196,9 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                             </Select.IndicatorGroup>
                         </Select.Control>
                         <Select.Positioner>
-                            <Select.Content>
+                            <Select.Content backgroundColor={selectItemBg} borderColor={selectBorder}>
                                 {activePeriodCollection.items.map((item) => (
-                                    <Select.Item item={item} key={item.value} py={2} px={3}>
+                                    <Select.Item item={item} key={item.value} py={2} px={3} backgroundColor={selectItemBg} _highlighted={{ bg: selectItemHoverBg }}>
                                         {item.label}
                                         <Select.ItemIndicator />
                                     </Select.Item>
@@ -205,6 +210,7 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                         aria-label="Set active survey period"
                         variant="outline"
                         size="sm"
+                        color="green"
                         onClick={() => {
                             const selectedUid = activeSelectionUid[0];
                             if (!selectedUid) return;

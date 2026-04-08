@@ -10,6 +10,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import exifr from 'exifr';
+import { useTheme } from '../contexts/ThemeContext';
 import { saveDraft, getDraft, deleteDraft } from '../services/SightingDraftsService';
 import type { DraftMedia, SightingDraftFormData } from '../types/sightingDrafts';
 import { buildDraft } from '../utils/buildDraft';
@@ -76,6 +77,10 @@ export default function SubmitSightingPage({ user }: { user: User }) {
   const [message, setMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const { effectiveTheme } = useTheme();
+  const selectBackground = effectiveTheme === 'dark' ? '#2a2a2a' : '#ffffff';
+  const selectTextColor = effectiveTheme === 'dark' ? 'rgba(255, 255, 255, 0.87)' : '#212529';
+  const selectBorderColor = effectiveTheme === 'dark' ? '#404040' : '#dee2e6';
 
   const navigate = useNavigate();
   const selectedSurveyWalk = leaderSurveyWalks.find((walk) => walk.uid === selectedSurveyWalkUid) ?? null;
@@ -394,12 +399,12 @@ export default function SubmitSightingPage({ user }: { user: User }) {
                 id="surveyWalk"
                 value={selectedSurveyWalkUid}
                 onChange={(e) => setSelectedSurveyWalkUid(e.target.value)}
-                style={{ width: '100%', padding: '0.75rem', borderRadius: '4px' }}
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', backgroundColor: selectBackground, color: selectTextColor, border: `1px solid ${selectBorderColor}` }}
                 disabled={loadingSurveyWalks || leaderSurveyWalks.length === 0}
                 required
               >
                 {leaderSurveyWalks.map((walk) => (
-                  <option key={walk.uid} value={walk.uid}>
+                  <option key={walk.uid} value={walk.uid} style={{ backgroundColor: selectBackground, color: selectTextColor }}>
                     {walk.name} - {new Date(walk.date).toLocaleDateString('en-SG', { timeZone: 'UTC' })} ({walk.startTime}-{walk.endTime})
                   </option>
                 ))}
@@ -467,8 +472,8 @@ export default function SubmitSightingPage({ user }: { user: User }) {
                 <h3>Animal Details</h3>
                 <div style={{ marginBottom: '1rem' }}>
                   <label htmlFor="species">Species</label>
-                  <select id="species" value={speciesSelect} onChange={(e) => setSpeciesSelect(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '4px' }}>
-                    {SPECIES_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                  <select id="species" value={speciesSelect} onChange={(e) => setSpeciesSelect(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', backgroundColor: selectBackground, color: selectTextColor, border: `1px solid ${selectBorderColor}` }}>
+                    {SPECIES_OPTIONS.map(opt => <option key={opt} value={opt} style={{ backgroundColor: selectBackground, color: selectTextColor }}>{opt}</option>)}
                   </select>
                 </div>
 
