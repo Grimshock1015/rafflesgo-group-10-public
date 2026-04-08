@@ -95,6 +95,8 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
     const { effectiveTheme } = useTheme();
     const selectItemBg = effectiveTheme === "dark" ? "gray.800" : "white";
     const selectBorder = effectiveTheme === "dark" ? "gray.600" : "gray.200";
+    const selectText = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
+    const selectPlaceholder = effectiveTheme === "dark" ? "whiteAlpha.700" : "gray.500";
     const selectItemHoverBg = effectiveTheme === "dark" ? "gray.700" : "gray.50";
     const cardBg = effectiveTheme === "dark" ? "gray.900" : "white";
     const cardBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.200";
@@ -200,17 +202,17 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                         <Select.HiddenSelect />
                         <Select.Label mb={0}>Select active survey period:</Select.Label>
                         <Select.Control>
-                            <Select.Trigger px={3} py={2} bg={selectItemBg} borderColor={selectBorder}>
-                                <Select.ValueText placeholder="Select active survey period" px={1}/>
+                            <Select.Trigger px={3} py={2} bg={selectItemBg} borderColor={selectBorder} color={selectText}>
+                                <Select.ValueText placeholder="Select active survey period" px={1} color={activeSelectionUid[0] ? selectText : selectPlaceholder}/>
                             </Select.Trigger>
                             <Select.IndicatorGroup pr={2}>
-                                <Select.Indicator />
+                                <Select.Indicator color={selectText} />
                             </Select.IndicatorGroup>
                         </Select.Control>
                         <Select.Positioner>
-                            <Select.Content backgroundColor={selectItemBg} borderColor={selectBorder}>
+                            <Select.Content backgroundColor={selectItemBg} borderColor={selectBorder} color={selectText}>
                                 {activePeriodCollection.items.map((item) => (
-                                    <Select.Item item={item} key={item.value} py={2} px={3} backgroundColor={selectItemBg} _highlighted={{ bg: selectItemHoverBg }}>
+                                    <Select.Item item={item} key={item.value} py={2} px={3} backgroundColor={selectItemBg} color={selectText} _highlighted={{ bg: selectItemHoverBg }}>
                                         {item.label}
                                         <Select.ItemIndicator />
                                     </Select.Item>

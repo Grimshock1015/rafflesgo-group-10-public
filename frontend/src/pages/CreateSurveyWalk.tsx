@@ -1,5 +1,7 @@
 import { RafflesGoService } from "@/api/services/RafflesGoService";
+import { ObservationDatePicker } from "@/components/ObservationDatePicker";
 import { toaster } from "@/components/ui/toaster";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Container, Button, Input, Stack, Field, Select, createListCollection } from "@chakra-ui/react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { IoMdAdd } from "react-icons/io";
@@ -12,6 +14,12 @@ type SurveyPeriodOption = {
     endDate: string;
 };
 
+function formatSurveyPeriodLabel(period: SurveyPeriodOption): string {
+    const start = new Date(period.startDate).toLocaleDateString("en-SG", { timeZone: "UTC" });
+    const end = new Date(period.endDate).toLocaleDateString("en-SG", { timeZone: "UTC" });
+    return `${period.name} (${start} - ${end})`;
+}
+
 function toUtcIsoDate(date: string): string {
     return new Date(`${date}T00:00:00.000Z`).toISOString();
 }
@@ -22,6 +30,7 @@ function getDateFromIso(isoString: string): string {
 
 export default function CreateSurveyWalk() {
     const navigate = useNavigate();
+    const { effectiveTheme } = useTheme();
     const [surveyPeriodUid, setSurveyPeriodUid] = useState<string[]>([]);
     const [name, setName] = useState("");
     const [date, setDate] = useState("");
@@ -65,10 +74,25 @@ export default function CreateSurveyWalk() {
     const surveyPeriodCollection = useMemo(
         () =>
             createListCollection({
-                items: surveyPeriods.map((period) => ({ value: period.uid, label: period.name })),
+                items: surveyPeriods.map((period) => ({ value: period.uid, label: formatSurveyPeriodLabel(period) })),
             }),
         [surveyPeriods]
     );
+    const selectedSurveyPeriod = surveyPeriods.find((period) => period.uid === surveyPeriodUid[0]);
+    const selectBg = effectiveTheme === "dark" ? "gray.800" : "white";
+    const selectBorder = effectiveTheme === "dark" ? "gray.600" : "gray.200";
+    const selectText = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
+    const selectPlaceholder = effectiveTheme === "dark" ? "whiteAlpha.700" : "gray.500";
+    const selectItemHoverBg = effectiveTheme === "dark" ? "gray.700" : "gray.50";
+
+    useEffect(() => {
+        const minDate = selectedSurveyPeriod ? getDateFromIso(selectedSurveyPeriod.startDate) : "";
+        const maxDate = selectedSurveyPeriod ? getDateFromIso(selectedSurveyPeriod.endDate) : "";
+
+        if (date && ((minDate && date < minDate) || (maxDate && date > maxDate))) {
+            setDate("");
+        }
+    }, [date, selectedSurveyPeriod]);
 
     const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -134,17 +158,17 @@ export default function CreateSurveyWalk() {
                             <Select.HiddenSelect />
                             <Select.Label>Survey Period</Select.Label>
                             <Select.Control>
-                                <Select.Trigger px={3} py={2}>
-                                <Select.ValueText px={1} placeholder={"Select a survey period"}/>
+                                <Select.Trigger px={3} py={2} bg={selectBg} borderColor={selectBorder} color={selectText}>
+                                <Select.ValueText px={1} placeholder={"Select a survey period"} color={surveyPeriodUid[0] ? selectText : selectPlaceholder}/>
                                 </Select.Trigger>
                                 <Select.IndicatorGroup pr={2}>
-                                    <Select.Indicator />
+                                    <Select.Indicator color={selectText} />
                                 </Select.IndicatorGroup>
                             </Select.Control>
                             <Select.Positioner>
-                                <Select.Content>
+                                <Select.Content bg={selectBg} borderColor={selectBorder} color={selectText}>
                                     {surveyPeriodCollection.items.map((item) => (
-                                        <Select.Item item={item} key={item.value} py={2} px={2}>
+                                        <Select.Item item={item} key={item.value} py={2} px={2} bg={selectBg} color={selectText} _highlighted={{ bg: selectItemHoverBg }}>
                                             {item.label}
                                             <Select.ItemIndicator />
                                         </Select.Item>
@@ -160,20 +184,16 @@ export default function CreateSurveyWalk() {
                             <Input placeholder="Enter a name for the survey walk" value={name} onChange={(e) => setName(e.target.value)} required />
                         </Field.Root>
 
-                        <Field.Root required>
-                            <Field.Label>
-                                Date <Field.RequiredIndicator />
-                            </Field.Label>
-                            <Input
-                                type="date"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
-                                required
-                                min={surveyPeriodUid[0] ? getDateFromIso(surveyPeriods.find((p) => p.uid === surveyPeriodUid[0])?.startDate || '') : undefined}
-                                max={surveyPeriodUid[0] ? getDateFromIso(surveyPeriods.find((p) => p.uid === surveyPeriodUid[0])?.endDate || '') : undefined}
-                                style={{ lineHeight: 1.5, paddingTop: "0.1875rem", paddingBottom: "0.1875rem" }}
-                            />
-                        </Field.Root>
+                        <ObservationDatePicker
+                            id="survey-walk-date"
+                            label="Date"
+                            value={date}
+                            onChange={setDate}
+                            required
+                            disabled={isLoadingPeriods || !selectedSurveyPeriod}
+                            minDate={selectedSurveyPeriod ? getDateFromIso(selectedSurveyPeriod.startDate) : undefined}
+                            maxDate={selectedSurveyPeriod ? getDateFromIso(selectedSurveyPeriod.endDate) : undefined}
+                        />
 
                         <Field.Root required>
                             <Field.Label>
