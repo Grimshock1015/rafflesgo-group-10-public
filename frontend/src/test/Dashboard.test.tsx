@@ -4,7 +4,7 @@
  *     Update or remove tests as needed when making changes.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import { render } from './test-utils';
 import Dashboard from '../pages/Dashboard';
@@ -45,6 +45,19 @@ const mockUser: Partial<User> = {
 describe('Dashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          hourly: {
+            time: ['2026-04-12T08:00', '2026-04-14T08:00'],
+            precipitation_probability: [20, 10],
+            weather_code: [1, 1],
+          },
+        }),
+      })
+    );
     vi.mocked(RafflesGoService.getCurrentUser).mockResolvedValue({
       uid: 'test-uid-123',
       email: 'john@example.com',
@@ -58,7 +71,7 @@ describe('Dashboard', () => {
           surveyPeriodUid: 'period-1',
           surveyPeriodName: 'April 2026 Survey Period',
           name: 'MacRitchie Reservoir Loop',
-          date: '2099-04-12T00:00:00.000Z',
+          date: '2026-04-12T00:00:00.000Z',
           startTime: '07:30',
           endTime: '09:30',
           capacity: 8,
@@ -74,7 +87,7 @@ describe('Dashboard', () => {
           surveyPeriodUid: 'period-1',
           surveyPeriodName: 'April 2026 Survey Period',
           name: 'Springleaf Trail',
-          date: '2099-04-14T00:00:00.000Z',
+          date: '2026-04-14T00:00:00.000Z',
           startTime: '08:00',
           endTime: '10:00',
           capacity: 10,
@@ -124,6 +137,10 @@ describe('Dashboard', () => {
         },
       ],
     });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
   });
 
   // Test 1: Basic rendering and querying DOM elements
@@ -212,6 +229,47 @@ describe('Dashboard', () => {
       expect(screen.getByText(/MacRitchie Reservoir Loop/i)).toBeInTheDocument();
       expect(screen.getByText(/Leader: Alicia Lim/i)).toBeInTheDocument();
       expect(screen.getByText(/Volunteers: John Doe, Jane Tan/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows a bad weather warning for the next upcoming walk when rain is forecast', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          hourly: {
+            time: ['2026-04-12T08:00'],
+            precipitation_probability: [85],
+            weather_code: [82],
+          },
+        }),
+      })
+    );
+
+    render(
+      <BrowserRouter>
+        <Dashboard user={mockUser as User} />
+      </BrowserRouter>
+    );
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/forecast warning: rain expected/i);
+    expect(screen.getByRole('alert')).toHaveTextContent(/85% chance of rain/i);
+  });
+
+  it('does not show a weather warning when the forecast is mild', async () => {
+    render(
+      <BrowserRouter>
+        <Dashboard user={mockUser as User} />
+      </BrowserRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/MacRitchie Reservoir Loop/i)).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
   });
 

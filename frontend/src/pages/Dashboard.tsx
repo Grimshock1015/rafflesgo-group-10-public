@@ -3,9 +3,25 @@ import type { CSSProperties } from 'react';
 import type { User } from 'firebase/auth';
 import { Link } from 'react-router-dom';
 import { RafflesGoService, SightingsService } from '../api';
+import { getAllDrafts } from '../services/SightingDraftsService';
 
 type MySightingsDashboard = Awaited<ReturnType<typeof SightingsService.getMySightingsDashboard>>;
 type JoinedSurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalksForCurrentUser>>['surveyWalks'][number];
+type WeatherAssessment = {
+  precipitationProbability: number;
+  weatherCode: number;
+  summary: string;
+};
+type WeatherApiHourly = {
+  time: string[];
+  precipitation_probability: number[];
+  weather_code: number[];
+};
+
+const SINGAPORE_COORDINATES = {
+  latitude: 1.3521,
+  longitude: 103.8198,
+};
 
 const sectionStyle: CSSProperties = {
   background: 'var(--color-surface)',
@@ -20,6 +36,15 @@ const cardStyle: CSSProperties = {
   border: '1px solid var(--color-border, rgba(255, 255, 255, 0.08))',
   borderRadius: '14px',
   padding: '1rem 1.25rem',
+};
+
+const weatherWarningStyle: CSSProperties = {
+  marginTop: '1rem',
+  padding: '0.75rem 1rem',
+  borderRadius: '12px',
+  border: '1px solid rgba(255, 184, 77, 0.45)',
+  background: 'rgba(255, 184, 77, 0.12)',
+  color: '#ffe2b3',
 };
 
 const gridStyle: CSSProperties = {
@@ -48,7 +73,45 @@ function formatWalkDate(value: string) {
 function getWalkStartDateTime(walk: JoinedSurveyWalk) {
   return new Date(`${walk.date.split('T')[0]}T${walk.startTime}:00`);
 }
-import { getAllDrafts } from '../services/SightingDraftsService';
+
+function getWeatherSummary(weatherCode: number) {
+  if ([95, 96, 99].includes(weatherCode)) return 'thunderstorms';
+  if ([51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(weatherCode)) return 'rain';
+  return 'unsettled weather';
+}
+
+function isBadWeather(weatherCode: number, precipitationProbability: number) {
+  return precipitationProbability >= 60 || [95, 96, 99, 63, 65, 81, 82].includes(weatherCode);
+}
+
+function getForecastLookupKey(walk: JoinedSurveyWalk) {
+  const [hour, minute] = walk.startTime.split(':').map(Number);
+  const roundedHour = minute >= 30 ? Math.min(hour + 1, 23) : hour;
+  return `${walk.date.split('T')[0]}T${String(roundedHour).padStart(2, '0')}:00`;
+}
+
+function getWalkForecastMatch(
+  walk: JoinedSurveyWalk,
+  hourly: WeatherApiHourly
+) {
+  const targetKey = getForecastLookupKey(walk);
+  const exactIndex = hourly.time.findIndex((time) => time === targetKey);
+  const fallbackIndex = hourly.time.findIndex((time) => time.startsWith(walk.date.split('T')[0]));
+  const forecastIndex = exactIndex >= 0 ? exactIndex : fallbackIndex;
+
+  if (forecastIndex < 0) return null;
+
+  const precipitationProbability = hourly.precipitation_probability[forecastIndex];
+  const weatherCode = hourly.weather_code[forecastIndex];
+
+  if (typeof precipitationProbability !== 'number' || typeof weatherCode !== 'number') return null;
+
+  return {
+    precipitationProbability,
+    weatherCode,
+    summary: getWeatherSummary(weatherCode),
+  } satisfies WeatherAssessment;
+}
 
 export default function Dashboard({ user }: { user: User }) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -61,6 +124,9 @@ export default function Dashboard({ user }: { user: User }) {
   const [joinedSurveyWalks, setJoinedSurveyWalks] = useState<JoinedSurveyWalk[]>([]);
   const [isLoadingSightings, setIsLoadingSightings] = useState(true);
   const [isLoadingSurveyWalks, setIsLoadingSurveyWalks] = useState(true);
+  const [weatherAssessment, setWeatherAssessment] = useState<WeatherAssessment | null>(null);
+  const [weatherError, setWeatherError] = useState(false);
+  const [isLoadingWeather, setIsLoadingWeather] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -142,6 +208,84 @@ export default function Dashboard({ user }: { user: User }) {
     .filter((walk) => !walk.isFinished && getWalkStartDateTime(walk) >= now)
     .sort((a, b) => getWalkStartDateTime(a).getTime() - getWalkStartDateTime(b).getTime())[0];
 
+  useEffect(() => {
+    if (!nextUpcomingWalk) {
+      setWeatherAssessment(null);
+      setWeatherError(false);
+      setIsLoadingWeather(false);
+      return;
+    }
+
+    const walkDate = getWalkStartDateTime(nextUpcomingWalk);
+    const forecastWindowEnd = new Date();
+    forecastWindowEnd.setDate(forecastWindowEnd.getDate() + 7);
+
+    if (walkDate > forecastWindowEnd) {
+      setWeatherAssessment(null);
+      setWeatherError(false);
+      setIsLoadingWeather(false);
+      return;
+    }
+
+    let isMounted = true;
+    const controller = new AbortController();
+
+    const fetchWeather = async () => {
+      setIsLoadingWeather(true);
+      setWeatherError(false);
+
+      try {
+        const params = new URLSearchParams({
+          latitude: String(SINGAPORE_COORDINATES.latitude),
+          longitude: String(SINGAPORE_COORDINATES.longitude),
+          hourly: 'precipitation_probability,weather_code',
+          timezone: 'Asia/Singapore',
+          forecast_days: '7',
+        });
+        const response = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Weather request failed with ${response.status}`);
+        }
+
+        const weatherData = await response.json();
+        const hourlyData = weatherData?.hourly;
+        const hasValidHourlyData =
+          Array.isArray(hourlyData?.time) &&
+          Array.isArray(hourlyData?.precipitation_probability) &&
+          Array.isArray(hourlyData?.weather_code);
+
+        if (!hasValidHourlyData) {
+          throw new Error('Weather response did not include hourly forecast data');
+        }
+
+        const match = getWalkForecastMatch(nextUpcomingWalk, hourlyData);
+
+        if (!isMounted) return;
+
+        setWeatherAssessment(match && isBadWeather(match.weatherCode, match.precipitationProbability) ? match : null);
+      } catch (error) {
+        if (controller.signal.aborted || !isMounted) return;
+        console.error('Failed to fetch weather forecast:', error);
+        setWeatherAssessment(null);
+        setWeatherError(true);
+      } finally {
+        if (isMounted) {
+          setIsLoadingWeather(false);
+        }
+      }
+    };
+
+    void fetchWeather();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [nextUpcomingWalk]);
+
   return (
     <main className="main-content">
       <div className="container" style={{ paddingBottom: '3rem' }}>
@@ -200,6 +344,19 @@ export default function Dashboard({ user }: { user: User }) {
               <p>
                 Volunteers: {nextUpcomingWalk.volunteers.map((volunteer) => volunteer.name).join(', ')}
               </p>
+              {isLoadingWeather ? <p style={{ marginTop: '1rem' }}>Checking Singapore weather for this walk...</p> : null}
+              {weatherAssessment ? (
+                <div role="alert" aria-live="polite" style={weatherWarningStyle}>
+                  Forecast warning: {weatherAssessment.summary} expected near the walk start, with about{' '}
+                  {weatherAssessment.precipitationProbability}% chance of rain in Singapore. Bring rain gear and plan
+                  for wet conditions.
+                </div>
+              ) : null}
+              {weatherError ? (
+                <p style={{ marginTop: '1rem' }} className="text-error">
+                  Weather forecast is unavailable right now.
+                </p>
+              ) : null}
             </article>
           )}
         </section>
