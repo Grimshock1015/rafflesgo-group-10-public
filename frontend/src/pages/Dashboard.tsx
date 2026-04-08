@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { RafflesGoService, SightingsService } from '../api';
 
 type MySightingsDashboard = Awaited<ReturnType<typeof SightingsService.getMySightingsDashboard>>;
+type JoinedSurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalksForCurrentUser>>['surveyWalks'][number];
 
 const sectionStyle: CSSProperties = {
   background: 'var(--color-surface)',
@@ -36,6 +37,17 @@ function formatTimestamp(value?: string) {
     timeStyle: 'short',
   }).format(new Date(value));
 }
+
+function formatWalkDate(value: string) {
+  return new Intl.DateTimeFormat('en-SG', {
+    dateStyle: 'full',
+    timeZone: 'UTC',
+  }).format(new Date(value));
+}
+
+function getWalkStartDateTime(walk: JoinedSurveyWalk) {
+  return new Date(`${walk.date.split('T')[0]}T${walk.startTime}:00`);
+}
 import { getAllDrafts } from '../services/SightingDraftsService';
 
 export default function Dashboard({ user }: { user: User }) {
@@ -44,8 +56,11 @@ export default function Dashboard({ user }: { user: User }) {
   const [draftCount, setDraftCount] = useState(0);
   const [detailsError, setDetailsError] = useState(false);
   const [sightingsError, setSightingsError] = useState(false);
+  const [surveyWalksError, setSurveyWalksError] = useState(false);
   const [sightingsData, setSightingsData] = useState<MySightingsDashboard | null>(null);
+  const [joinedSurveyWalks, setJoinedSurveyWalks] = useState<JoinedSurveyWalk[]>([]);
   const [isLoadingSightings, setIsLoadingSightings] = useState(true);
+  const [isLoadingSurveyWalks, setIsLoadingSurveyWalks] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
@@ -53,11 +68,14 @@ export default function Dashboard({ user }: { user: User }) {
     const fetchDashboardData = async () => {
       setDetailsError(false);
       setSightingsError(false);
+      setSurveyWalksError(false);
       setIsLoadingSightings(true);
+      setIsLoadingSurveyWalks(true);
 
-      const [userResult, sightingsResult] = await Promise.allSettled([
+      const [userResult, sightingsResult, surveyWalksResult] = await Promise.allSettled([
         RafflesGoService.getCurrentUser(),
         SightingsService.getMySightingsDashboard(),
+        RafflesGoService.listSurveyWalksForCurrentUser(),
       ]);
 
       if (!isMounted) return;
@@ -77,7 +95,15 @@ export default function Dashboard({ user }: { user: User }) {
         setSightingsError(true);
       }
 
+      if (surveyWalksResult.status === 'fulfilled') {
+        setJoinedSurveyWalks(surveyWalksResult.value.surveyWalks);
+      } else {
+        console.error('Failed to fetch joined survey walks:', surveyWalksResult.reason);
+        setSurveyWalksError(true);
+      }
+
       setIsLoadingSightings(false);
+      setIsLoadingSurveyWalks(false);
     };
 
     fetchDashboardData();
@@ -111,6 +137,10 @@ export default function Dashboard({ user }: { user: User }) {
   const sightings = sightingsData?.sightings ?? [];
   const topSpecies = stats?.speciesBreakdown[0];
   const displayName = user.displayName || userEmail || 'Volunteer';
+  const now = new Date();
+  const nextUpcomingWalk = joinedSurveyWalks
+    .filter((walk) => !walk.isFinished && getWalkStartDateTime(walk) >= now)
+    .sort((a, b) => getWalkStartDateTime(a).getTime() - getWalkStartDateTime(b).getTime())[0];
 
   return (
     <main className="main-content">
@@ -146,6 +176,32 @@ export default function Dashboard({ user }: { user: User }) {
               </Link>
             ) : null}
           </div>
+        </section>
+
+        <section aria-labelledby="next-walk-heading" style={sectionStyle} className="next-walk-section">
+          <h2 id="next-walk-heading">Next Upcoming Walk</h2>
+
+          {isLoadingSurveyWalks ? (
+            <p>Loading your next walk...</p>
+          ) : surveyWalksError ? (
+            <p className="text-error">Could not load your upcoming survey walks right now.</p>
+          ) : !nextUpcomingWalk ? (
+            <p>You do not have any upcoming survey walks.</p>
+          ) : (
+            <article style={cardStyle} className="next-walk-card">
+              <h3 style={{ marginBottom: '0.5rem' }}>{nextUpcomingWalk.name}</h3>
+              <p>{formatWalkDate(nextUpcomingWalk.date)}</p>
+              <p>
+                {nextUpcomingWalk.startTime} to {nextUpcomingWalk.endTime}
+              </p>
+              <p>
+                Leader: {nextUpcomingWalk.leader.name}
+              </p>
+              <p>
+                Volunteers: {nextUpcomingWalk.volunteers.map((volunteer) => volunteer.name).join(', ')}
+              </p>
+            </article>
+          )}
         </section>
 
         <section aria-labelledby="activity-overview" style={sectionStyle}>

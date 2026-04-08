@@ -8,6 +8,9 @@ type ObservationDatePickerProps = {
   value: string;
   onChange: (value: string) => void;
   required?: boolean;
+  minDate?: string;
+  maxDate?: string;
+  disabled?: boolean;
 };
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -52,12 +55,19 @@ function getCalendarDays(month: Date): Array<Date | null> {
   return days;
 }
 
+function startOfMonth(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
 export function ObservationDatePicker({
   id,
   label,
   value,
   onChange,
   required = false,
+  minDate,
+  maxDate,
+  disabled = false,
 }: ObservationDatePickerProps) {
   const initialSelectedDate = parseDateString(value);
   const [isOpen, setIsOpen] = useState(false);
@@ -66,6 +76,8 @@ export function ObservationDatePicker({
     () => initialSelectedDate ?? new Date()
   );
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const minSelectableDate = parseDateString(minDate ?? "");
+  const maxSelectableDate = parseDateString(maxDate ?? "");
 
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
@@ -81,9 +93,43 @@ export function ObservationDatePicker({
   const selectedDate = parseDateString(value);
   const calendarDays = getCalendarDays(visibleMonth);
 
+  function isDateOutsideRange(date: Date) {
+    if (minSelectableDate && date < minSelectableDate) {
+      return true;
+    }
+
+    if (maxSelectableDate && date > maxSelectableDate) {
+      return true;
+    }
+
+    return false;
+  }
+
+  function getInitialVisibleMonth() {
+    if (selectedDate && !isDateOutsideRange(selectedDate)) {
+      return startOfMonth(selectedDate);
+    }
+
+    const today = startOfMonth(new Date());
+
+    if (minSelectableDate && today < startOfMonth(minSelectableDate)) {
+      return startOfMonth(minSelectableDate);
+    }
+
+    if (maxSelectableDate && today > startOfMonth(maxSelectableDate)) {
+      return startOfMonth(maxSelectableDate);
+    }
+
+    return today;
+  }
+
   function openPicker() {
+    if (disabled) {
+      return;
+    }
+
     setInputValue(value);
-    setVisibleMonth(selectedDate ?? new Date());
+    setVisibleMonth(getInitialVisibleMonth());
     setIsOpen(true);
   }
 
@@ -100,7 +146,8 @@ export function ObservationDatePicker({
       return;
     }
 
-    if (parseDateString(nextValue)) {
+    const parsedDate = parseDateString(nextValue);
+    if (parsedDate && !isDateOutsideRange(parsedDate)) {
       onChange(nextValue);
     }
   }
@@ -114,6 +161,10 @@ export function ObservationDatePicker({
   }
 
   function selectDate(date: Date) {
+    if (isDateOutsideRange(date)) {
+      return;
+    }
+
     const nextValue = toIsoDateString(date);
     commitValue(nextValue);
     setVisibleMonth(new Date(date.getFullYear(), date.getMonth(), 1));
@@ -136,6 +187,7 @@ export function ObservationDatePicker({
             placeholder="YYYY-MM-DD"
             required={required}
             onFocus={openPicker}
+            disabled={disabled}
             bg="var(--bg-card)"
             color="var(--text-primary)"
             borderColor="var(--border-color)"
@@ -145,6 +197,10 @@ export function ObservationDatePicker({
             variant="outline"
             aria-label="Open calendar"
             onClick={() => {
+              if (disabled) {
+                return;
+              }
+
               if (isOpen) {
                 setIsOpen(false);
                 return;
@@ -152,6 +208,7 @@ export function ObservationDatePicker({
 
               openPicker();
             }}
+            disabled={disabled}
             color="var(--text-primary)"
             borderColor="var(--border-color)"
             bg="var(--bg-card)"
@@ -181,6 +238,11 @@ export function ObservationDatePicker({
                 variant="ghost"
                 size="sm"
                 color="var(--text-primary)"
+                disabled={
+                  minSelectableDate
+                    ? visibleMonth <= startOfMonth(minSelectableDate)
+                    : false
+                }
                 onClick={() =>
                   setVisibleMonth(
                     new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() - 1, 1)
@@ -200,6 +262,11 @@ export function ObservationDatePicker({
                 variant="ghost"
                 size="sm"
                 color="var(--text-primary)"
+                disabled={
+                  maxSelectableDate
+                    ? visibleMonth >= startOfMonth(maxSelectableDate)
+                    : false
+                }
                 onClick={() =>
                   setVisibleMonth(
                     new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 1)
@@ -232,6 +299,7 @@ export function ObservationDatePicker({
                     type="button"
                     size="sm"
                     variant="ghost"
+                    disabled={isDateOutsideRange(day)}
                     bg={
                       selectedDate && toIsoDateString(day) === toIsoDateString(selectedDate)
                         ? "var(--primary-green)"
@@ -247,6 +315,10 @@ export function ObservationDatePicker({
                         selectedDate && toIsoDateString(day) === toIsoDateString(selectedDate)
                           ? "var(--secondary-green)"
                           : "var(--bg-hover)",
+                    }}
+                    _disabled={{
+                      opacity: 0.35,
+                      cursor: "not-allowed",
                     }}
                     onClick={() => selectDate(day)}
                   >
