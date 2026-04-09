@@ -173,6 +173,9 @@ function SurveyWalkSightingsButton({ surveyWalk }: { surveyWalk: SurveyWalk }) {
     const detailBg = effectiveTheme === "dark" ? "whiteAlpha.100" : "white";
     const emphasisBg = effectiveTheme === "dark" ? "rgba(56, 161, 105, 0.18)" : "green.50";
     const emphasisTextColor = effectiveTheme === "dark" ? "green.100" : "green.800";
+    const statBg = effectiveTheme === "dark" ? "rgba(255, 255, 255, 0.04)" : "white";
+    const statBorder = effectiveTheme === "dark" ? "rgba(255, 255, 255, 0.08)" : "gray.200";
+    const statValueColor = effectiveTheme === "dark" ? "white" : "gray.900";
 
     const stats = useMemo(() => buildAdminSightingStats(sightings), [sightings]);
     const topSpecies = stats.speciesBreakdown[0];
@@ -285,45 +288,40 @@ function SurveyWalkSightingsButton({ surveyWalk }: { surveyWalk: SurveyWalk }) {
                                 <Text>Loading sightings...</Text>
                             ) : (
                                 <Stack gap={5}>
-                                    <Grid templateColumns="repeat(auto-fit, minmax(160px, 1fr))" gap={3}>
-                                        <Card.Root bg={mutedCardBg} borderWidth="1px" borderColor={dialogBorder}>
-                                            <Card.Body>
-                                                <Text color={subtleTextColor}>Submissions</Text>
-                                                <Text fontSize="2xl" fontWeight="bold">{stats.totalSubmissions}</Text>
-                                            </Card.Body>
-                                        </Card.Root>
-                                        <Card.Root bg={mutedCardBg} borderWidth="1px" borderColor={dialogBorder}>
-                                            <Card.Body>
-                                                <Text color={subtleTextColor}>Confirmed sightings</Text>
-                                                <Text fontSize="2xl" fontWeight="bold">{stats.sightedCount}</Text>
-                                            </Card.Body>
-                                        </Card.Root>
-                                        <Card.Root bg={mutedCardBg} borderWidth="1px" borderColor={dialogBorder}>
-                                            <Card.Body>
-                                                <Text color={subtleTextColor}>Zero-sighting walks</Text>
-                                                <Text fontSize="2xl" fontWeight="bold">{stats.notSightedCount}</Text>
-                                            </Card.Body>
-                                        </Card.Root>
-                                        <Card.Root bg={mutedCardBg} borderWidth="1px" borderColor={dialogBorder}>
-                                            <Card.Body>
-                                                <Text color={subtleTextColor}>Adults counted</Text>
-                                                <Text fontSize="2xl" fontWeight="bold">{stats.totalAdults}</Text>
-                                            </Card.Body>
-                                        </Card.Root>
-                                        <Card.Root bg={mutedCardBg} borderWidth="1px" borderColor={dialogBorder}>
-                                            <Card.Body>
-                                                <Text color={subtleTextColor}>Juveniles counted</Text>
-                                                <Text fontSize="2xl" fontWeight="bold">{stats.totalJuveniles}</Text>
-                                            </Card.Body>
-                                        </Card.Root>
-                                        <Card.Root bg={mutedCardBg} borderWidth="1px" borderColor={dialogBorder}>
-                                            <Card.Body>
-                                                <Text color={subtleTextColor}>Most logged species</Text>
-                                                <Text fontWeight="semibold">{topSpecies ? `${topSpecies.species} (${topSpecies.count})` : "No species recorded yet"}</Text>
-                                                <Text color={subtleTextColor} fontSize="sm">Latest: {formatTimestamp(stats.latestSubmissionAt)}</Text>
-                                            </Card.Body>
-                                        </Card.Root>
-                                    </Grid>
+                                    <Box>
+                                        <Text color={subtleTextColor} mb={2}>Walk summary</Text>
+                                        <Grid templateColumns="repeat(auto-fit, minmax(120px, 1fr))" gap={2}>
+                                            <Box bg={statBg} border="1px solid" borderColor={statBorder} borderRadius="md" px={3} py={2}>
+                                                <Text color={subtleTextColor} fontSize="xs" textTransform="uppercase" letterSpacing="0.04em">Submissions</Text>
+                                                <Text color={statValueColor} fontSize="lg" fontWeight="bold" lineHeight="1.2">{stats.totalSubmissions}</Text>
+                                            </Box>
+                                            <Box bg={statBg} border="1px solid" borderColor={statBorder} borderRadius="md" px={3} py={2}>
+                                                <Text color={subtleTextColor} fontSize="xs" textTransform="uppercase" letterSpacing="0.04em">Sighted</Text>
+                                                <Text color={statValueColor} fontSize="lg" fontWeight="bold" lineHeight="1.2">{stats.sightedCount}</Text>
+                                            </Box>
+                                            <Box bg={statBg} border="1px solid" borderColor={statBorder} borderRadius="md" px={3} py={2}>
+                                                <Text color={subtleTextColor} fontSize="xs" textTransform="uppercase" letterSpacing="0.04em">Not sighted</Text>
+                                                <Text color={statValueColor} fontSize="lg" fontWeight="bold" lineHeight="1.2">{stats.notSightedCount}</Text>
+                                            </Box>
+                                            <Box bg={statBg} border="1px solid" borderColor={statBorder} borderRadius="md" px={3} py={2}>
+                                                <Text color={subtleTextColor} fontSize="xs" textTransform="uppercase" letterSpacing="0.04em">Adults</Text>
+                                                <Text color={statValueColor} fontSize="lg" fontWeight="bold" lineHeight="1.2">{stats.totalAdults}</Text>
+                                            </Box>
+                                            <Box bg={statBg} border="1px solid" borderColor={statBorder} borderRadius="md" px={3} py={2}>
+                                                <Text color={subtleTextColor} fontSize="xs" textTransform="uppercase" letterSpacing="0.04em">Juveniles</Text>
+                                                <Text color={statValueColor} fontSize="lg" fontWeight="bold" lineHeight="1.2">{stats.totalJuveniles}</Text>
+                                            </Box>
+                                            <Box bg={statBg} border="1px solid" borderColor={statBorder} borderRadius="md" px={3} py={2} minW="0">
+                                                <Text color={subtleTextColor} fontSize="xs" textTransform="uppercase" letterSpacing="0.04em">Top species</Text>
+                                                <Text color={statValueColor} fontSize="sm" fontWeight="semibold" lineHeight="1.3" truncate>
+                                                    {topSpecies ? `${topSpecies.species} (${topSpecies.count})` : "None"}
+                                                </Text>
+                                            </Box>
+                                        </Grid>
+                                        <Text color={subtleTextColor} fontSize="sm" mt={2}>
+                                            Latest submission: {formatTimestamp(stats.latestSubmissionAt)}
+                                        </Text>
+                                    </Box>
 
                                     {sightings.length === 0 ? (
                                         <Text>No sightings have been submitted for this survey walk yet.</Text>
@@ -333,8 +331,8 @@ function SurveyWalkSightingsButton({ surveyWalk }: { surveyWalk: SurveyWalk }) {
                                                 return (
                                                     <Collapsible.Root key={sighting.id}>
                                                         <Card.Root bg={mutedCardBg} borderWidth="1px" borderColor={dialogBorder}>
-                                                            <Card.Body>
-                                                                <Box display="flex" justifyContent="space-between" gap={4} flexWrap="wrap" alignItems="start">
+                                                            <Card.Body p={5}>
+                                                                <Box display="flex" justifyContent="space-between" gap={5} flexWrap="wrap" alignItems="start">
                                                                     <Box flex="1" minW="240px">
                                                                         <Text fontSize="lg" fontWeight="semibold">
                                                                             {sighting.result === "sighted" ? (sighting.species || "Sighting recorded") : "Zero-sighting walk"}
@@ -350,7 +348,7 @@ function SurveyWalkSightingsButton({ surveyWalk }: { surveyWalk: SurveyWalk }) {
                                                                     </Box>
                                                                 </Box>
 
-                                                                <Box display="flex" gap={2} flexWrap="wrap" mt={4}>
+                                                                <Box display="flex" gap={2} flexWrap="wrap" mt={5}>
                                                                     <Box px={3} py={1.5} borderRadius="full" bg={sighting.result === "sighted" ? emphasisBg : chipBg} color={sighting.result === "sighted" ? emphasisTextColor : chipTextColor} fontSize="sm" fontWeight="medium">
                                                                         {sighting.result === "sighted" ? "Sighted" : "Not sighted"}
                                                                     </Box>
