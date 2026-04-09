@@ -1,6 +1,8 @@
 import { FastifyPluginAsyncTypebox } from "@fastify/type-provider-typebox";
 import { requireAdminEmail, verifyToken } from "../middleware/auth.middleware";
 import {
+    CompleteSurveyWalkBodySchema,
+    CompleteSurveyWalkResponseSchema,
     CreateSurveyWalkBodySchema,
     DeleteSurveyWalkResponseSchema,
     JoinQuitSurveyWalkResponseSchema,
@@ -13,6 +15,7 @@ import {
     surveyWalkSchema,
 } from "../schemas/surveyWalk.schema";
 import {
+    completeSurveyWalkHandler,
     createSurveyWalkHandler,
     deleteSurveyWalkHandler,
     getSurveyWalkHandler,
@@ -166,4 +169,19 @@ export const surveyWalkRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
             },
         },
     }, reassignSurveyWalkLeaderHandler);
+
+    fastify.post('/api/surveyWalks/:uid/complete', {
+        preHandler: [verifyToken],
+        schema: {
+            operationId: 'completeSurveyWalk',
+            description: 'Mark a survey walk complete and record attendance',
+            tags: ['RafflesGo'],
+            security: [{ bearerAuth: [] }],
+            params: SurveyWalkParamsSchema,
+            body: CompleteSurveyWalkBodySchema,
+            response: {
+                200: CompleteSurveyWalkResponseSchema,
+            },
+        },
+    }, completeSurveyWalkHandler);
 };

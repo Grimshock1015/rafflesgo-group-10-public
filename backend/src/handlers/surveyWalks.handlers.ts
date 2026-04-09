@@ -3,6 +3,8 @@ import { SurveyWalkEntity } from "../entities/surveyWalk.entity";
 import { BadRequestError } from "../lib/errors";
 import { auth } from "../lib/firebase-admin";
 import {
+    CompleteSurveyWalkBodySchema,
+    CompleteSurveyWalkResponseSchema,
     CreateSurveyWalkBodySchema,
     DeleteSurveyWalkResponseSchema,
     JoinQuitSurveyWalkResponseSchema,
@@ -73,12 +75,24 @@ const ReassignLeaderSchema = {
     },
 };
 
+const CompleteSurveyWalkSchema = {
+    params: SurveyWalkParamsSchema,
+    body: CompleteSurveyWalkBodySchema,
+    response: {
+        200: CompleteSurveyWalkResponseSchema,
+    },
+};
+
 type UserSummary = {
     uid: string;
     name: string;
+    photoURL?: string;
 };
 
 function toDto(surveyWalk: SurveyWalkEntity, surveyPeriodName: string, volunteersData: UserSummary[], leaderData?: UserSummary) {
+    const attendees = volunteersData.filter((volunteer) => surveyWalk.attendeeUids.includes(volunteer.uid));
+    const noShows = volunteersData.filter((volunteer) => !surveyWalk.attendeeUids.includes(volunteer.uid));
+
     return {
         uid: surveyWalk.uid,
         surveyPeriodUid: surveyWalk.surveyPeriodUid,
@@ -89,8 +103,12 @@ function toDto(surveyWalk: SurveyWalkEntity, surveyPeriodName: string, volunteer
         endTime: surveyWalk.endTime,
         capacity: surveyWalk.capacity,
         isFinished: surveyWalk.isFinished,
+        completedAt: surveyWalk.completedAt ? surveyWalk.completedAt.toISOString() : null,
         volunteerUids: surveyWalk.volunteerUids,
+        attendeeUids: surveyWalk.attendeeUids,
         volunteers: volunteersData,
+        attendees,
+        noShows,
         leader: leaderData || { uid: "", name: "" },
     };
 }
@@ -103,14 +121,18 @@ function parseDateString(value: string): Date {
     return parsed;
 }
 
-async function getUserDisplayName(uid: string): Promise<string | undefined> {
+async function getUserSummary(uid: string): Promise<UserSummary | undefined> {
     if (!uid) {
         return undefined;
     }
 
     try {
         const user = await auth.getUser(uid);
-        return user.displayName || user.email || undefined;
+        return {
+            uid,
+            name: user.displayName || user.email || "",
+            photoURL: user.photoURL || undefined,
+        };
     } catch {
         return undefined;
     }
@@ -118,10 +140,10 @@ async function getUserDisplayName(uid: string): Promise<string | undefined> {
 
 async function getVolunteersData(volunteerUids: string[]): Promise<UserSummary[]> {
     const volunteersData = await Promise.all(
-        volunteerUids.map(async (uid) => ({
+        volunteerUids.map(async (uid) => (await getUserSummary(uid)) || {
             uid,
-            name: (await getUserDisplayName(uid)) || "",
-        }))
+            name: "",
+        })
     );
     return volunteersData;
 }
@@ -130,9 +152,9 @@ async function getLeaderData(leaderUid: string): Promise<UserSummary | undefined
     if (!leaderUid) {
         return undefined;
     }
-    return {
+    return (await getUserSummary(leaderUid)) || {
         uid: leaderUid,
-        name: (await getUserDisplayName(leaderUid)) || "",
+        name: "",
     };
 }
 
@@ -231,6 +253,8 @@ export async function createSurveyWalkHandler(
         capacity: request.body.capacity,
         isFinished: request.body.isFinished ?? false,
         volunteerUids: [],
+        attendeeUids: [],
+        completedAt: null,
         leader: request.body.leader ?? '',
     });
 
@@ -317,6 +341,27 @@ export async function reassignSurveyWalkLeaderHandler(
         request.body.newLeaderUid,
     );
 
+    const periodName = await getSurveyPeriodName(surveyWalk.surveyPeriodUid);
+    const volunteersData = await getVolunteersData(surveyWalk.volunteerUids);
+    const leaderData = await getLeaderData(surveyWalk.leader);
+    return { success: true, surveyWalk: toDto(surveyWalk, periodName, volunteersData, leaderData) };
+}
+
+export async function completeSurveyWalkHandler(
+    request: FastifyRequestTypeBox<typeof CompleteSurveyWalkSchema>,
+    _reply: FastifyReplyTypeBox<typeof CompleteSurveyWalkSchema>
+) {
+    if (!request.user) {
+        throw new Error('User not found in request');
+    }
+
+    const { surveyWalkService } = getContainer();
+    const surveyWalk = await surveyWalkService.completeSurveyWalk(
+        request.params.uid,
+        request.user.uid,
+        request.body.attendeeUids,
+        request.user.role === 'admin',
+    );
     const periodName = await getSurveyPeriodName(surveyWalk.surveyPeriodUid);
     const volunteersData = await getVolunteersData(surveyWalk.volunteerUids);
     const leaderData = await getLeaderData(surveyWalk.leader);

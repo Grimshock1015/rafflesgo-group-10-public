@@ -8,5 +8,7 @@ export interface SurveyWalkEntity {
     capacity: number;
     isFinished: boolean;
     volunteerUids: string[];
+    attendeeUids: string[];
+    completedAt: Date | null;
     leader: string;
 }

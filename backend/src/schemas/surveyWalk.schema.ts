@@ -3,11 +3,13 @@ import { Type, Static } from '@sinclair/typebox';
 const volunteerSchema = Type.Object({
     uid: Type.String(),
     name: Type.String(),
+    photoURL: Type.Optional(Type.String()),
 });
 
 const leaderSchema = Type.Object({
     uid: Type.String(),
     name: Type.String(),
+    photoURL: Type.Optional(Type.String()),
 });
 
 export const surveyWalkSchema = Type.Object({
@@ -20,7 +22,12 @@ export const surveyWalkSchema = Type.Object({
     endTime: Type.String({ pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]$' }),
     capacity: Type.Integer({ minimum: 1 }),
     isFinished: Type.Boolean(),
+    completedAt: Type.Union([Type.String({ format: 'date-time' }), Type.Null()]),
+    volunteerUids: Type.Array(Type.String()),
+    attendeeUids: Type.Array(Type.String()),
     volunteers: Type.Array(volunteerSchema),
+    attendees: Type.Array(volunteerSchema),
+    noShows: Type.Array(volunteerSchema),
     leader: leaderSchema
 });
 
@@ -63,7 +70,16 @@ export const ReassignLeaderBodySchema = Type.Object({
     newLeaderUid: Type.String({ minLength: 1 }),
 });
 
+export const CompleteSurveyWalkBodySchema = Type.Object({
+    attendeeUids: Type.Array(Type.String()),
+});
+
 export const ReassignLeaderResponseSchema = Type.Object({
+    success: Type.Boolean(),
+    surveyWalk: surveyWalkSchema,
+});
+
+export const CompleteSurveyWalkResponseSchema = Type.Object({
     success: Type.Boolean(),
     surveyWalk: surveyWalkSchema,
 });
@@ -78,3 +94,5 @@ export type DeleteSurveyWalkResponse = Static<typeof DeleteSurveyWalkResponseSch
 export type JoinQuitSurveyWalkResponse = Static<typeof JoinQuitSurveyWalkResponseSchema>;
 export type ReassignLeaderBody = Static<typeof ReassignLeaderBodySchema>;
 export type ReassignLeaderResponse = Static<typeof ReassignLeaderResponseSchema>;
+export type CompleteSurveyWalkBody = Static<typeof CompleteSurveyWalkBodySchema>;
+export type CompleteSurveyWalkResponse = Static<typeof CompleteSurveyWalkResponseSchema>;

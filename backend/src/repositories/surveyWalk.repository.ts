@@ -92,6 +92,8 @@ export class SurveyWalkRepository {
             capacity: Number(data.capacity ?? 0),
             isFinished: Boolean(data.isFinished),
             volunteerUids: Array.isArray(data.volunteerUids) ? data.volunteerUids.map((volunteerUid) => String(volunteerUid)) : [],
+            attendeeUids: Array.isArray(data.attendeeUids) ? data.attendeeUids.map((attendeeUid) => String(attendeeUid)) : [],
+            completedAt: data.completedAt ? this.toDate(data.completedAt) : null,
             leader: String(data.leader ?? ''),
         };
     }
