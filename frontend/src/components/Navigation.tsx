@@ -22,6 +22,11 @@ export function Navigation({ user }: NavigationProps) {
   const brandGreen = 'var(--primary-green)'
   const tabLineColor = effectiveTheme === 'dark' ? 'var(--light-green)' : 'var(--primary-green)'
   const tabLineWidth = effectiveTheme === 'dark' ? '4px' : '3px'
+  const tabBorderBottomWidth = { base: '0px', md: tabLineWidth }
+  const selectedTabStyles = {
+    color: brandGreen,
+    borderBottomColor: { base: 'transparent', md: tabLineColor },
+  }
 
   const activeTab = (() => {
     if (location.pathname.startsWith('/submit-sighting')) return 'submit-sighting'
@@ -127,17 +132,18 @@ export function Navigation({ user }: NavigationProps) {
 
         <div className={`nav-menu-wrapper ${isMobileMenuOpen ? 'open' : ''}`}>
           <Tabs.Root value={activeTab} className="nav-menu">
-            <Tabs.List gap={5}>
+            <Tabs.List gap={5} className="nav-menu-list">
 
               <Tabs.Trigger
                 value="dashboard"
+                className="nav-link"
                 data-nav-link
                 color={tabText}
-                borderBottomWidth={tabLineWidth}
+                borderBottomWidth={tabBorderBottomWidth}
                 borderBottomStyle="solid"
                 borderBottomColor="transparent"
                 _hover={{ color: brandGreen }}
-                _selected={{ color: brandGreen, borderBottomColor: tabLineColor }}
+                _selected={selectedTabStyles}
                 onClick={() => { closeMobileMenu(); navigate('/dashboard'); }}
               >
                 Dashboard
@@ -146,13 +152,14 @@ export function Navigation({ user }: NavigationProps) {
               {role === 'admin' && (
                 <Tabs.Trigger
                   value="admin"
+                  className="nav-link"
                   data-nav-link
                   color={tabText}
-                  borderBottomWidth={tabLineWidth}
+                  borderBottomWidth={tabBorderBottomWidth}
                   borderBottomStyle="solid"
                   borderBottomColor="transparent"
                   _hover={{ color: brandGreen }}
-                  _selected={{ color: brandGreen, borderBottomColor: tabLineColor }}
+                  _selected={selectedTabStyles}
                   onClick={() => { closeMobileMenu(); navigate('/admin'); }}
                 >
                   Admin Dashboard
@@ -161,13 +168,14 @@ export function Navigation({ user }: NavigationProps) {
 
               <Tabs.Trigger
                 value="survey-walks"
+                className="nav-link"
                 data-nav-link
                 color={tabText}
-                borderBottomWidth={tabLineWidth}
+                borderBottomWidth={tabBorderBottomWidth}
                 borderBottomStyle="solid"
                 borderBottomColor="transparent"
                 _hover={{ color: brandGreen }}
-                _selected={{ color: brandGreen, borderBottomColor: tabLineColor }}
+                _selected={selectedTabStyles}
                 onClick={() => { closeMobileMenu(); navigate('/survey-walks'); }}
               >
                 Survey Walks
@@ -175,13 +183,14 @@ export function Navigation({ user }: NavigationProps) {
 
               <Tabs.Trigger
                 value="submit-sighting"
+                className="nav-link"
                 data-nav-link
                 color={tabText}
-                borderBottomWidth={tabLineWidth}
+                borderBottomWidth={tabBorderBottomWidth}
                 borderBottomStyle="solid"
                 borderBottomColor="transparent"
                 _hover={{ color: brandGreen }}
-                _selected={{ color: brandGreen, borderBottomColor: tabLineColor }}
+                _selected={selectedTabStyles}
                 onClick={() => { closeMobileMenu(); navigate('/submit-sighting'); }}
               >
                 Submit Sighting
