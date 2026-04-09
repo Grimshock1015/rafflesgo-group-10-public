@@ -68,13 +68,6 @@ type DeleteSurveyWalkButtonProps = {
     onDeleted: () => Promise<void>;
 };
 
-function getWalkEndDateTime(surveyWalk: SurveyWalk) {
-    const walkDate = new Date(surveyWalk.date);
-    const [hours, minutes] = surveyWalk.endTime.split(":").map(Number);
-    walkDate.setUTCHours(hours, minutes, 0, 0);
-    return walkDate;
-}
-
 function DeleteSurveyWalkButton({ surveyWalkId, onDeleted }: DeleteSurveyWalkButtonProps) {
     const [open, setOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -155,7 +148,6 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
     const hasJoined = sw.volunteers.some((v) => v.uid === user.uid);
     const isFull = sw.volunteers.length >= sw.capacity;
     const isLeader = sw.leader.uid === user.uid;
-    const hasHappened = getWalkEndDateTime(sw).getTime() <= Date.now();
     const { effectiveTheme } = useTheme();
     const selectBg = effectiveTheme === "dark" ? "gray.800" : "white";
     const selectBorder = effectiveTheme === "dark" ? "gray.600" : "gray.200";
@@ -327,11 +319,12 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
     function MarkCompleteButton({ surveyWalk }: { surveyWalk: SurveyWalk }) {
         const [open, setOpen] = useState(false);
         const [isSubmitting, setIsSubmitting] = useState(false);
-        const [selectedAttendeeUids, setSelectedAttendeeUids] = useState<string[]>(surveyWalk.attendeeUids);
+        const initialAttendeeUids = surveyWalk.attendeeUids ?? [];
+        const [selectedAttendeeUids, setSelectedAttendeeUids] = useState<string[]>(initialAttendeeUids);
 
         useEffect(() => {
             if (open) {
-                setSelectedAttendeeUids(surveyWalk.attendeeUids);
+                setSelectedAttendeeUids(surveyWalk.attendeeUids ?? []);
             }
         }, [open, surveyWalk.attendeeUids]);
 
@@ -579,7 +572,7 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                     >
                         {hasJoined ? <><MdGroupRemove /> Quit</> : <><MdGroupAdd /> Join</>}
                     </Button>
-                    {isLeader && !sw.isFinished && hasHappened && (
+                    {isLeader && !sw.isFinished && (
                         <MarkCompleteButton surveyWalk={sw} />
                     )}
                     {isLeader && (

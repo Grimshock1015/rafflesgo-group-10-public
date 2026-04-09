@@ -15,6 +15,7 @@ vi.mock('@/api', () => ({
         joinSurveyWalk: vi.fn(),
         quitSurveyWalk: vi.fn(),
         reassignSurveyWalkLeader: vi.fn(),
+        completeSurveyWalk: vi.fn(),
     },
 }));
 
@@ -145,5 +146,40 @@ describe('SurveyWalkGrid', () => {
 
         expect(screen.getAllByAltText('Alex Tan profile')).toHaveLength(2);
         expect(screen.getByLabelText('Bea Lim fallback avatar')).toBeInTheDocument();
+    });
+
+    it('shows mark complete for the leader even when the walk is in the future', async () => {
+        vi.mocked(RafflesGoService.listSurveyWalksForCurrentUser).mockResolvedValue({
+            surveyWalks: [
+                {
+                    uid: 'walk-1',
+                    surveyPeriodUid: 'period-1',
+                    surveyPeriodName: 'Spring 2026',
+                    name: 'Morning Walk',
+                    date: '2026-04-10T00:00:00.000Z',
+                    startTime: '08:00',
+                    endTime: '10:00',
+                    capacity: 4,
+                    isFinished: false,
+                    volunteerUids: ['user-1'],
+                    attendeeUids: [],
+                    completedAt: null,
+                    volunteers: [{ uid: 'user-1', name: 'Alex Tan' }],
+                    attendees: [],
+                    noShows: [],
+                    leader: { uid: 'user-1', name: 'Alex Tan' },
+                },
+            ],
+        } as never);
+
+        render(<SurveyWalkGrid user={mockUser as User} />);
+
+        await waitFor(() => {
+            expect(screen.getByText('Morning Walk')).toBeInTheDocument();
+        });
+
+        expect(
+            screen.getByRole('button', { name: /mark complete/i }),
+        ).toBeInTheDocument();
     });
 });
