@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Link, Navigate } from 'react-router-dom';
-import { RafflesGoService, SightingsService } from '../api';
+import { RafflesGoService } from '../api';
 import { listAllAdminSightings } from '../lib/adminSightings';
 import { exportAdminDataToGoogleSheets } from '../utils/googleSheetsExport';
 
@@ -58,7 +58,6 @@ export default function AdminDashboard() {
   const [sightings, setSightings] = useState<AdminSighting[]>([]);
   const [surveyWalks, setSurveyWalks] = useState<AdminSurveyWalk[]>([]);
   const [busyUserId, setBusyUserId] = useState<string | null>(null);
-  const [busySightingId, setBusySightingId] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
   const loadAdminData = async () => {
@@ -143,22 +142,6 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleDeleteSighting = async (id: string) => {
-    const confirmed = window.confirm('Delete this sighting permanently?');
-    if (!confirmed) return;
-
-    try {
-      setBusySightingId(id);
-      await SightingsService.deleteSighting(id);
-      await loadAdminData();
-    } catch (deleteError) {
-      console.error('Failed to delete sighting:', deleteError);
-      setError('Unable to delete sighting.');
-    } finally {
-      setBusySightingId(null);
-    }
-  };
-
   const handleExportGoogleSheets = async () => {
     try {
       setError(null);
@@ -204,7 +187,7 @@ export default function AdminDashboard() {
       <div className="container" style={{ paddingBottom: '3rem' }}>
         <header className="welcome-header">
           <h1>Admin Dashboard</h1>
-          <p>Manage volunteers, control account access, and moderate submitted sightings.</p>
+          <p>Manage volunteers, control account access, and review platform activity.</p>
         </header>
 
         <section style={sectionStyle}>
@@ -351,59 +334,6 @@ export default function AdminDashboard() {
           )}
         </section>
 
-        <section style={sectionStyle}>
-          <h2>Sighting Moderation</h2>
-          <p>Review recent submissions across all volunteers and remove invalid records.</p>
-          {isLoading ? (
-            <p>Loading sightings...</p>
-          ) : sightings.length === 0 ? (
-            <p>No sightings found.</p>
-          ) : (
-            <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
-              {sightings.map((sighting) => (
-                <article key={sighting.id} style={cardStyle}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-                    <div>
-                      <h3 style={{ marginBottom: '0.35rem' }}>
-                        {sighting.result === 'sighted' ? (sighting.species || 'Sighted submission') : 'Zero-sighting walk'}
-                      </h3>
-                      <p>{sighting.location}</p>
-                      <p>Submitted by: {sighting.submittedBy}</p>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <p>{sighting.date} at {sighting.time}</p>
-                      <p>{formatDate(sighting.createdAt)}</p>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-                    <span>Result: {sighting.result === 'sighted' ? 'Sighted' : 'Not sighted'}</span>
-                    {typeof sighting.adults === 'number' ? <span>Adults: {sighting.adults}</span> : null}
-                    {typeof sighting.juveniles === 'number' ? <span>Juveniles: {sighting.juveniles}</span> : null}
-                    {sighting.behaviour ? <span>Behaviour: {sighting.behaviour}</span> : null}
-                  </div>
-
-                  {sighting.notes ? (
-                    <p style={{ marginTop: '0.75rem' }}>
-                      <strong>Notes:</strong> {sighting.notes}
-                    </p>
-                  ) : null}
-
-                  <div style={{ marginTop: '1rem' }}>
-                    <button
-                      className="btn btn-secondary"
-                      type="button"
-                      onClick={() => handleDeleteSighting(sighting.id)}
-                      disabled={busySightingId === sighting.id}
-                    >
-                      Delete Sighting
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
-        </section>
       </div>
     </main>
   );
