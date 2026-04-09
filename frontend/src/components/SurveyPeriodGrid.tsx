@@ -93,6 +93,7 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
     const [activeSelectionUid, setActiveSelectionUid] = useState<string[]>([]);
     const [role, setRole] = useState<string>("user");
     const { effectiveTheme } = useTheme();
+    
     const selectItemBg = effectiveTheme === "dark" ? "gray.800" : "white";
     const selectBorder = effectiveTheme === "dark" ? "gray.600" : "gray.200";
     const selectText = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
@@ -106,6 +107,9 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
     const outlineButtonColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.700";
     const outlineButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.500" : "gray.300";
     const outlineButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.200" : "gray.100";
+    const confirmButtonColor = effectiveTheme === "dark" ? "green.600" : "green.600";
+    // const confirmButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.300";
+    const confirmButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.100" : "gray.100";
 
     const navigate = useNavigate();
 
@@ -202,7 +206,7 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                         <Select.HiddenSelect />
                         <Select.Label mb={0}>Select active survey period:</Select.Label>
                         <Select.Control>
-                            <Select.Trigger px={3} py={2} bg={selectItemBg} borderColor={selectBorder} color={selectText}>
+                            <Select.Trigger px={3} py={2} bg={"transparent"} borderColor={selectBorder} color={selectText}>
                                 <Select.ValueText placeholder="Select active survey period" px={1} color={activeSelectionUid[0] ? selectText : selectPlaceholder}/>
                             </Select.Trigger>
                             <Select.IndicatorGroup pr={2}>
@@ -224,7 +228,11 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                         aria-label="Set active survey period"
                         variant="outline"
                         size="sm"
-                        color="green"
+                        color={confirmButtonColor}
+                        borderColor={selectBorder}
+                        bg="transparent"
+                        _hover={{ bg: confirmButtonHoverBg }}
+                        _active={{ bg: confirmButtonHoverBg }}
                         onClick={() => {
                             const selectedUid = activeSelectionUid[0];
                             if (!selectedUid) return;
