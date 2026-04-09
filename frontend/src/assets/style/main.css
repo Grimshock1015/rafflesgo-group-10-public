@@ -385,7 +385,7 @@ a:hover {
     padding: 0;
     background-color: var(--bg-secondary);
     border-radius: var(--radius-lg);
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(45, 90, 39, 0.16);
     overflow: hidden;
     transition: all var(--transition-fast);
 }
@@ -401,7 +401,7 @@ a:hover {
     min-width: 0;
     padding: var(--spacing-sm) var(--spacing-md);
     font-size: var(--font-size-sm);
-    color: var(--text-primary);
+    /* font-weight: 600; */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -410,7 +410,6 @@ a:hover {
 
 .user-menu-logout {
     align-self: stretch;
-    border-left: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 0;
     min-height: 100%;
     padding-inline: var(--spacing-md);
@@ -1508,7 +1507,6 @@ input:checked + .slider:before {
     
     .user-menu.mobile-user-menu .user-menu-label {
         flex: 1;
-        color: var(--text-secondary);
         padding: var(--spacing-sm) var(--spacing-md);
     }
     

@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { signOut } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import type { User } from 'firebase/auth'
-import { Button, Tabs } from '@chakra-ui/react'
+import { Box, Button, Tabs } from '@chakra-ui/react'
 import { RafflesGoService } from '../api'
 import { useTheme } from '../contexts/ThemeContext'
 
@@ -19,7 +19,9 @@ export function Navigation({ user }: NavigationProps) {
   const { effectiveTheme } = useTheme()
 
   const tabText = effectiveTheme === 'dark' ? 'whiteAlpha.900' : 'gray.700'
-  const tabSelectedText = effectiveTheme === 'dark' ? 'green.500' : 'green.700'
+  const brandGreen = 'var(--primary-green)'
+  const tabLineColor = effectiveTheme === 'dark' ? 'var(--light-green)' : 'var(--primary-green)'
+  const tabLineWidth = effectiveTheme === 'dark' ? '4px' : '3px'
 
   const activeTab = (() => {
     if (location.pathname.startsWith('/submit-sighting')) return 'submit-sighting'
@@ -124,15 +126,18 @@ export function Navigation({ user }: NavigationProps) {
         </button>
 
         <div className={`nav-menu-wrapper ${isMobileMenuOpen ? 'open' : ''}`}>
-          <Tabs.Root value={activeTab} className="nav-menu" colorPalette="green">
+          <Tabs.Root value={activeTab} className="nav-menu">
             <Tabs.List gap={5}>
 
               <Tabs.Trigger
                 value="dashboard"
                 data-nav-link
                 color={tabText}
-                _hover={{ color: tabSelectedText }}
-                _selected={{ color: tabSelectedText }}
+                borderBottomWidth={tabLineWidth}
+                borderBottomStyle="solid"
+                borderBottomColor="transparent"
+                _hover={{ color: brandGreen }}
+                _selected={{ color: brandGreen, borderBottomColor: tabLineColor }}
                 onClick={() => { closeMobileMenu(); navigate('/dashboard'); }}
               >
                 Dashboard
@@ -143,8 +148,11 @@ export function Navigation({ user }: NavigationProps) {
                   value="admin"
                   data-nav-link
                   color={tabText}
-                  _hover={{ color: tabSelectedText }}
-                  _selected={{ color: tabSelectedText }}
+                  borderBottomWidth={tabLineWidth}
+                  borderBottomStyle="solid"
+                  borderBottomColor="transparent"
+                  _hover={{ color: brandGreen }}
+                  _selected={{ color: brandGreen, borderBottomColor: tabLineColor }}
                   onClick={() => { closeMobileMenu(); navigate('/admin'); }}
                 >
                   Admin Dashboard
@@ -155,8 +163,11 @@ export function Navigation({ user }: NavigationProps) {
                 value="survey-walks"
                 data-nav-link
                 color={tabText}
-                _hover={{ color: tabSelectedText }}
-                _selected={{ color: tabSelectedText }}
+                borderBottomWidth={tabLineWidth}
+                borderBottomStyle="solid"
+                borderBottomColor="transparent"
+                _hover={{ color: brandGreen }}
+                _selected={{ color: brandGreen, borderBottomColor: tabLineColor }}
                 onClick={() => { closeMobileMenu(); navigate('/survey-walks'); }}
               >
                 Survey Walks
@@ -166,8 +177,11 @@ export function Navigation({ user }: NavigationProps) {
                 value="submit-sighting"
                 data-nav-link
                 color={tabText}
-                _hover={{ color: tabSelectedText }}
-                _selected={{ color: tabSelectedText }}
+                borderBottomWidth={tabLineWidth}
+                borderBottomStyle="solid"
+                borderBottomColor="transparent"
+                _hover={{ color: brandGreen }}
+                _selected={{ color: brandGreen, borderBottomColor: tabLineColor }}
                 onClick={() => { closeMobileMenu(); navigate('/submit-sighting'); }}
               >
                 Submit Sighting
@@ -178,8 +192,14 @@ export function Navigation({ user }: NavigationProps) {
           <div className="nav-actions">
             {/* <ThemeToggle /> */}
             <div className="user-menu mobile-user-menu">
-              <span className="user-menu-label">{user.displayName || user.email}</span>
-              <Button onClick={handleLogout} size="sm" colorPalette="red" className="user-menu-logout">
+              <Box as="span" className="user-menu-label" color={brandGreen}>
+                {user.displayName || user.email}
+              </Box>
+              <Button
+                onClick={handleLogout}
+                size="sm"
+                className="user-menu-logout"
+              >
                 Logout
               </Button>
             </div>

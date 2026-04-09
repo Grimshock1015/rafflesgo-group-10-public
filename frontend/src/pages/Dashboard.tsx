@@ -24,16 +24,16 @@ const SINGAPORE_COORDINATES = {
 };
 
 const sectionStyle: CSSProperties = {
-  background: 'var(--color-surface)',
-  border: '1px solid var(--color-border, rgba(255, 255, 255, 0.08))',
+  background: 'var(--bg-card)',
+  border: '1px solid var(--border-color)',
   borderRadius: '16px',
   padding: '1.5rem',
   marginTop: '1.5rem',
 };
 
 const cardStyle: CSSProperties = {
-  background: 'rgba(255, 255, 255, 0.03)',
-  border: '1px solid var(--color-border, rgba(255, 255, 255, 0.08))',
+  background: 'var(--bg-secondary)',
+  border: '1px solid var(--border-color)',
   borderRadius: '14px',
   padding: '1rem 1.25rem',
 };
