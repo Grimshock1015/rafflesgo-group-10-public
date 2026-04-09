@@ -275,6 +275,45 @@ describe('SurveyWalk Handler Unit Tests', () => {
 			);
 			expect(result.uid).toBe(walk.uid);
 		});
+
+		it('should pass volunteer, attendee, leader, and completedAt fields through admin update', async () => {
+			mockSurveyWalkService.updateSurveyWalk.mockResolvedValue({
+				...walk,
+				isFinished: true,
+				volunteerUids: ['volunteer-1'],
+				attendeeUids: ['volunteer-1'],
+				completedAt: new Date('2026-04-01T11:00:00.000Z'),
+				leader: 'volunteer-1',
+			});
+			mockSurveyPeriodRepository.findById.mockResolvedValue({ name: 'Spring 2026' } as never);
+
+			const request = {
+				params: { uid: walk.uid },
+				body: {
+					isFinished: true,
+					volunteerUids: ['volunteer-1'],
+					attendeeUids: ['volunteer-1'],
+					completedAt: '2026-04-01T11:00:00.000Z',
+					leader: 'volunteer-1',
+				},
+			} as Parameters<typeof updateSurveyWalkHandler>[0];
+
+			await updateSurveyWalkHandler(
+				request,
+				{} as Parameters<typeof updateSurveyWalkHandler>[1],
+			);
+
+			expect(mockSurveyWalkService.updateSurveyWalk).toHaveBeenCalledWith(
+				walk.uid,
+				expect.objectContaining({
+					isFinished: true,
+					volunteerUids: ['volunteer-1'],
+					attendeeUids: ['volunteer-1'],
+					completedAt: expect.any(Date),
+					leader: 'volunteer-1',
+				}),
+			);
+		});
 	});
 
 	describe('deleteSurveyWalkHandler', () => {

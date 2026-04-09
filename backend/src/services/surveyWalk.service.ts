@@ -58,11 +58,30 @@ export class SurveyWalkService {
         const nextDate = input.date ?? existing.date;
         const nextStartTime = input.startTime ?? existing.startTime;
         const nextEndTime = input.endTime ?? existing.endTime;
+        const nextVolunteerUids = this.normalizeUids(input.volunteerUids ?? existing.volunteerUids);
+        const nextCapacity = input.capacity ?? existing.capacity;
+        const nextIsFinished = input.isFinished ?? existing.isFinished;
 
         this.validateTimeRange(nextStartTime, nextEndTime);
         await this.validateSurveyPeriodDate(nextSurveyPeriodUid, nextDate);
+        this.validateCapacity(nextCapacity, nextVolunteerUids);
 
-        const updated = await this.surveyWalkRepository.update(uid, input);
+        const nextLeader = this.resolveLeader(nextVolunteerUids, input.leader ?? existing.leader);
+        const attendanceUpdate = this.resolveAttendance({
+            existing,
+            attendeeUids: input.attendeeUids,
+            completedAt: input.completedAt,
+            isFinished: nextIsFinished,
+            volunteerUids: nextVolunteerUids,
+        });
+
+        const updated = await this.surveyWalkRepository.update(uid, {
+            ...input,
+            volunteerUids: nextVolunteerUids,
+            capacity: nextCapacity,
+            leader: nextLeader,
+            ...attendanceUpdate,
+        });
         if (!updated) {
             throw new NotFoundError('Survey walk', uid);
         }
@@ -223,5 +242,62 @@ export class SurveyWalkService {
         if (startTime >= endTime) {
             throw new BadRequestError('startTime must be before endTime');
         }
+    }
+
+    private validateCapacity(capacity: number, volunteerUids: string[]): void {
+        if (capacity < volunteerUids.length) {
+            throw new BadRequestError('capacity cannot be smaller than the number of registered volunteers');
+        }
+    }
+
+    private normalizeUids(uids: string[]): string[] {
+        return [...new Set(uids)];
+    }
+
+    private resolveLeader(volunteerUids: string[], requestedLeader: string): string {
+        if (volunteerUids.length === 0) {
+            return '';
+        }
+
+        if (requestedLeader && volunteerUids.includes(requestedLeader)) {
+            return requestedLeader;
+        }
+
+        return volunteerUids[0];
+    }
+
+    private resolveAttendance({
+        existing,
+        attendeeUids,
+        completedAt,
+        isFinished,
+        volunteerUids,
+    }: {
+        existing: SurveyWalkEntity;
+        attendeeUids: string[] | undefined;
+        completedAt: Date | null | undefined;
+        isFinished: boolean;
+        volunteerUids: string[];
+    }): Pick<SurveyWalkEntity, 'attendeeUids' | 'completedAt' | 'isFinished'> {
+        if (!isFinished) {
+            return {
+                isFinished: false,
+                attendeeUids: [],
+                completedAt: null,
+            };
+        }
+
+        const nextAttendeeUids = this.normalizeUids(attendeeUids ?? existing.attendeeUids);
+        const invalidAttendeeUids = nextAttendeeUids.filter((attendeeUid) => !volunteerUids.includes(attendeeUid));
+
+        if (invalidAttendeeUids.length > 0) {
+            throw new BadRequestError('Attendance can only be recorded for registered volunteers');
+        }
+
+        return {
+            isFinished: true,
+            attendeeUids: nextAttendeeUids,
+            completedAt: completedAt ?? existing.completedAt ?? new Date(),
+        };
     }
 }

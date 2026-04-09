@@ -2,7 +2,7 @@ import { RafflesGoService } from "@/api/services/RafflesGoService";
 import { ObservationDatePicker } from "@/components/ObservationDatePicker";
 import { toaster } from "@/components/ui/toaster";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Container, Button, Input, Stack, Field, Checkbox, Select, createListCollection } from "@chakra-ui/react";
+import { Container, Button, Input, Stack, Field, Checkbox, Select, createListCollection, Text } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import { MdSave } from "react-icons/md";
 import { useNavigate, useParams } from "react-router-dom";
@@ -12,6 +12,11 @@ type SurveyPeriodOption = {
     name: string;
     startDate: string;
     endDate: string;
+};
+
+type VolunteerOption = {
+    uid: string;
+    name: string;
 };
 
 function formatSurveyPeriodLabel(period: SurveyPeriodOption): string {
@@ -28,6 +33,13 @@ function getDateFromIso(isoString: string): string {
     return isoString.split('T')[0];
 }
 
+function getWalkEndDateTime(dateIso: string, endTime: string): Date {
+    const walkDate = new Date(dateIso);
+    const [hours, minutes] = endTime.split(":").map(Number);
+    walkDate.setUTCHours(hours, minutes, 0, 0);
+    return walkDate;
+}
+
 export default function EditSurveyWalk() {
     const navigate = useNavigate();
     const surveyWalkId = useParams().surveyWalkId || "";
@@ -40,6 +52,10 @@ export default function EditSurveyWalk() {
     const [endTime, setEndTime] = useState("");
     const [capacity, setCapacity] = useState(1);
     const [isFinished, setIsFinished] = useState(false);
+    const [volunteers, setVolunteers] = useState<VolunteerOption[]>([]);
+    const [selectedVolunteerUids, setSelectedVolunteerUids] = useState<string[]>([]);
+    const [selectedAttendeeUids, setSelectedAttendeeUids] = useState<string[]>([]);
+    const [leaderUid, setLeaderUid] = useState<string[]>([]);
 
     const [surveyPeriods, setSurveyPeriods] = useState<SurveyPeriodOption[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -53,6 +69,14 @@ export default function EditSurveyWalk() {
         [surveyPeriods]
     );
     const selectedSurveyPeriod = surveyPeriods.find((period) => period.uid === surveyPeriodUid[0]);
+    const selectedVolunteers = volunteers.filter((volunteer) => selectedVolunteerUids.includes(volunteer.uid));
+    const leaderCollection = useMemo(
+        () =>
+            createListCollection({
+                items: selectedVolunteers.map((volunteer) => ({ value: volunteer.uid, label: volunteer.name || volunteer.uid })),
+            }),
+        [selectedVolunteers]
+    );
     const selectBg = effectiveTheme === "dark" ? "gray.800" : "white";
     const selectBorder = effectiveTheme === "dark" ? "gray.600" : "gray.200";
     const selectText = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
@@ -85,6 +109,10 @@ export default function EditSurveyWalk() {
                 setEndTime(walkResponse.endTime);
                 setCapacity(walkResponse.capacity);
                 setIsFinished(walkResponse.isFinished);
+                setVolunteers(walkResponse.volunteers);
+                setSelectedVolunteerUids(walkResponse.volunteerUids);
+                setSelectedAttendeeUids(walkResponse.attendeeUids);
+                setLeaderUid(walkResponse.leader.uid ? [walkResponse.leader.uid] : []);
             } catch (error) {
                 console.error("Failed to load survey walk:", error);
                 toaster.create({
@@ -110,6 +138,32 @@ export default function EditSurveyWalk() {
         }
     }, [date, selectedSurveyPeriod]);
 
+    useEffect(() => {
+        setSelectedAttendeeUids((current) => current.filter((uid) => selectedVolunteerUids.includes(uid)));
+
+        if (leaderUid[0] && selectedVolunteerUids.includes(leaderUid[0])) {
+            return;
+        }
+
+        setLeaderUid(selectedVolunteerUids.length > 0 ? [selectedVolunteerUids[0]] : []);
+    }, [leaderUid, selectedVolunteerUids]);
+
+    const canRemoveVolunteers = surveyWalkId !== "" && date !== "" && endTime !== ""
+        ? getWalkEndDateTime(toUtcIsoDate(date), endTime).getTime() > Date.now()
+        : false;
+
+    const toggleVolunteer = (volunteerUid: string, checked: boolean) => {
+        setSelectedVolunteerUids((current) => checked
+            ? [...new Set([...current, volunteerUid])]
+            : current.filter((uid) => uid !== volunteerUid));
+    };
+
+    const toggleAttendee = (volunteerUid: string, checked: boolean) => {
+        setSelectedAttendeeUids((current) => checked
+            ? [...new Set([...current, volunteerUid])]
+            : current.filter((uid) => uid !== volunteerUid));
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -133,6 +187,9 @@ export default function EditSurveyWalk() {
                 endTime,
                 capacity,
                 isFinished,
+                volunteerUids: selectedVolunteerUids,
+                attendeeUids: isFinished ? selectedAttendeeUids : [],
+                leader: leaderUid[0] ?? "",
             });
 
             if (response) {
@@ -253,6 +310,96 @@ export default function EditSurveyWalk() {
                             </Checkbox.Control>
                             <Checkbox.Label>Is completed?</Checkbox.Label>
                         </Checkbox.Root>
+
+                        <Field.Root>
+                            <Field.Label>Walk leader</Field.Label>
+                            <Select.Root
+                                collection={leaderCollection}
+                                value={leaderUid}
+                                onValueChange={(event) => setLeaderUid(event.value)}
+                                disabled={isLoading || selectedVolunteerUids.length === 0}
+                            >
+                                <Select.HiddenSelect />
+                                <Select.Control>
+                                    <Select.Trigger px={3} py={2} bg={selectBg} borderColor={selectBorder} color={selectText}>
+                                        <Select.ValueText px={1} placeholder={"Select a leader"} color={leaderUid[0] ? selectText : selectPlaceholder} />
+                                    </Select.Trigger>
+                                    <Select.IndicatorGroup pr={2}>
+                                        <Select.Indicator color={selectText} />
+                                    </Select.IndicatorGroup>
+                                </Select.Control>
+                                <Select.Positioner>
+                                    <Select.Content bg={selectBg} borderColor={selectBorder} color={selectText}>
+                                        {leaderCollection.items.map((item) => (
+                                            <Select.Item item={item} key={item.value} py={2} px={2} bg={selectBg} color={selectText} _highlighted={{ bg: selectItemHoverBg }}>
+                                                {item.label}
+                                                <Select.ItemIndicator />
+                                            </Select.Item>
+                                        ))}
+                                    </Select.Content>
+                                </Select.Positioner>
+                            </Select.Root>
+                        </Field.Root>
+
+                        <Field.Root>
+                            <Field.Label>Registered volunteers</Field.Label>
+                            <Stack gap={2}>
+                                {volunteers.length === 0 ? (
+                                    <Text color={selectPlaceholder}>No volunteers have joined this walk yet.</Text>
+                                ) : (
+                                    volunteers.map((volunteer) => (
+                                        <Checkbox.Root
+                                            key={volunteer.uid}
+                                            display={"flex"}
+                                            checked={selectedVolunteerUids.includes(volunteer.uid)}
+                                            onCheckedChange={(checked) => toggleVolunteer(volunteer.uid, !!checked.checked)}
+                                            disabled={isLoading || !canRemoveVolunteers}
+                                        >
+                                            <Checkbox.HiddenInput />
+                                            <Checkbox.Control>
+                                                <Checkbox.Indicator />
+                                            </Checkbox.Control>
+                                            <Checkbox.Label>{volunteer.name || volunteer.uid}</Checkbox.Label>
+                                        </Checkbox.Root>
+                                    ))
+                                )}
+                                {!canRemoveVolunteers && volunteers.length > 0 ? (
+                                    <Text fontSize="sm" color={selectPlaceholder}>
+                                        Volunteer removal is only available for upcoming walks.
+                                    </Text>
+                                ) : null}
+                            </Stack>
+                        </Field.Root>
+
+                        <Field.Root>
+                            <Field.Label>Attendance</Field.Label>
+                            <Stack gap={2}>
+                                {selectedVolunteers.length === 0 ? (
+                                    <Text color={selectPlaceholder}>No registered volunteers available for attendance.</Text>
+                                ) : (
+                                    selectedVolunteers.map((volunteer) => (
+                                        <Checkbox.Root
+                                            key={volunteer.uid}
+                                            display={"flex"}
+                                            checked={selectedAttendeeUids.includes(volunteer.uid)}
+                                            onCheckedChange={(checked) => toggleAttendee(volunteer.uid, !!checked.checked)}
+                                            disabled={isLoading || !isFinished}
+                                        >
+                                            <Checkbox.HiddenInput />
+                                            <Checkbox.Control>
+                                                <Checkbox.Indicator />
+                                            </Checkbox.Control>
+                                            <Checkbox.Label>{volunteer.name || volunteer.uid}</Checkbox.Label>
+                                        </Checkbox.Root>
+                                    ))
+                                )}
+                                {!isFinished ? (
+                                    <Text fontSize="sm" color={selectPlaceholder}>
+                                        Mark the walk as completed to edit attendance. Turning completion off will clear attendance.
+                                    </Text>
+                                ) : null}
+                            </Stack>
+                        </Field.Root>
 
                         <Button backgroundColor="green.fg" px={3} alignSelf={"end"} mt={5} type="submit" loading={isSubmitting} disabled={isLoading}>
                             <MdSave />Save Changes

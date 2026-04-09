@@ -55,6 +55,19 @@ export const CreateSurveyWalkBodySchema = Type.Object({
 });
 
 export const UpdateSurveyWalkBodySchema = Type.Partial(CreateSurveyWalkBodySchema);
+export const AdminUpdateSurveyWalkBodySchema = Type.Partial(Type.Object({
+    surveyPeriodUid: Type.String({ minLength: 1 }),
+    name: Type.String({ minLength: 1 }),
+    date: Type.String({ format: 'date-time' }),
+    startTime: Type.String({ pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]$' }),
+    endTime: Type.String({ pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]$' }),
+    capacity: Type.Integer({ minimum: 1 }),
+    isFinished: Type.Boolean(),
+    volunteerUids: Type.Array(Type.String()),
+    attendeeUids: Type.Array(Type.String()),
+    completedAt: Type.Union([Type.String({ format: 'date-time' }), Type.Null()]),
+    leader: Type.String(),
+}));
 
 export const DeleteSurveyWalkResponseSchema = Type.Object({
     success: Type.Boolean(),

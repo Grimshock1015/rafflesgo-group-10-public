@@ -9,9 +9,9 @@ import {
     ListSurveyWalksResponseSchema,
     ReassignLeaderBodySchema,
     ReassignLeaderResponseSchema,
+    AdminUpdateSurveyWalkBodySchema,
     SurveyWalkBySurveyPeriodParamsSchema,
     SurveyWalkParamsSchema,
-    UpdateSurveyWalkBodySchema,
     surveyWalkSchema,
 } from "../schemas/surveyWalk.schema";
 import {
@@ -106,7 +106,7 @@ export const surveyWalkRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
             tags: ['RafflesGo'],
             security: [{ bearerAuth: [] }],
             params: SurveyWalkParamsSchema,
-            body: UpdateSurveyWalkBodySchema,
+            body: AdminUpdateSurveyWalkBodySchema,
             response: {
                 200: surveyWalkSchema,
             },

@@ -11,9 +11,9 @@ import {
     ListSurveyWalksResponseSchema,
     ReassignLeaderBodySchema,
     ReassignLeaderResponseSchema,
+    AdminUpdateSurveyWalkBodySchema,
     SurveyWalkBySurveyPeriodParamsSchema,
     SurveyWalkParamsSchema,
-    UpdateSurveyWalkBodySchema,
     surveyWalkSchema,
 } from "../schemas/surveyWalk.schema";
 import { FastifyReplyTypeBox, FastifyRequestTypeBox } from "../types/fastify";
@@ -47,7 +47,7 @@ const CreateSurveyWalkSchema = {
 
 const UpdateSurveyWalkSchema = {
     params: SurveyWalkParamsSchema,
-    body: UpdateSurveyWalkBodySchema,
+    body: AdminUpdateSurveyWalkBodySchema,
     response: {
         200: surveyWalkSchema,
     },
@@ -277,6 +277,13 @@ export async function updateSurveyWalkHandler(
         endTime: request.body.endTime,
         capacity: request.body.capacity,
         isFinished: request.body.isFinished,
+        volunteerUids: request.body.volunteerUids,
+        attendeeUids: request.body.attendeeUids,
+        completedAt: request.body.completedAt === undefined
+            ? undefined
+            : request.body.completedAt === null
+                ? null
+                : parseDateString(request.body.completedAt),
         leader: request.body.leader,
     });
 
