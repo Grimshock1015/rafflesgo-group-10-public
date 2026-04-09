@@ -965,6 +965,9 @@
                                 },
                                 "name": {
                                   "type": "string"
+                                },
+                                "photoURL": {
+                                  "type": "string"
                                 }
                               }
                             }
@@ -982,6 +985,9 @@
                                   "type": "string"
                                 },
                                 "name": {
+                                  "type": "string"
+                                },
+                                "photoURL": {
                                   "type": "string"
                                 }
                               }
@@ -1001,6 +1007,9 @@
                                 },
                                 "name": {
                                   "type": "string"
+                                },
+                                "photoURL": {
+                                  "type": "string"
                                 }
                               }
                             }
@@ -1016,6 +1025,9 @@
                                 "type": "string"
                               },
                               "name": {
+                                "type": "string"
+                              },
+                              "photoURL": {
                                 "type": "string"
                               }
                             }
@@ -1185,6 +1197,9 @@
                           },
                           "name": {
                             "type": "string"
+                          },
+                          "photoURL": {
+                            "type": "string"
                           }
                         }
                       }
@@ -1202,6 +1217,9 @@
                             "type": "string"
                           },
                           "name": {
+                            "type": "string"
+                          },
+                          "photoURL": {
                             "type": "string"
                           }
                         }
@@ -1221,6 +1239,9 @@
                           },
                           "name": {
                             "type": "string"
+                          },
+                          "photoURL": {
+                            "type": "string"
                           }
                         }
                       }
@@ -1236,6 +1257,9 @@
                           "type": "string"
                         },
                         "name": {
+                          "type": "string"
+                        },
+                        "photoURL": {
                           "type": "string"
                         }
                       }
@@ -1362,6 +1386,9 @@
                                 },
                                 "name": {
                                   "type": "string"
+                                },
+                                "photoURL": {
+                                  "type": "string"
                                 }
                               }
                             }
@@ -1379,6 +1406,9 @@
                                   "type": "string"
                                 },
                                 "name": {
+                                  "type": "string"
+                                },
+                                "photoURL": {
                                   "type": "string"
                                 }
                               }
@@ -1398,6 +1428,9 @@
                                 },
                                 "name": {
                                   "type": "string"
+                                },
+                                "photoURL": {
+                                  "type": "string"
                                 }
                               }
                             }
@@ -1413,6 +1446,9 @@
                                 "type": "string"
                               },
                               "name": {
+                                "type": "string"
+                              },
+                              "photoURL": {
                                 "type": "string"
                               }
                             }
@@ -1544,6 +1580,9 @@
                           },
                           "name": {
                             "type": "string"
+                          },
+                          "photoURL": {
+                            "type": "string"
                           }
                         }
                       }
@@ -1561,6 +1600,9 @@
                             "type": "string"
                           },
                           "name": {
+                            "type": "string"
+                          },
+                          "photoURL": {
                             "type": "string"
                           }
                         }
@@ -1580,6 +1622,9 @@
                           },
                           "name": {
                             "type": "string"
+                          },
+                          "photoURL": {
+                            "type": "string"
                           }
                         }
                       }
@@ -1595,6 +1640,9 @@
                           "type": "string"
                         },
                         "name": {
+                          "type": "string"
+                        },
+                        "photoURL": {
                           "type": "string"
                         }
                       }
@@ -1762,6 +1810,9 @@
                           },
                           "name": {
                             "type": "string"
+                          },
+                          "photoURL": {
+                            "type": "string"
                           }
                         }
                       }
@@ -1779,6 +1830,9 @@
                             "type": "string"
                           },
                           "name": {
+                            "type": "string"
+                          },
+                          "photoURL": {
                             "type": "string"
                           }
                         }
@@ -1798,6 +1852,9 @@
                           },
                           "name": {
                             "type": "string"
+                          },
+                          "photoURL": {
+                            "type": "string"
                           }
                         }
                       }
@@ -1813,6 +1870,9 @@
                           "type": "string"
                         },
                         "name": {
+                          "type": "string"
+                        },
+                        "photoURL": {
                           "type": "string"
                         }
                       }
@@ -1995,6 +2055,9 @@
                                 },
                                 "name": {
                                   "type": "string"
+                                },
+                                "photoURL": {
+                                  "type": "string"
                                 }
                               }
                             }
@@ -2012,6 +2075,9 @@
                                   "type": "string"
                                 },
                                 "name": {
+                                  "type": "string"
+                                },
+                                "photoURL": {
                                   "type": "string"
                                 }
                               }
@@ -2031,6 +2097,9 @@
                                 },
                                 "name": {
                                   "type": "string"
+                                },
+                                "photoURL": {
+                                  "type": "string"
                                 }
                               }
                             }
@@ -2046,6 +2115,9 @@
                                 "type": "string"
                               },
                               "name": {
+                                "type": "string"
+                              },
+                              "photoURL": {
                                 "type": "string"
                               }
                             }
@@ -2187,6 +2259,9 @@
                               },
                               "name": {
                                 "type": "string"
+                              },
+                              "photoURL": {
+                                "type": "string"
                               }
                             }
                           }
@@ -2204,6 +2279,9 @@
                                 "type": "string"
                               },
                               "name": {
+                                "type": "string"
+                              },
+                              "photoURL": {
                                 "type": "string"
                               }
                             }
@@ -2223,6 +2301,9 @@
                               },
                               "name": {
                                 "type": "string"
+                              },
+                              "photoURL": {
+                                "type": "string"
                               }
                             }
                           }
@@ -2238,6 +2319,9 @@
                               "type": "string"
                             },
                             "name": {
+                              "type": "string"
+                            },
+                            "photoURL": {
                               "type": "string"
                             }
                           }
@@ -2378,6 +2462,9 @@
                               },
                               "name": {
                                 "type": "string"
+                              },
+                              "photoURL": {
+                                "type": "string"
                               }
                             }
                           }
@@ -2395,6 +2482,9 @@
                                 "type": "string"
                               },
                               "name": {
+                                "type": "string"
+                              },
+                              "photoURL": {
                                 "type": "string"
                               }
                             }
@@ -2414,6 +2504,9 @@
                               },
                               "name": {
                                 "type": "string"
+                              },
+                              "photoURL": {
+                                "type": "string"
                               }
                             }
                           }
@@ -2429,6 +2522,9 @@
                               "type": "string"
                             },
                             "name": {
+                              "type": "string"
+                            },
+                            "photoURL": {
                               "type": "string"
                             }
                           }
@@ -2588,6 +2684,9 @@
                               },
                               "name": {
                                 "type": "string"
+                              },
+                              "photoURL": {
+                                "type": "string"
                               }
                             }
                           }
@@ -2605,6 +2704,9 @@
                                 "type": "string"
                               },
                               "name": {
+                                "type": "string"
+                              },
+                              "photoURL": {
                                 "type": "string"
                               }
                             }
@@ -2624,6 +2726,9 @@
                               },
                               "name": {
                                 "type": "string"
+                              },
+                              "photoURL": {
+                                "type": "string"
                               }
                             }
                           }
@@ -2639,6 +2744,9 @@
                               "type": "string"
                             },
                             "name": {
+                              "type": "string"
+                            },
+                            "photoURL": {
                               "type": "string"
                             }
                           }
@@ -2800,6 +2908,9 @@
                               },
                               "name": {
                                 "type": "string"
+                              },
+                              "photoURL": {
+                                "type": "string"
                               }
                             }
                           }
@@ -2817,6 +2928,9 @@
                                 "type": "string"
                               },
                               "name": {
+                                "type": "string"
+                              },
+                              "photoURL": {
                                 "type": "string"
                               }
                             }
@@ -2836,6 +2950,9 @@
                               },
                               "name": {
                                 "type": "string"
+                              },
+                              "photoURL": {
+                                "type": "string"
                               }
                             }
                           }
@@ -2851,6 +2968,9 @@
                               "type": "string"
                             },
                             "name": {
+                              "type": "string"
+                            },
+                            "photoURL": {
                               "type": "string"
                             }
                           }

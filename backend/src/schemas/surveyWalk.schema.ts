@@ -3,11 +3,13 @@ import { Type, Static } from '@sinclair/typebox';
 const volunteerSchema = Type.Object({
     uid: Type.String(),
     name: Type.String(),
+    photoURL: Type.Optional(Type.String()),
 });
 
 const leaderSchema = Type.Object({
     uid: Type.String(),
     name: Type.String(),
+    photoURL: Type.Optional(Type.String()),
 });
 
 export const surveyWalkSchema = Type.Object({

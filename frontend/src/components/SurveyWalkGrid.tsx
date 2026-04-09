@@ -12,6 +12,57 @@ import { MdDelete, MdModeEdit, MdDoneAll } from "react-icons/md";
 
 type SurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalks>>["surveyWalks"][number];
 
+type WalkPerson = SurveyWalk["leader"];
+
+function PersonAvatar({ person, size = "28px" }: { person: WalkPerson; size?: string }) {
+    const label = person.name || person.uid || "?";
+    const initial = label.slice(0, 1).toUpperCase();
+
+    if (person.photoURL) {
+        return (
+            <Image
+                src={person.photoURL}
+                alt={`${label} profile`}
+                boxSize={size}
+                borderRadius="full"
+                objectFit="cover"
+                flexShrink={0}
+            />
+        );
+    }
+
+    return (
+        <Box
+            aria-label={`${label} fallback avatar`}
+            boxSize={size}
+            borderRadius="full"
+            bg="gray.500"
+            color="white"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            fontSize="xs"
+            fontWeight="bold"
+            flexShrink={0}
+        >
+            {initial}
+        </Box>
+    );
+}
+
+function PersonListItem({ person }: { person: WalkPerson }) {
+    const label = person.name || person.uid;
+
+    return (
+        <List.Item key={person.uid} listStyleType="none">
+            <Box display="flex" alignItems="center" gap={2}>
+                <PersonAvatar person={person} />
+                <Text>{label}</Text>
+            </Box>
+        </List.Item>
+    );
+}
+
 type DeleteSurveyWalkButtonProps = {
     surveyWalkId: string;
     onDeleted: () => Promise<void>;
@@ -467,9 +518,11 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                             <Text lineHeight={0.5} color={cardSubtleTextColor}>
                                 Volunteer no.: {sw.volunteers.length} / {sw.capacity}
                             </Text>
-                            <Text lineHeight={0.5} color={cardSubtleTextColor}>
-                                Leader: {sw.leader.name || "N/A"} {isLeader && "(You)"}
-                            </Text>
+                            <Box lineHeight={0.5} color={cardSubtleTextColor} display="flex" alignItems="center" gap={2}>
+                                <Text as="span" color={cardSubtleTextColor}>Leader:</Text>
+                                {(sw.leader.name || sw.leader.uid) ? <PersonAvatar person={sw.leader} size="24px" /> : null}
+                                <Text as="span" color={cardSubtleTextColor}>{sw.leader.name || sw.leader.uid || "N/A"} {isLeader && "(You)"}</Text>
+                            </Box>
                             <Text lineHeight={0.5} color={cardSubtleTextColor}>
                                 Contributes to: {sw.surveyPeriodName}
                             </Text>
@@ -478,9 +531,7 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                                         <Text>Participants:</Text>
                                         <List.Root>
                                             {sw.volunteers.map((v) => (
-                                                <List.Item key={v.uid}>
-                                                    {v.name}
-                                                </List.Item>
+                                                <PersonListItem key={v.uid} person={v} />
                                             ))}
                                         </List.Root>
                                     </Box>
@@ -490,9 +541,7 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                                                 <Text>Attended:</Text>
                                                 <List.Root>
                                                     {sw.attendees.length === 0 ? <List.Item>None recorded</List.Item> : sw.attendees.map((v) => (
-                                                        <List.Item key={v.uid}>
-                                                            {v.name || v.uid}
-                                                        </List.Item>
+                                                        <PersonListItem key={v.uid} person={v} />
                                                     ))}
                                                 </List.Root>
                                             </Box>
@@ -500,9 +549,7 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                                                 <Text>No-shows:</Text>
                                                 <List.Root>
                                                     {sw.noShows.length === 0 ? <List.Item>None</List.Item> : sw.noShows.map((v) => (
-                                                        <List.Item key={v.uid}>
-                                                            {v.name || v.uid}
-                                                        </List.Item>
+                                                        <PersonListItem key={v.uid} person={v} />
                                                     ))}
                                                 </List.Root>
                                             </Box>

@@ -84,6 +84,7 @@ describe('SurveyWalk Handler Unit Tests', () => {
 		vi.mocked(auth.getUser).mockResolvedValue({
 			displayName: 'Volunteer Name',
 			email: 'volunteer@example.com',
+			photoURL: 'https://example.com/volunteer.png',
 		} as never);
 	});
 
@@ -124,8 +125,8 @@ describe('SurveyWalk Handler Unit Tests', () => {
 
 			expect(mockSurveyWalkService.getSurveyWalk).toHaveBeenCalledWith(walk.uid);
 			expect(result.surveyPeriodName).toBe('Spring 2026');
-			expect(result.volunteers).toEqual([{ uid: 'volunteer-1', name: 'Volunteer Name' }]);
-			expect(result.leader).toEqual({ uid: 'volunteer-1', name: 'Volunteer Name' });
+			expect(result.volunteers).toEqual([{ uid: 'volunteer-1', name: 'Volunteer Name', photoURL: 'https://example.com/volunteer.png' }]);
+			expect(result.leader).toEqual({ uid: 'volunteer-1', name: 'Volunteer Name', photoURL: 'https://example.com/volunteer.png' });
 		});
 	});
 
@@ -176,7 +177,7 @@ describe('SurveyWalk Handler Unit Tests', () => {
 			);
 
 			expect(mockSurveyWalkService.getSurveyWalksForJoinedPeriods).toHaveBeenCalledOnce();
-			expect(result.surveyWalks[0].leader).toEqual({ uid: 'user-1', name: 'Volunteer Name' });
+			expect(result.surveyWalks[0].leader).toEqual({ uid: 'user-1', name: 'Volunteer Name', photoURL: 'https://example.com/volunteer.png' });
 		});
 	});
 
@@ -327,6 +328,7 @@ describe('SurveyWalk Handler Unit Tests', () => {
             expect(result.surveyWalk.volunteerUids).toContain('user-1');
             expect(result.surveyWalk.leader).toStrictEqual({
                 name: 'Volunteer Name',
+                photoURL: 'https://example.com/volunteer.png',
                 uid: 'user-1',
             });
 		});
@@ -349,6 +351,7 @@ describe('SurveyWalk Handler Unit Tests', () => {
             expect(result.surveyWalk.volunteerUids).toContain('user-2');
             expect(result.surveyWalk.leader).toStrictEqual({
                 name: 'Volunteer Name',
+                photoURL: 'https://example.com/volunteer.png',
                 uid: 'user-1',
             });
         });
@@ -421,7 +424,7 @@ describe('SurveyWalk Handler Unit Tests', () => {
 
 			expect(mockSurveyWalkService.reassignLeader).toHaveBeenCalledWith(walk.uid, 'user-1', 'user-2');
 			expect(result.success).toBe(true);
-			expect(result.surveyWalk.leader).toStrictEqual({ uid: 'user-2', name: 'Volunteer Name' });
+			expect(result.surveyWalk.leader).toStrictEqual({ uid: 'user-2', name: 'Volunteer Name', photoURL: 'https://example.com/volunteer.png' });
 		});
 	});
 
@@ -461,8 +464,8 @@ describe('SurveyWalk Handler Unit Tests', () => {
 
 			expect(mockSurveyWalkService.completeSurveyWalk).toHaveBeenCalledWith(walk.uid, 'user-1', ['user-1'], false);
 			expect(result.success).toBe(true);
-			expect(result.surveyWalk.attendees).toEqual([{ uid: 'user-1', name: 'Volunteer Name' }]);
-			expect(result.surveyWalk.noShows).toEqual([{ uid: 'user-2', name: 'Volunteer Name' }]);
+			expect(result.surveyWalk.attendees).toEqual([{ uid: 'user-1', name: 'Volunteer Name', photoURL: 'https://example.com/volunteer.png' }]);
+			expect(result.surveyWalk.noShows).toEqual([{ uid: 'user-2', name: 'Volunteer Name', photoURL: 'https://example.com/volunteer.png' }]);
 			expect(result.surveyWalk.completedAt).toBe('2026-04-01T11:00:00.000Z');
 		});
 	});

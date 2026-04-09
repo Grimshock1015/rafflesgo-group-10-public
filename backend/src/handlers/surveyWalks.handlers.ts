@@ -86,6 +86,7 @@ const CompleteSurveyWalkSchema = {
 type UserSummary = {
     uid: string;
     name: string;
+    photoURL?: string;
 };
 
 function toDto(surveyWalk: SurveyWalkEntity, surveyPeriodName: string, volunteersData: UserSummary[], leaderData?: UserSummary) {
@@ -120,14 +121,18 @@ function parseDateString(value: string): Date {
     return parsed;
 }
 
-async function getUserDisplayName(uid: string): Promise<string | undefined> {
+async function getUserSummary(uid: string): Promise<UserSummary | undefined> {
     if (!uid) {
         return undefined;
     }
 
     try {
         const user = await auth.getUser(uid);
-        return user.displayName || user.email || undefined;
+        return {
+            uid,
+            name: user.displayName || user.email || "",
+            photoURL: user.photoURL || undefined,
+        };
     } catch {
         return undefined;
     }
@@ -135,10 +140,10 @@ async function getUserDisplayName(uid: string): Promise<string | undefined> {
 
 async function getVolunteersData(volunteerUids: string[]): Promise<UserSummary[]> {
     const volunteersData = await Promise.all(
-        volunteerUids.map(async (uid) => ({
+        volunteerUids.map(async (uid) => (await getUserSummary(uid)) || {
             uid,
-            name: (await getUserDisplayName(uid)) || "",
-        }))
+            name: "",
+        })
     );
     return volunteersData;
 }
@@ -147,9 +152,9 @@ async function getLeaderData(leaderUid: string): Promise<UserSummary | undefined
     if (!leaderUid) {
         return undefined;
     }
-    return {
+    return (await getUserSummary(leaderUid)) || {
         uid: leaderUid,
-        name: (await getUserDisplayName(leaderUid)) || "",
+        name: "",
     };
 }
 
