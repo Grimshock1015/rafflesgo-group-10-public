@@ -9,6 +9,8 @@ import { EmailService } from './services/email.service';
 import { InvitationService } from './services/invitation.service';
 import { WeatherService } from './services/weather.service';
 import { WalkReminderService } from './services/walkReminder.service';
+import { WalkCompletionService } from './services/walkCompletion.service';
+import { WalkEndReminderService } from './services/walkEndReminder.service';
 
 export interface Container {
   userRepository: UserRepository;
@@ -22,6 +24,8 @@ export interface Container {
   invitationService: InvitationService;
   weatherService: WeatherService;
   walkReminderService: WalkReminderService;
+  walkCompletionService: WalkCompletionService;
+  walkEndReminderService: WalkEndReminderService;
 }
 
 export function createContainer(): Container {
@@ -34,8 +38,9 @@ export function createContainer(): Container {
   // Services
   const userService = new UserService(userRepository);
   const surveyPeriodService = new SurveyPeriodService(surveyPeriodRepository);
-  const surveyWalkService = new SurveyWalkService(surveyWalkRepository, surveyPeriodRepository);
   const emailService = new EmailService();
+  const walkCompletionService = new WalkCompletionService(surveyWalkRepository, emailService);
+  const surveyWalkService = new SurveyWalkService(surveyWalkRepository, surveyPeriodRepository, walkCompletionService);
   const invitationService = new InvitationService(
     invitationRepository,
     surveyWalkRepository,
@@ -44,6 +49,7 @@ export function createContainer(): Container {
   );
   const weatherService = new WeatherService();
   const walkReminderService = new WalkReminderService(surveyWalkRepository, emailService, weatherService);
+  const walkEndReminderService = new WalkEndReminderService(surveyWalkRepository, emailService);
 
   return {
     userRepository,
@@ -57,6 +63,8 @@ export function createContainer(): Container {
     invitationService,
     weatherService,
     walkReminderService,
+    walkCompletionService,
+    walkEndReminderService,
   };
 }
 

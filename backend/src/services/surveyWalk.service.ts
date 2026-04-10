@@ -2,6 +2,7 @@ import { SurveyWalkEntity } from "../entities/surveyWalk.entity";
 import { BadRequestError, NotFoundError } from "../lib/errors";
 import { SurveyPeriodRepository } from "../repositories/surveyPeriod.repository";
 import { SurveyWalkRepository } from "../repositories/surveyWalk.repository";
+import { WalkCompletionService } from "./walkCompletion.service";
 
 export type CreateSurveyWalkInput = Omit<SurveyWalkEntity, 'uid'>;
 export type UpdateSurveyWalkInput = Partial<CreateSurveyWalkInput>;
@@ -10,6 +11,7 @@ export class SurveyWalkService {
     constructor(
         private surveyWalkRepository: SurveyWalkRepository,
         private surveyPeriodRepository: SurveyPeriodRepository,
+        private walkCompletionService: WalkCompletionService,
     ) { }
     
     async getAllSurveyWalks(): Promise<SurveyWalkEntity[]> {
@@ -200,6 +202,11 @@ export class SurveyWalkService {
         if (!updated) {
             throw new NotFoundError('Survey walk', uid);
         }
+
+        // Send attendance emails in the background — don't block the response if it fails
+        this.walkCompletionService.sendAttendanceEmails(updated).catch((err) => {
+            console.error(`[SurveyWalkService] Failed to send attendance emails for walk "${updated.name}":`, err);
+        });
 
         return updated;
     }
