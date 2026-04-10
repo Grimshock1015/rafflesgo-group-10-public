@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, Mocked } from 'vitest';
 import { SurveyWalkService } from '../../../services/surveyWalk.service';
 import { SurveyWalkRepository } from '../../../repositories/surveyWalk.repository';
 import { SurveyPeriodRepository } from '../../../repositories/surveyPeriod.repository';
+import { WalkCompletionService } from '../../../services/walkCompletion.service';
 import { SurveyWalkEntity } from '../../../entities/surveyWalk.entity';
 import { SurveyPeriodEntity } from '../../../entities/surveyPeriod.entity';
 import { BadRequestError, NotFoundError } from '../../../lib/errors';
@@ -10,6 +11,7 @@ describe('SurveyWalkService Unit Tests', () => {
 	let service: SurveyWalkService;
 	let mockSurveyWalkRepository: Mocked<SurveyWalkRepository>;
 	let mockSurveyPeriodRepository: Mocked<SurveyPeriodRepository>;
+	let mockWalkCompletionService: Mocked<WalkCompletionService>;
 
 	const period: SurveyPeriodEntity = {
 		uid: 'period-1',
@@ -60,7 +62,11 @@ describe('SurveyWalkService Unit Tests', () => {
 			unjoin: vi.fn(),
 		} as unknown as Mocked<SurveyPeriodRepository>;
 
-		service = new SurveyWalkService(mockSurveyWalkRepository, mockSurveyPeriodRepository);
+		mockWalkCompletionService = {
+			sendAttendanceEmails: vi.fn().mockResolvedValue(undefined),
+		} as unknown as Mocked<WalkCompletionService>;
+
+		service = new SurveyWalkService(mockSurveyWalkRepository, mockSurveyPeriodRepository, mockWalkCompletionService);
 	});
 
 	describe('getAllSurveyWalks', () => {

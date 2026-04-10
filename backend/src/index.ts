@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { buildApp } from './app';
 import { startWalkReminderJob } from './jobs/walkReminder.job';
+import { startWalkEndReminderJob } from './jobs/walkEndReminder.job';
 import { getContainer } from './container';
 
 // Validate Firebase config at startup
@@ -12,6 +13,7 @@ const start = async () => {
   // Start the cron job here, not in buildApp — generate-spec also calls buildApp
   // and we don't want the scheduler running during spec generation
   startWalkReminderJob(getContainer().walkReminderService);
+  startWalkEndReminderJob(getContainer().walkEndReminderService);
 
   try {
     const port = parseInt(process.env.PORT || '3000', 10);
