@@ -933,6 +933,7 @@ export default function SurveyWalkGrid({user}: {user: User}) {
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [onlyActive, setOnlyActive] = useState(true);
     const [role, setRole] = useState<'user' | 'admin'>('user');
+    const [activeTab, setActiveTab] = useState<'all' | 'mine'>('all');
     const [adminWalkScope, setAdminWalkScope] = useState<string[]>(["joined"]);
     const { effectiveTheme } = useTheme();
     const selectBg = effectiveTheme === "dark" ? "gray.800" : "white";
@@ -1007,9 +1008,59 @@ export default function SurveyWalkGrid({user}: {user: User}) {
     const refreshSurveyWalks = () => {
         void fetchSurveyWalks({ onlyActive });
     };
+
+    // Filter and sort walks based on the active tab (volunteer only, admin uses its own dropdown)
+    const displayedWalks = useMemo(() => {
+        if (role === 'admin') return surveyWalks;
+
+        if (activeTab === 'all') {
+            // Only show upcoming walks, sorted by date ascending
+            return surveyWalks
+                .filter((sw) => !sw.isFinished)
+                .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        }
+
+        // My Walks: walks the current user has joined
+        const myWalks = surveyWalks.filter((sw) =>
+            sw.volunteers.some((v) => v.uid === user.uid)
+        );
+        const upcoming = myWalks
+            .filter((sw) => !sw.isFinished)
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const finished = myWalks
+            .filter((sw) => sw.isFinished)
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // newest first
+        return [...upcoming, ...finished];
+    }, [surveyWalks, activeTab, role, user.uid]);
     
     return ( isInitialLoading ? <Text>Loading survey walks...</Text> : surveyWalks.length === 0 ? <Text>No survey walks found.</Text> :
         <>
+            {role !== 'admin' && (
+                <Box display="flex" gap={2} mb={4}>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setActiveTab('all')}
+                        color={effectiveTheme === 'dark' ? 'whiteAlpha.900' : 'gray.700'}
+                        borderColor={activeTab === 'all' ? (effectiveTheme === 'dark' ? 'whiteAlpha.900' : 'gray.700') : (effectiveTheme === 'dark' ? 'whiteAlpha.500' : 'gray.300')}
+                        bg={activeTab === 'all' ? (effectiveTheme === 'dark' ? 'whiteAlpha.200' : 'gray.100') : 'transparent'}
+                        _hover={{ bg: effectiveTheme === 'dark' ? 'whiteAlpha.200' : 'gray.100' }}
+                    >
+                        All Walks
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setActiveTab('mine')}
+                        color={effectiveTheme === 'dark' ? 'whiteAlpha.900' : 'gray.700'}
+                        borderColor={activeTab === 'mine' ? (effectiveTheme === 'dark' ? 'whiteAlpha.900' : 'gray.700') : (effectiveTheme === 'dark' ? 'whiteAlpha.500' : 'gray.300')}
+                        bg={activeTab === 'mine' ? (effectiveTheme === 'dark' ? 'whiteAlpha.200' : 'gray.100') : 'transparent'}
+                        _hover={{ bg: effectiveTheme === 'dark' ? 'whiteAlpha.200' : 'gray.100' }}
+                    >
+                        My Walks
+                    </Button>
+                </Box>
+            )}
             <Box display="flex" alignItems="center" justifyContent="space-between" mb={0}>
                 <Text mb={0}>{role === "admin" && !onlyActive ? "Displaying all survey walks:" : "Displaying survey walks for registered survey periods:"}</Text>
                 {isRefreshing && <Text fontSize="sm" color="gray.500">Refreshing...</Text>}
@@ -1054,7 +1105,7 @@ export default function SurveyWalkGrid({user}: {user: User}) {
                 )
             }
             <Grid templateColumns="repeat(auto-fill, minmax(320px, 1fr))" gridAutoRows="1fr" gap={4} mt={3}>
-                {surveyWalks.map((sw) => (
+                {displayedWalks.map((sw) => (
                     <SurveyWalkCard
                         key={sw.uid}
                         sw={sw}

@@ -42,3 +42,15 @@ export type CreateSurveyPeriodBody = Static<typeof CreateSurveyPeriodBodySchema>
 export type UpdateSurveyPeriodBody = Static<typeof UpdateSurveyPeriodBodySchema>;
 export type ListSurveyPeriods = Static<typeof ListSurveyPeriodsResponseSchema>;
 export type DeleteSurveyPeriodResponse = Static<typeof DeleteSurveyPeriodResponseSchema>;
+
+// Lightweight active period info accessible by volunteers (no admin required)
+export const ActiveSurveyPeriodResponseSchema = Type.Union([
+    Type.Object({
+        uid: Type.String(),
+        name: Type.String(),
+        minWalks: Type.Integer(),
+    }),
+    Type.Null(),
+]);
+
+export type ActiveSurveyPeriodResponse = Static<typeof ActiveSurveyPeriodResponseSchema>;

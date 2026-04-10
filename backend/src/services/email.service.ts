@@ -58,6 +58,77 @@ export class EmailService {
         });
     }
 
+    // Sent to the walk leader ~1 hour after the walk ends, reminding them to submit sighting and mark attendance
+    async sendLeaderReminderEmail(
+        toEmail: string,
+        walkName: string,
+        date: string,
+        startTime: string,
+    ): Promise<void> {
+        const formattedDate = new Intl.DateTimeFormat('en-SG', {
+            dateStyle: 'full',
+            timeZone: 'UTC',
+        }).format(new Date(date));
+
+        const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
+
+        await this.transporter.sendMail({
+            from: `"RafflesGo" <${process.env.GMAIL_USER}>`,
+            to: toEmail,
+            subject: `Action needed: Submit sighting and mark attendance for "${walkName}"`,
+            html: `
+                <p>Hi,</p>
+                <p>Your survey walk <strong>${walkName}</strong> on ${formattedDate} at ${startTime} has ended.</p>
+                <p>Please remember to:</p>
+                <ol>
+                    <li><strong>Submit your sighting</strong> — go to the app and submit your observation record.</li>
+                    <li><strong>Mark attendance</strong> — go to <a href="${frontendUrl}/survey-walks">Survey Walks</a>, find your walk, and click <strong>Mark Complete</strong> to record who attended.</li>
+                </ol>
+                <p>Thank you for leading the walk!</p>
+            `,
+        });
+    }
+
+    // Sent to volunteers who attended after the leader marks attendance
+    async sendAttendedEmail(
+        toEmail: string,
+        walkName: string,
+        attendedCountThisPeriod: number,
+    ): Promise<void> {
+        await this.transporter.sendMail({
+            from: `"RafflesGo" <${process.env.GMAIL_USER}>`,
+            to: toEmail,
+            subject: `Thank you for attending "${walkName}"`,
+            html: `
+                <p>Hi,</p>
+                <p>Thank you for attending the survey walk <strong>${walkName}</strong>!</p>
+                <p>You have attended <strong>${attendedCountThisPeriod}</strong> walk(s) in this survey period so far. Keep it up!</p>
+                <p>See you on the next one.</p>
+            `,
+        });
+    }
+
+    // Sent to volunteers who were registered but did not attend
+    async sendMissedEmail(
+        toEmail: string,
+        walkName: string,
+        leaderName: string,
+        leaderEmail: string,
+    ): Promise<void> {
+        await this.transporter.sendMail({
+            from: `"RafflesGo" <${process.env.GMAIL_USER}>`,
+            to: toEmail,
+            subject: `We missed you at "${walkName}"`,
+            html: `
+                <p>Hi,</p>
+                <p>We noticed you were registered for <strong>${walkName}</strong> but were not marked as attended.</p>
+                <p>If you did attend, please contact your walk leader to update the attendance record:</p>
+                <p><strong>${leaderName}</strong> — <a href="mailto:${leaderEmail}">${leaderEmail}</a></p>
+                <p>Hope to see you at the next walk!</p>
+            `,
+        });
+    }
+
     async sendInvitationEmail(
         toEmail: string,
         inviterName: string,

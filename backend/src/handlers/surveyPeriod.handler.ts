@@ -1,5 +1,6 @@
 import { FastifyRequestTypeBox, FastifyReplyTypeBox } from '../types/fastify';
 import {
+    ActiveSurveyPeriodResponseSchema,
     CreateSurveyPeriodBodySchema,
     DeleteSurveyPeriodResponseSchema,
     ListSurveyPeriodsResponseSchema,
@@ -132,6 +133,25 @@ export async function deleteSurveyPeriodHandler(
 ) {
     const { surveyPeriodService } = getContainer();
     return surveyPeriodService.deleteSurveyPeriod(request.params.uid);
+}
+
+const GetActiveSurveyPeriodSchema = {
+    response: {
+        200: ActiveSurveyPeriodResponseSchema,
+    },
+};
+
+// Returns the current active, non-finished survey period's basic info (uid, name, minWalks).
+// Accessible by all authenticated users (not admin-only) so volunteers can track period progress.
+export async function getActiveSurveyPeriodHandler(
+    _request: FastifyRequestTypeBox<typeof GetActiveSurveyPeriodSchema>,
+    _reply: FastifyReplyTypeBox<typeof GetActiveSurveyPeriodSchema>
+) {
+    const { surveyPeriodService } = getContainer();
+    const all = await surveyPeriodService.getAllSurveyPeriods();
+    const active = all.find((p) => p.isActive && !p.isFinished);
+    if (!active) return null;
+    return { uid: active.uid, name: active.name, minWalks: active.minWalks };
 }
 
 export async function activateSurveyPeriodHandler(
