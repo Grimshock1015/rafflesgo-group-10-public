@@ -7,5 +7,6 @@ export const FIRESTORE_COLLECTIONS = {
   USERS: 'users',
   SURVEYPERIODS: 'survey_periods',
   SIGHTINGS: 'sightings_fix',
-  SURVEYWALKS: 'survey_walks'
+  SURVEYWALKS: 'survey_walks',
+  INVITATIONS: 'invitations'
 } as const;

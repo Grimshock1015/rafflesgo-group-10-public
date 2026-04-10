@@ -49,6 +49,7 @@ function getWalkStartDateTime(walk: JoinedSurveyWalk) {
   return new Date(`${walk.date.split('T')[0]}T${walk.startTime}:00`);
 }
 import { getAllDrafts } from '../services/SightingDraftsService';
+import InvitationNotifications from '../components/InvitationNotifications';
 
 export default function Dashboard({ user }: { user: User }) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -177,6 +178,8 @@ export default function Dashboard({ user }: { user: User }) {
             ) : null}
           </div>
         </section>
+
+        <InvitationNotifications userEmail={userEmail} />
 
         <section aria-labelledby="next-walk-heading" style={sectionStyle} className="next-walk-section">
           <h2 id="next-walk-heading">Next Upcoming Walk</h2>

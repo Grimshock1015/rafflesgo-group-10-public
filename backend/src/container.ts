@@ -4,6 +4,9 @@ import { SurveyPeriodRepository } from './repositories/surveyPeriod.repository';
 import { SurveyPeriodService } from './services/surveyPeriod.service';
 import { SurveyWalkService } from './services/surveyWalk.service';
 import { SurveyWalkRepository } from './repositories/surveyWalk.repository';
+import { InvitationRepository } from './repositories/invitation.repository';
+import { EmailService } from './services/email.service';
+import { InvitationService } from './services/invitation.service';
 
 export interface Container {
   userRepository: UserRepository;
@@ -12,6 +15,9 @@ export interface Container {
   surveyPeriodService: SurveyPeriodService;
   surveyWalkRepository: SurveyWalkRepository;
   surveyWalkService: SurveyWalkService;
+  invitationRepository: InvitationRepository;
+  emailService: EmailService;
+  invitationService: InvitationService;
 }
 
 export function createContainer(): Container {
@@ -19,11 +25,19 @@ export function createContainer(): Container {
   const userRepository = new UserRepository();
   const surveyPeriodRepository = new SurveyPeriodRepository();
   const surveyWalkRepository = new SurveyWalkRepository();
+  const invitationRepository = new InvitationRepository();
 
   // Services
   const userService = new UserService(userRepository);
   const surveyPeriodService = new SurveyPeriodService(surveyPeriodRepository);
   const surveyWalkService = new SurveyWalkService(surveyWalkRepository, surveyPeriodRepository);
+  const emailService = new EmailService();
+  const invitationService = new InvitationService(
+    invitationRepository,
+    surveyWalkRepository,
+    surveyPeriodRepository,
+    emailService,
+  );
 
   return {
     userRepository,
@@ -32,6 +46,9 @@ export function createContainer(): Container {
     surveyPeriodService,
     surveyWalkRepository,
     surveyWalkService,
+    invitationRepository,
+    emailService,
+    invitationService,
   };
 }
 

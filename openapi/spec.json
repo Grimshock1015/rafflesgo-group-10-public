@@ -2529,6 +2529,536 @@
         }
       }
     },
+    "/api/surveyWalks/{uid}/invitations": {
+      "post": {
+        "operationId": "sendInvitation",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Send an invitation email to a volunteer for a survey walk",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "inviteeEmail"
+                ],
+                "properties": {
+                  "inviteeEmail": {
+                    "format": "email",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "invitation"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "invitation": {
+                      "type": "object",
+                      "required": [
+                        "uid",
+                        "surveyWalkUid",
+                        "surveyWalkName",
+                        "inviterUid",
+                        "inviterName",
+                        "inviteeEmail",
+                        "status",
+                        "createdAt"
+                      ],
+                      "properties": {
+                        "uid": {
+                          "type": "string"
+                        },
+                        "surveyWalkUid": {
+                          "type": "string"
+                        },
+                        "surveyWalkName": {
+                          "type": "string"
+                        },
+                        "inviterUid": {
+                          "type": "string"
+                        },
+                        "inviterName": {
+                          "type": "string"
+                        },
+                        "inviteeEmail": {
+                          "format": "email",
+                          "type": "string"
+                        },
+                        "status": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "pending"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "accepted"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "declined"
+                              ]
+                            }
+                          ]
+                        },
+                        "createdAt": {
+                          "format": "date-time",
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "listInvitationsForWalk",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "List all invitations for a specific survey walk",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "invitations"
+                  ],
+                  "properties": {
+                    "invitations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "uid",
+                          "surveyWalkUid",
+                          "surveyWalkName",
+                          "inviterUid",
+                          "inviterName",
+                          "inviteeEmail",
+                          "status",
+                          "createdAt"
+                        ],
+                        "properties": {
+                          "uid": {
+                            "type": "string"
+                          },
+                          "surveyWalkUid": {
+                            "type": "string"
+                          },
+                          "surveyWalkName": {
+                            "type": "string"
+                          },
+                          "inviterUid": {
+                            "type": "string"
+                          },
+                          "inviterName": {
+                            "type": "string"
+                          },
+                          "inviteeEmail": {
+                            "format": "email",
+                            "type": "string"
+                          },
+                          "status": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "pending"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "accepted"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "declined"
+                                ]
+                              }
+                            ]
+                          },
+                          "createdAt": {
+                            "format": "date-time",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invitations/mine": {
+      "get": {
+        "operationId": "listMyInvitations",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "List all pending invitations for the current user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "invitations"
+                  ],
+                  "properties": {
+                    "invitations": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "uid",
+                          "surveyWalkUid",
+                          "surveyWalkName",
+                          "inviterUid",
+                          "inviterName",
+                          "inviteeEmail",
+                          "status",
+                          "createdAt"
+                        ],
+                        "properties": {
+                          "uid": {
+                            "type": "string"
+                          },
+                          "surveyWalkUid": {
+                            "type": "string"
+                          },
+                          "surveyWalkName": {
+                            "type": "string"
+                          },
+                          "inviterUid": {
+                            "type": "string"
+                          },
+                          "inviterName": {
+                            "type": "string"
+                          },
+                          "inviteeEmail": {
+                            "format": "email",
+                            "type": "string"
+                          },
+                          "status": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "pending"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "accepted"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "declined"
+                                ]
+                              }
+                            ]
+                          },
+                          "createdAt": {
+                            "format": "date-time",
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invitations/{uid}/accept": {
+      "post": {
+        "operationId": "acceptInvitation",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Accept a pending invitation and join the survey walk",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "invitation"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "invitation": {
+                      "type": "object",
+                      "required": [
+                        "uid",
+                        "surveyWalkUid",
+                        "surveyWalkName",
+                        "inviterUid",
+                        "inviterName",
+                        "inviteeEmail",
+                        "status",
+                        "createdAt"
+                      ],
+                      "properties": {
+                        "uid": {
+                          "type": "string"
+                        },
+                        "surveyWalkUid": {
+                          "type": "string"
+                        },
+                        "surveyWalkName": {
+                          "type": "string"
+                        },
+                        "inviterUid": {
+                          "type": "string"
+                        },
+                        "inviterName": {
+                          "type": "string"
+                        },
+                        "inviteeEmail": {
+                          "format": "email",
+                          "type": "string"
+                        },
+                        "status": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "pending"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "accepted"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "declined"
+                              ]
+                            }
+                          ]
+                        },
+                        "createdAt": {
+                          "format": "date-time",
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/invitations/{uid}/decline": {
+      "post": {
+        "operationId": "declineInvitation",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Decline a pending invitation",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "path",
+            "name": "uid",
+            "required": true
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "invitation"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "invitation": {
+                      "type": "object",
+                      "required": [
+                        "uid",
+                        "surveyWalkUid",
+                        "surveyWalkName",
+                        "inviterUid",
+                        "inviterName",
+                        "inviteeEmail",
+                        "status",
+                        "createdAt"
+                      ],
+                      "properties": {
+                        "uid": {
+                          "type": "string"
+                        },
+                        "surveyWalkUid": {
+                          "type": "string"
+                        },
+                        "surveyWalkName": {
+                          "type": "string"
+                        },
+                        "inviterUid": {
+                          "type": "string"
+                        },
+                        "inviterName": {
+                          "type": "string"
+                        },
+                        "inviteeEmail": {
+                          "format": "email",
+                          "type": "string"
+                        },
+                        "status": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "pending"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "accepted"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "declined"
+                              ]
+                            }
+                          ]
+                        },
+                        "createdAt": {
+                          "format": "date-time",
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/my-endpoint": {
       "get": {
         "tags": [
