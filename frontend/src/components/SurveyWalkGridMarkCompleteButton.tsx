@@ -18,9 +18,6 @@ export function MarkCompleteButton({ surveyWalk, onJoin }: MarkCompleteButtonPro
     const initialAttendeeUids = surveyWalk.attendeeUids ?? [];
     const [selectedAttendeeUids, setSelectedAttendeeUids] = useState<string[]>(initialAttendeeUids);
     const { effectiveTheme } = useTheme();
-    const outlineButtonColor = effectiveTheme === "dark" ? "gray.200" : "gray.700";
-    const outlineButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.300";
-    const outlineButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.100" : "gray.100";
     const dialogBg = effectiveTheme === "dark" ? "gray.900" : "white";
     const dialogBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.200";
     const dialogTextColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
@@ -68,7 +65,7 @@ export function MarkCompleteButton({ surveyWalk, onJoin }: MarkCompleteButtonPro
     return (
         <Dialog.Root size={"sm"} open={open} onOpenChange={(event) => setOpen(event.open)}>
             <Dialog.Trigger asChild>
-                <Button size={"sm"} px={2} variant="outline" color={outlineButtonColor} borderColor={outlineButtonBorder} _hover={{ bg: outlineButtonHoverBg }}>
+                <Button size={"sm"} variant="plain" className="btn btn-secondary btn-compact">
                     <MdDoneAll />
                     Mark Complete
                 </Button>
@@ -118,18 +115,16 @@ export function MarkCompleteButton({ surveyWalk, onJoin }: MarkCompleteButtonPro
                         <Dialog.Footer>
                             <Dialog.ActionTrigger asChild>
                                 <Button
-                                    variant="outline"
-                                    px={2}
+                                    variant="plain"
+                                    className="btn btn-secondary btn-compact"
                                     disabled={isSubmitting}
-                                    color={outlineButtonColor}
-                                    borderColor={outlineButtonBorder}
-                                    _hover={{ bg: outlineButtonHoverBg }}
                                 >
                                     Cancel
                                 </Button>
                             </Dialog.ActionTrigger>
                             <Button
-                                px={2}
+                                variant="plain"
+                                className="btn btn-primary btn-compact"
                                 onClick={handleComplete}
                                 loading={isSubmitting}
                             >

@@ -107,7 +107,7 @@ export default function EditSurveyPeriod() {
                             <Checkbox.Label>Is completed?</Checkbox.Label>
                         </Checkbox.Root>
                         <DateRangePicker value={dateRange} onChange={setDateRange} required disabled={isLoading} />
-                        <Button backgroundColor="green.fg" px={3} alignSelf={"end"} mt={5} type="submit" loading={isSubmitting} disabled={isLoading}>
+                        <Button variant="plain" className="btn btn-primary" alignSelf={"end"} mt={5} type="submit" loading={isSubmitting} disabled={isLoading}>
                             <MdSave />Save Changes
                         </Button>
                     </Stack>

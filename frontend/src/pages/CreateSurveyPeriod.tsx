@@ -71,7 +71,7 @@ export default function CreateSurveyPeriod() {
                             <Input value={minWalks} onChange={(e) => setMinWalks(parseInt(e.target.value) || 0)} required />
                         </Field.Root>
                         <DateRangePicker value={dateRange} onChange={setDateRange} required />
-                        <Button backgroundColor="green.fg" px={3} alignSelf={"end"} mt={5} type="submit" loading={isSubmitting}>
+                        <Button variant="plain" className="btn btn-primary" alignSelf={"end"} mt={5} type="submit" loading={isSubmitting}>
                             <IoMdAdd />Add survey period
                         </Button>
                     </Stack>

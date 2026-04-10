@@ -17,9 +17,6 @@ export function SurveyWalkSightingsButton({ surveyWalk }: { surveyWalk: SurveyWa
     const [sightings, setSightings] = useState<AdminSighting[]>([]);
     const [visibleCount, setVisibleCount] = useState(8);
     const { effectiveTheme } = useTheme();
-    const outlineButtonColor = effectiveTheme === "dark" ? "gray.200" : "gray.700";
-    const outlineButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.300";
-    const outlineButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.100" : "gray.100";
     const dialogBg = effectiveTheme === "dark" ? "gray.900" : "white";
     const dialogBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.200";
     const dialogTextColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
@@ -115,7 +112,7 @@ export function SurveyWalkSightingsButton({ surveyWalk }: { surveyWalk: SurveyWa
     return (
         <Dialog.Root size={"xl"} open={open} onOpenChange={handleOpenChange}>
             <Dialog.Trigger asChild>
-                <Button variant="outline" size={"sm"} px={2} color={outlineButtonColor} borderColor={outlineButtonBorder} _hover={{ bg: outlineButtonHoverBg }}>
+                <Button variant="plain" size={"sm"} className="btn btn-secondary btn-compact">
                     <MdPhotoLibrary />
                     View Sightings
                 </Button>
@@ -225,10 +222,8 @@ export function SurveyWalkSightingsButton({ surveyWalk }: { surveyWalk: SurveyWa
                                                                     <Button
                                                                         mt={4}
                                                                         size="sm"
-                                                                        variant="outline"
-                                                                        color={outlineButtonColor}
-                                                                        borderColor={outlineButtonBorder}
-                                                                        _hover={{ bg: outlineButtonHoverBg }}
+                                                                        variant="plain"
+                                                                        className="btn btn-secondary btn-compact"
                                                                     >
                                                                         View details
                                                                     </Button>
@@ -267,10 +262,8 @@ export function SurveyWalkSightingsButton({ surveyWalk }: { surveyWalk: SurveyWa
                                                                         <Box>
                                                                             <Button
                                                                                 size="sm"
-                                                                                variant="outline"
-                                                                                color={outlineButtonColor}
-                                                                                borderColor={outlineButtonBorder}
-                                                                                _hover={{ bg: outlineButtonHoverBg }}
+                                                                                variant="plain"
+                                                                                className="btn btn-secondary btn-compact"
                                                                                 onClick={() => void handleDeleteSighting(sighting.id)}
                                                                                 loading={busySightingId === sighting.id}
                                                                             >
@@ -289,10 +282,8 @@ export function SurveyWalkSightingsButton({ surveyWalk }: { surveyWalk: SurveyWa
                                             {canShowMore ? (
                                                 <Button
                                                     alignSelf="center"
-                                                    variant="outline"
-                                                    color={outlineButtonColor}
-                                                    borderColor={outlineButtonBorder}
-                                                    _hover={{ bg: outlineButtonHoverBg }}
+                                                    variant="plain"
+                                                    className="btn btn-secondary btn-compact"
                                                     onClick={() => setVisibleCount((current) => current + 8)}
                                                 >
                                                     Show more sightings

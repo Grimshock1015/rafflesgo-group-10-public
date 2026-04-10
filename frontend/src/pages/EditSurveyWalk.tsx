@@ -401,7 +401,7 @@ export default function EditSurveyWalk() {
                             </Stack>
                         </Field.Root>
 
-                        <Button backgroundColor="green.fg" px={3} alignSelf={"end"} mt={5} type="submit" loading={isSubmitting} disabled={isLoading}>
+                        <Button variant="plain" className="btn btn-primary" alignSelf={"end"} mt={5} type="submit" loading={isSubmitting} disabled={isLoading}>
                             <MdSave />Save Changes
                         </Button>
                     </Stack>

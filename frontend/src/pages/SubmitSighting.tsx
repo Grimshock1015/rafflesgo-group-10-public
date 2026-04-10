@@ -16,6 +16,7 @@ import { buildDraft } from '../utils/buildDraft';
 import { ObservationDatePicker } from '../components/ObservationDatePicker';
 import { ObservationTimePicker } from '../components/ObservationTimePicker';
 import { MdOutlineGpsFixed } from 'react-icons/md';
+import { Container } from '@chakra-ui/react';
 
 // Fix leaflet icon issue in react-leaflet
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
@@ -354,10 +355,10 @@ export default function SubmitSightingPage({ user }: { user: User }) {
 
       <main className="main-content">
         <div className="container submit-sighting-page">
-          <header className="welcome-header">
+          <Container className="welcome-header" mt={5}>
             <h1>Log an Observation</h1>
             <p className="welcome-subtitle">Report a sighting or a zero-catch walk</p>
-          </header>
+          </Container>
 
           <section className="card draft-link-card">
             <div>

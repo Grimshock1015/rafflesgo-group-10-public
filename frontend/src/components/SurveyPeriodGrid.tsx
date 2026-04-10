@@ -18,10 +18,6 @@ type DeleteSurveyPeriodButtonProps = {
 function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPeriodButtonProps) {
     const [open, setOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
-    const { effectiveTheme } = useTheme();
-    const outlineButtonColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.700";
-    const outlineButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.500" : "gray.300";
-    const outlineButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.200" : "gray.100";
 
     const handleDelete = async () => {
         try {
@@ -51,7 +47,7 @@ function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPer
     return (
         <Dialog.Root size={"sm"} open={open} onOpenChange={(event) => setOpen(event.open)}>
             <Dialog.Trigger asChild>
-                <Button variant="outline" size={"sm"} px={2} color={outlineButtonColor} borderColor={outlineButtonBorder} _hover={{ bg: outlineButtonHoverBg }}>
+                <Button variant="plain" size={"sm"} className="btn btn-secondary">
                     <MdDelete />
                     Delete
                 </Button>
@@ -68,11 +64,11 @@ function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPer
                         </Dialog.Body>
                         <Dialog.Footer>
                             <Dialog.ActionTrigger asChild>
-                                <Button variant="outline" px={2} disabled={isDeleting} color={outlineButtonColor} borderColor={outlineButtonBorder} _hover={{ bg: outlineButtonHoverBg }}>
+                                <Button variant="plain" className="btn btn-secondary" disabled={isDeleting}>
                                     Cancel
                                 </Button>
                             </Dialog.ActionTrigger>
-                            <Button px={2} onClick={handleDelete} loading={isDeleting}>
+                            <Button variant="plain" className="btn btn-primary" onClick={handleDelete} loading={isDeleting}>
                                 Delete
                             </Button>
                         </Dialog.Footer>
@@ -106,9 +102,6 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
     const cardSubtleTextColor = "var(--text-secondary)";
     const sectionInsetBg = "var(--bg-secondary)";
     const sectionInsetBorder = "var(--border-color-light)";
-    const outlineButtonColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.700";
-    const outlineButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.500" : "gray.300";
-    const outlineButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.200" : "gray.100";
     const confirmButtonColor = effectiveTheme === "dark" ? "green.600" : "green.600";
     // const confirmButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.300";
     const confirmButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.100" : "gray.100";
@@ -308,7 +301,7 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                                     role === "admin" && (
                                         <>
                                             <DeleteSurveyPeriodButton surveyPeriodId={sp.uid} onDeleted={fetchSurveyPeriods} />
-                                            <Button variant="outline" size={"sm"} px={2} color={outlineButtonColor} borderColor={outlineButtonBorder} _hover={{ bg: outlineButtonHoverBg }} onClick={() => navigate('/edit-survey-period/' + sp.uid)}>
+                                            <Button variant="plain" size={"sm"} className="btn btn-secondary" onClick={() => navigate('/edit-survey-period/' + sp.uid)}>
                                                 <MdModeEdit />
                                                 Edit
                                             </Button>

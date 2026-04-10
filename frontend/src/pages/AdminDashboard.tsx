@@ -4,6 +4,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { RafflesGoService } from '../api';
 import { listAllAdminSightings } from '../lib/adminSightings';
 import { exportAdminDataToGoogleSheets } from '../utils/googleSheetsExport';
+import { Container } from '@chakra-ui/react';
 
 type AdminUser = Awaited<ReturnType<typeof RafflesGoService.listUsers>>['users'][number];
 type AdminSighting = Awaited<ReturnType<typeof listAllAdminSightings>>['sightings'][number];
@@ -185,10 +186,10 @@ export default function AdminDashboard() {
   return (
     <main className="main-content">
       <div className="container" style={{ paddingBottom: '3rem' }}>
-        <header className="welcome-header">
+        <Container className="welcome-header" mt={5}>
           <h1>Admin Dashboard</h1>
           <p>Manage volunteers, control account access, and review platform activity.</p>
-        </header>
+        </Container>
 
         <section style={sectionStyle}>
           <h2>Admin Overview</h2>

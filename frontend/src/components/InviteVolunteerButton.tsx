@@ -15,10 +15,6 @@ export function InviteVolunteerButton({ surveyWalkId }: InviteVolunteerButtonPro
     const [isLoading, setIsLoading] = useState(false);
     const { effectiveTheme } = useTheme();
 
-    // Theme-aware styles to match existing buttons in SurveyWalkGrid
-    const outlineButtonColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.700";
-    const outlineButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.500" : "gray.300";
-    const outlineButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.200" : "gray.100";
     const inputBg = effectiveTheme === "dark" ? "gray.800" : "white";
     const inputBorder = effectiveTheme === "dark" ? "gray.600" : "gray.200";
 
@@ -66,7 +62,7 @@ export function InviteVolunteerButton({ surveyWalkId }: InviteVolunteerButtonPro
     return (
         <Dialog.Root size="sm" open={open} onOpenChange={(event) => { setOpen(event.open); setEmail(''); }}>
             <Dialog.Trigger asChild>
-                <Button variant="outline" size="sm" px={2} color={outlineButtonColor} borderColor={outlineButtonBorder} _hover={{ bg: outlineButtonHoverBg }}>
+                <Button variant="plain" size="sm" className="btn btn-secondary btn-compact">
                     <MdPersonAdd />
                     Invite
                 </Button>
@@ -91,11 +87,11 @@ export function InviteVolunteerButton({ surveyWalkId }: InviteVolunteerButtonPro
                         </Dialog.Body>
                         <Dialog.Footer>
                             <Dialog.ActionTrigger asChild>
-                                <Button variant="outline" px={2} disabled={isLoading} color={outlineButtonColor} borderColor={outlineButtonBorder} _hover={{ bg: outlineButtonHoverBg }}>
+                                <Button variant="plain" className="btn btn-secondary btn-compact" disabled={isLoading}>
                                     Cancel
                                 </Button>
                             </Dialog.ActionTrigger>
-                            <Button px={2} onClick={handleSend} loading={isLoading}>
+                            <Button variant="plain" className="btn btn-primary btn-compact" onClick={handleSend} loading={isLoading}>
                                 Send Invite
                             </Button>
                         </Dialog.Footer>

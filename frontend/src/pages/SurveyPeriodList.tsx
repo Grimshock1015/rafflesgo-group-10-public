@@ -3,14 +3,9 @@ import SurveyPeriodGrid from '../components/SurveyPeriodGrid';
 import { Button, Container } from '@chakra-ui/react';
 import { IoMdAdd } from "react-icons/io";
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from "@/contexts/ThemeContext";
 
 export default function SurveyPeriodList({ user }: { user: User }) {
   const navigate = useNavigate();
-  const { effectiveTheme } = useTheme();
-  const outlineButtonColor = effectiveTheme === "dark" ? "gray.200" : "gray.700";
-  const outlineButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.300";
-  const outlineButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.100" : "gray.100";
   return (
     <>
       <main className="main-content">
@@ -20,11 +15,8 @@ export default function SurveyPeriodList({ user }: { user: User }) {
               List of Survey Periods
             </h1>
             <Button
-              px={3}
-              variant="outline"
-              color={outlineButtonColor}
-              borderColor={outlineButtonBorder}
-              _hover={{ bg: outlineButtonHoverBg }}
+              variant="plain"
+              className="btn btn-primary"
               onClick={() => navigate('/create-survey-period')}
             >
               Create New

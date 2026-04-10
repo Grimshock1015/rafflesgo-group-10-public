@@ -15,9 +15,6 @@ export function DeleteSurveyWalkButton({ surveyWalkId, onDeleted }: DeleteSurvey
     const [open, setOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const { effectiveTheme } = useTheme();
-    const outlineButtonColor = effectiveTheme === "dark" ? "gray.200" : "gray.700";
-    const outlineButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.300";
-    const outlineButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.100" : "gray.100";
     const dialogBg = effectiveTheme === "dark" ? "gray.900" : "white";
     const dialogBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.200";
     const dialogTextColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
@@ -50,7 +47,7 @@ export function DeleteSurveyWalkButton({ surveyWalkId, onDeleted }: DeleteSurvey
     return (
         <Dialog.Root size={"sm"} open={open} onOpenChange={(event) => setOpen(event.open)}>
             <Dialog.Trigger asChild>
-                <Button variant="outline" size={"sm"} px={2} color={outlineButtonColor} borderColor={outlineButtonBorder} _hover={{ bg: outlineButtonHoverBg }}>
+                <Button variant="plain" size={"sm"} className="btn btn-secondary btn-compact">
                     <MdDelete />
                     Delete
                 </Button>
@@ -67,11 +64,11 @@ export function DeleteSurveyWalkButton({ surveyWalkId, onDeleted }: DeleteSurvey
                         </Dialog.Body>
                         <Dialog.Footer>
                             <Dialog.ActionTrigger asChild>
-                                <Button variant="outline" px={2} disabled={isDeleting} color={outlineButtonColor} borderColor={outlineButtonBorder} _hover={{ bg: outlineButtonHoverBg }}>
+                                <Button variant="plain" className="btn btn-secondary btn-compact" disabled={isDeleting}>
                                     Cancel
                                 </Button>
                             </Dialog.ActionTrigger>
-                            <Button px={2} onClick={handleDelete} loading={isDeleting}>
+                            <Button variant="plain" className="btn btn-primary btn-compact" onClick={handleDelete} loading={isDeleting}>
                                 Delete
                             </Button>
                         </Dialog.Footer>

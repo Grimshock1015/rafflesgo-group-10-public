@@ -228,7 +228,7 @@ export default function CreateSurveyWalk() {
                             <Input type="number" min={1} value={capacity} onChange={(e) => setCapacity(parseInt(e.target.value, 10) || 1)} required />
                         </Field.Root>
 
-                        <Button backgroundColor="green.fg" px={3} alignSelf={"end"} mt={5} type="submit" loading={isSubmitting} disabled={isLoadingPeriods || surveyPeriods.length === 0}>
+                        <Button variant="plain" className="btn btn-primary" alignSelf={"end"} mt={5} type="submit" loading={isSubmitting} disabled={isLoadingPeriods || surveyPeriods.length === 0}>
                             <IoMdAdd />Add survey walk
                         </Button>
                     </Stack>

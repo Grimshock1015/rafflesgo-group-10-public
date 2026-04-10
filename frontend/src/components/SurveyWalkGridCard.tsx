@@ -30,9 +30,6 @@ export function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyW
     const sectionInsetBg = "var(--bg-secondary)";
     const sectionInsetBorder = "var(--border-color-light)";
     const descriptionLineHeight = 0.75;
-    const outlineButtonColor = effectiveTheme === "dark" ? "gray.200" : "gray.700";
-    const outlineButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.300";
-    const outlineButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.100" : "gray.100";
 
     function handleJoin() {
         setIsLoading(true);
@@ -158,7 +155,7 @@ export function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyW
                                             <Box mt={3} color={cardSubtleTextColor} bg={sectionInsetBg} borderWidth="1px" borderColor={sectionInsetBorder} borderRadius="14px" px={4} py={3}>
                                                 <Text mb={1}>No-shows:</Text>
                                                 <List.Root>
-                                                    {sw.noShows.length === 0 ? <List.Item>None</List.Item> : sw.noShows.map((v) => (
+                                                    {sw.noShows.length === 0 ? <></> : sw.noShows.map((v) => (
                                                         <PersonListItem key={v.uid} person={v} />
                                                     ))}
                                                 </List.Root>
@@ -170,32 +167,21 @@ export function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyW
                             </Stack>
                         </Stack>
                     </Card.Body>
-                    <Card.Footer justifyContent={"flex-end"} p={4} gap={1.5} flexWrap={"wrap"} flexShrink={0}>
+                    <Card.Footer justifyContent={"flex-end"} p={4} pt={2} gap={1.5} flexWrap={"wrap"} flexShrink={0}>
                         <Collapsible.Trigger asChild>
                             <Button
-                                size={"sm"}
-                                px={2}
-                                variant="outline"
-                                color={outlineButtonColor}
-                                borderColor={outlineButtonBorder}
-                                bg={open ? outlineButtonHoverBg : "transparent"}
-                                _hover={{ bg: outlineButtonHoverBg }}
-                                _active={{ bg: outlineButtonHoverBg }}
-                                _expanded={{ bg: outlineButtonHoverBg }}
+                                variant="plain"
+                                className="btn btn-secondary btn-compact"
                             >
                                 {open ? <><FaEyeSlash />Hide Details</> : <><FaEye /> View Details</>}
                             </Button>
                         </Collapsible.Trigger>
                         <Button
-                            size={"sm"}
-                            px={2}
+                            variant="plain"
+                            className="btn btn-primary btn-compact"
                             onClick={hasJoined ? handleQuit : handleJoin}
                             disabled={sw.isFinished || (isFull && !hasJoined)}
                             loading={isLoading}
-                            variant="outline"
-                            color={outlineButtonColor}
-                            borderColor={outlineButtonBorder}
-                            _hover={{ bg: outlineButtonHoverBg }}
                         >
                             {hasJoined ? <><MdGroupRemove /> Quit</> : <><MdGroupAdd /> Join</>}
                         </Button>
@@ -208,14 +194,14 @@ export function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyW
                         {isLeader && (
                             <ReassignLeaderButton surveyWalkId={sw.uid} leaderUid={sw.leader.uid} volunteers={sw.volunteers} onDeleted={onJoin} />
                         )}
-                        <Box flexBasis="100%" height={0} />
+                        {/* <Box flexBasis="100%" height={0} /> */}
                         {role === "admin" && (
                             <>
                                 <SurveyWalkSightingsButton surveyWalk={sw} />
                                 <DeleteSurveyWalkButton surveyWalkId={sw.uid} onDeleted={async () => {
                                     onJoin();
                                 }} />
-                                <Button size={"sm"} px={2} variant="outline" color={outlineButtonColor} borderColor={outlineButtonBorder} _hover={{ bg: outlineButtonHoverBg }} onClick={() => onEdit(sw.uid)}>
+                                <Button variant="plain" className="btn btn-secondary btn-compact" onClick={() => onEdit(sw.uid)}>
                                     <MdModeEdit />Edit
                                 </Button>
                             </>
