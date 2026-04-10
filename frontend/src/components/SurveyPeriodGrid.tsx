@@ -99,11 +99,13 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
     const selectText = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
     const selectPlaceholder = effectiveTheme === "dark" ? "whiteAlpha.700" : "gray.500";
     const selectItemHoverBg = effectiveTheme === "dark" ? "gray.700" : "gray.50";
-    const cardBg = effectiveTheme === "dark" ? "gray.900" : "white";
-    const cardBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.200";
+    const cardBg = "var(--bg-card)";
+    const cardBorder = "var(--border-color)";
     const cardShadow = effectiveTheme === "dark" ? "0 12px 28px rgba(0, 0, 0, 0.38)" : "sm";
-    const cardTextColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
-    const cardSubtleTextColor = effectiveTheme === "dark" ? "whiteAlpha.800" : "gray.700";
+    const cardTextColor = "var(--text-primary)";
+    const cardSubtleTextColor = "var(--text-secondary)";
+    const sectionInsetBg = "var(--bg-secondary)";
+    const sectionInsetBorder = "var(--border-color-light)";
     const outlineButtonColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.700";
     const outlineButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.500" : "gray.300";
     const outlineButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.200" : "gray.100";
@@ -250,7 +252,7 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
             <Grid templateColumns="repeat(auto-fill, minmax(320px, 1fr))" gap={4} mt={5}>
                 {surveyPeriods.map((sp) => (
                     <GridItem key={sp.uid}>
-                        <Card.Root h="100%" p={0} overflow="hidden" bg={cardBg} borderWidth="1px" borderColor={cardBorder} boxShadow={cardShadow}>
+                        <Card.Root h="100%" p={0} overflow="hidden" display="flex" flexDirection="column" bg={cardBg} borderWidth="1px" borderColor={cardBorder} borderRadius="16px" boxShadow={cardShadow}>
                             <Image
                                 src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1874&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                                 alt="Survey walk cover"
@@ -260,8 +262,8 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                                 objectPosition="center"
                                 display="block"
                             />
-                            <Card.Body p={3} color={cardTextColor}>
-                                <Stack>
+                            <Card.Body p={5} pb={3} color={cardTextColor}>
+                                <Stack gap={2}>
                                     <Stack direction="row" justify="space-between" align="flex-start">
                                         <Card.Title color={cardTextColor}>{sp.name}</Card.Title>
                                         <Box display="flex" gap={1.5} alignItems="center" justifyContent="flex-end" ml="auto">
@@ -286,20 +288,22 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                                         </Box>
                                     </Stack>
 
-                                    <Stack gap={0}>
-                                        <Text lineHeight={0.5} color={cardSubtleTextColor}>
-                                            Start: {new Date(sp.startDate).toLocaleDateString("en-SG", { timeZone: "UTC" })}
-                                        </Text>
-                                        <Text lineHeight={0.5} color={cardSubtleTextColor}>
-                                            End: {new Date(sp.endDate).toLocaleDateString("en-SG", { timeZone: "UTC" })}
-                                        </Text>
-                                        <Text lineHeight={0.5} color={cardSubtleTextColor}>
-                                            Min. walks: {sp.minWalks}
-                                        </Text>
-                                    </Stack>
+                                    <Box bg={sectionInsetBg} borderWidth="1px" borderColor={sectionInsetBorder} borderRadius="14px" px={4} py={5}>
+                                        <Stack gap={5}>
+                                            <Text lineHeight={0.75} color={cardSubtleTextColor} mb={0}>
+                                                Start: {new Date(sp.startDate).toLocaleDateString("en-SG", { timeZone: "UTC" })}
+                                            </Text>
+                                            <Text lineHeight={0.75} color={cardSubtleTextColor} mb={0}>
+                                                End: {new Date(sp.endDate).toLocaleDateString("en-SG", { timeZone: "UTC" })}
+                                            </Text>
+                                            <Text lineHeight={0.75} color={cardSubtleTextColor} mb={0}>
+                                                Min. walks: {sp.minWalks}
+                                            </Text>
+                                        </Stack>
+                                    </Box>
                                 </Stack>
                             </Card.Body>
-                            <Card.Footer justifyContent={"flex-end"} gap={2} p={3} pt={0}>
+                            <Card.Footer justifyContent={"flex-end"} p={4} gap={1.5} flexWrap={"wrap"} flexShrink={0}>
                                 {
                                     role === "admin" && (
                                         <>

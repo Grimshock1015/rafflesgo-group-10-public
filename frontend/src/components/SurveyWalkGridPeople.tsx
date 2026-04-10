@@ -15,6 +15,7 @@ export function PersonAvatar({ person, size = "28px" }: { person: WalkPerson; si
                 borderRadius="full"
                 objectFit="cover"
                 flexShrink={0}
+                position={"relative"}
             />
         );
     }
@@ -44,7 +45,7 @@ export function PersonListItem({ person }: { person: WalkPerson }) {
     return (
         <List.Item key={person.uid} listStyleType="none" mb={1}>
             <Box display="flex" alignItems="center" gap={2}>
-                <PersonAvatar person={person} />
+                <PersonAvatar person={person} size="24px"/>
                 <Text mb={0}>{label}</Text>
             </Box>
         </List.Item>

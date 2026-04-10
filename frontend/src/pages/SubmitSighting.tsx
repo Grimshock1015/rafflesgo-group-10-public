@@ -15,6 +15,7 @@ import type { DraftMedia, SightingDraftFormData } from '../types/sightingDrafts'
 import { buildDraft } from '../utils/buildDraft';
 import { ObservationDatePicker } from '../components/ObservationDatePicker';
 import { ObservationTimePicker } from '../components/ObservationTimePicker';
+import { MdOutlineGpsFixed } from 'react-icons/md';
 
 // Fix leaflet icon issue in react-leaflet
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
@@ -370,7 +371,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
                   : 'Drafts are stored on this device so you can come back without losing your form.'}
               </p>
             </div>
-            <Link className="btn-secondary" to="/drafts">
+            <Link className="btn-primary" to="/drafts">
               Open Saved Drafts
             </Link>
           </section>
@@ -572,13 +573,14 @@ export default function SubmitSightingPage({ user }: { user: User }) {
                     <h3 style={{margin: 0}}>Pinpoint Location</h3>
                     <button
                       type="button"
-                      className="btn-secondary map-location-button"
+                      className="btn-primary map-location-button"
                       onClick={() => {
                         navigator.geolocation.getCurrentPosition((pos) => {
                           setPosition(new L.LatLng(pos.coords.latitude, pos.coords.longitude));
                         });
                       }}
                     >
+                      <MdOutlineGpsFixed />
                       Use Device GPS
                     </button>
                   </div>

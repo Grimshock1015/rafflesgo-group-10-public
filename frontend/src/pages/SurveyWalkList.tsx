@@ -1,4 +1,3 @@
-import SurveyWalkGrid from "@/components/SurveyWalkGrid";
 import { Button, Container } from "@chakra-ui/react";
 import type { User } from "firebase/auth";
 import { IoMdAdd } from "react-icons/io";
@@ -6,6 +5,7 @@ import { useEffect, useState } from "react";
 import { RafflesGoService } from "@/api";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/contexts/ThemeContext";
+import SurveyWalkGrid from "@/components/SurveyWalkGrid";
 
 export default function SurveyWalkList({ user }: { user: User }) {
     const [role, setRole] = useState<string>("user");

@@ -22,11 +22,14 @@ export function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyW
     const isFull = sw.volunteers.length >= sw.capacity;
     const isLeader = sw.leader.uid === user.uid;
     const { effectiveTheme } = useTheme();
-    const cardBg = effectiveTheme === "dark" ? "gray.900" : "white";
-    const cardBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.200";
+    const cardBg = "var(--bg-card)";
+    const cardBorder = "var(--border-color)";
     const cardShadow = effectiveTheme === "dark" ? "0 12px 28px rgba(0, 0, 0, 0.38)" : "sm";
-    const cardTextColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
-    const cardSubtleTextColor = effectiveTheme === "dark" ? "whiteAlpha.800" : "gray.700";
+    const cardTextColor = "var(--text-primary)";
+    const cardSubtleTextColor = "var(--text-secondary)";
+    const sectionInsetBg = "var(--bg-secondary)";
+    const sectionInsetBorder = "var(--border-color-light)";
+    const descriptionLineHeight = 0.75;
     const outlineButtonColor = effectiveTheme === "dark" ? "gray.200" : "gray.700";
     const outlineButtonBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.300";
     const outlineButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.100" : "gray.100";
@@ -80,18 +83,18 @@ export function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyW
     return (
         <GridItem key={sw.uid} h="100%">
             <Collapsible.Root open={open} onOpenChange={(event) => setOpen(event.open)} display="flex" flexDirection="column" h="100%">
-                <Card.Root h="100%" w="100%" p={0} overflow="hidden" display="flex" flexDirection="column" bg={cardBg} borderWidth="1px" borderColor={cardBorder} boxShadow={cardShadow}>
+                <Card.Root h="100%" w="100%" p={0} overflow="hidden" display="flex" flexDirection="column" bg={cardBg} borderWidth="1px" borderColor={cardBorder} borderRadius="16px" boxShadow={cardShadow}>
                     <Image
                         src="/assets/images/monkey.jpg"
                         alt="Survey walk cover"
                         w="100%"
-                        h="160px"
+                        h="170px"
                         objectFit="cover"
                         objectPosition="center"
                         display="block"
                         flexShrink={0}
                     />
-                    <Card.Body p={3} flex="1" overflowY="auto" color={cardTextColor}>
+                    <Card.Body p={5} pb={3} flex="1" overflowY="auto" color={cardTextColor}>
                         <Stack gap={2}>
                             <Stack direction="row" justify="space-between" align="flex-start">
                                 <Card.Title color={cardTextColor}>{sw.name}</Card.Title>
@@ -114,24 +117,28 @@ export function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyW
 
                             </Stack>
 
-                            <Stack gap={1}>
-                                <Text lineHeight={0.5} color={cardSubtleTextColor}>
-                                    Time: {new Date(sw.date).toLocaleDateString("en-SG", { timeZone: "UTC" })}, {sw.startTime} - {sw.endTime}
-                                </Text>
-                                <Text lineHeight={0.5} color={cardSubtleTextColor}>
-                                    Volunteer no.: {sw.volunteers.length} / {sw.capacity}
-                                </Text>
-                                <Box color={cardSubtleTextColor} display="flex" alignItems="center" gap={2} height={"8"} mb={1}>
-                                    <Text as="span" color={cardSubtleTextColor}>Leader:</Text>
-                                    {(sw.leader.name || sw.leader.uid) ? <PersonAvatar person={sw.leader} size="24px" /> : null}
-                                    <Text as="span" color={cardSubtleTextColor}>{sw.leader.name || sw.leader.uid || "N/A"} {isLeader && "(You)"}</Text>
+                            <Stack gap={2}>
+                                <Box bg={sectionInsetBg} borderWidth="1px" borderColor={sectionInsetBorder} borderRadius="14px" px={4} py={5}>
+                                    <Stack gap={5}>
+                                        <Text lineHeight={descriptionLineHeight} color={cardSubtleTextColor} mb={0}>
+                                            Time: {new Date(sw.date).toLocaleDateString("en-SG", { timeZone: "UTC" })}, {sw.startTime} - {sw.endTime}
+                                        </Text>
+                                        <Text lineHeight={descriptionLineHeight} color={cardSubtleTextColor} mb={0}>
+                                            Volunteer no.: {sw.volunteers.length} / {sw.capacity}
+                                        </Text>
+                                        <Text lineHeight={descriptionLineHeight} color={cardSubtleTextColor} mb={0}>
+                                            Contributes to: {sw.surveyPeriodName}
+                                        </Text>
+                                        <Box color={cardSubtleTextColor} display="flex" alignItems="center" gap={2} height={"12px"} mb={1}>
+                                            <Text as="span" lineHeight={descriptionLineHeight} color={cardSubtleTextColor}>Leader:</Text>
+                                            {(sw.leader.name || sw.leader.uid) ? <PersonAvatar person={sw.leader} size="24px" /> : null}
+                                            <Text as="span" lineHeight={descriptionLineHeight} color={cardSubtleTextColor}>{sw.leader.name || sw.leader.uid || "N/A"} {isLeader && "(You)"}</Text>
+                                        </Box>
+                                    </Stack>
                                 </Box>
-                                <Text lineHeight={0.5} color={cardSubtleTextColor}>
-                                    Contributes to: {sw.surveyPeriodName}
-                                </Text>
                                 <Collapsible.Content>
-                                    <Box color={cardSubtleTextColor}>
-                                        <Text mb={0}>Participants:</Text>
+                                    <Box color={cardSubtleTextColor} bg={sectionInsetBg} borderWidth="1px" borderColor={sectionInsetBorder} borderRadius="14px" px={4} py={3}>
+                                        <Text mb={1}>Participants:</Text>
                                         <List.Root>
                                             {sw.volunteers.map((v) => (
                                                 <PersonListItem key={v.uid} person={v} />
@@ -140,16 +147,16 @@ export function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyW
                                     </Box>
                                     {sw.isFinished && (
                                         <>
-                                            <Box mt={3} color={cardSubtleTextColor}>
-                                                <Text mb={0}>Attended:</Text>
+                                            <Box mt={3} color={cardSubtleTextColor} bg={sectionInsetBg} borderWidth="1px" borderColor={sectionInsetBorder} borderRadius="14px" px={4} py={3}>
+                                                <Text mb={1}>Attended:</Text>
                                                 <List.Root>
                                                     {sw.attendees.length === 0 ? <List.Item>None recorded</List.Item> : sw.attendees.map((v) => (
                                                         <PersonListItem key={v.uid} person={v} />
                                                     ))}
                                                 </List.Root>
                                             </Box>
-                                            <Box mt={3} color={cardSubtleTextColor}>
-                                                <Text mb={0}>No-shows:</Text>
+                                            <Box mt={3} color={cardSubtleTextColor} bg={sectionInsetBg} borderWidth="1px" borderColor={sectionInsetBorder} borderRadius="14px" px={4} py={3}>
+                                                <Text mb={1}>No-shows:</Text>
                                                 <List.Root>
                                                     {sw.noShows.length === 0 ? <List.Item>None</List.Item> : sw.noShows.map((v) => (
                                                         <PersonListItem key={v.uid} person={v} />
@@ -163,7 +170,7 @@ export function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyW
                             </Stack>
                         </Stack>
                     </Card.Body>
-                    <Card.Footer justifyContent={"flex-end"} p={3} pt={0} gap={1} flexWrap={"wrap"} flexShrink={0}>
+                    <Card.Footer justifyContent={"flex-end"} p={4} gap={1.5} flexWrap={"wrap"} flexShrink={0}>
                         <Collapsible.Trigger asChild>
                             <Button
                                 size={"sm"}
