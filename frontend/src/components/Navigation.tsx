@@ -32,6 +32,20 @@ export function Navigation({ user }: NavigationProps) {
     if (location.pathname.startsWith('/submit-sighting')) return 'submit-sighting'
     if (location.pathname.startsWith('/dashboard')) return 'dashboard'
     if (location.pathname.startsWith('/admin')) return 'admin'
+    if (
+      location.pathname.startsWith('/survey-periods') ||
+      location.pathname.startsWith('/create-survey-period') ||
+      location.pathname.startsWith('/edit-survey-period')
+    ) {
+      return 'survey-periods'
+    }
+    if (
+      location.pathname.startsWith('/survey-walks') ||
+      location.pathname.startsWith('/create-survey-walk') ||
+      location.pathname.startsWith('/edit-survey-walk')
+    ) {
+      return 'survey-walks'
+    }
     return 'survey-walks'
   })()
 
@@ -180,6 +194,23 @@ export function Navigation({ user }: NavigationProps) {
               >
                 Survey Walks
               </Tabs.Trigger>
+
+              {role === 'admin' && (
+                <Tabs.Trigger
+                  value="survey-periods"
+                  className="nav-link"
+                  data-nav-link
+                  color={tabText}
+                  borderBottomWidth={tabBorderBottomWidth}
+                  borderBottomStyle="solid"
+                  borderBottomColor="transparent"
+                  _hover={{ color: brandGreen }}
+                  _selected={selectedTabStyles}
+                  onClick={() => { closeMobileMenu(); navigate('/survey-periods'); }}
+                >
+                  Survey Periods
+                </Tabs.Trigger>
+              )}
 
               <Tabs.Trigger
                 value="submit-sighting"
