@@ -16,9 +16,6 @@ vi.mock('../api', () => ({
     changeUserRole: vi.fn(),
     updateUserStatus: vi.fn(),
   },
-  SightingsService: {
-    deleteSighting: vi.fn(),
-  },
 }));
 
 vi.mock('../utils/googleSheetsExport', () => ({
@@ -29,7 +26,7 @@ vi.mock('../lib/adminSightings', () => ({
   listAllAdminSightings: vi.fn(),
 }));
 
-import { RafflesGoService, SightingsService } from '../api';
+import { RafflesGoService } from '../api';
 
 describe('AdminDashboard', () => {
   beforeEach(() => {
@@ -127,13 +124,9 @@ describe('AdminDashboard', () => {
       uid: 'user-2',
       disabled: true,
     });
-    vi.mocked(SightingsService.deleteSighting).mockResolvedValue({
-      success: true,
-      id: 'sighting-1',
-    });
   });
 
-  it('renders admin overview, user management, and sightings moderation sections', async () => {
+  it('renders admin overview and user management sections', async () => {
     render(
       <BrowserRouter>
         <AdminDashboard />
@@ -143,10 +136,9 @@ describe('AdminDashboard', () => {
     await waitFor(() => {
       expect(screen.getByText(/admin dashboard/i)).toBeInTheDocument();
       expect(screen.getByText(/user management/i)).toBeInTheDocument();
-      expect(screen.getByText(/sighting moderation/i)).toBeInTheDocument();
       expect(screen.getByText(/volunteer user/i)).toBeInTheDocument();
-      expect(screen.getByText(/Raffles Banded Langur/i)).toBeInTheDocument();
       expect(screen.getByAltText(/volunteer user profile/i)).toBeInTheDocument();
+      expect(screen.getByText(/total sightings/i)).toBeInTheDocument();
     });
   });
 
@@ -166,22 +158,6 @@ describe('AdminDashboard', () => {
         email: 'user@example.com',
         role: 'admin',
       });
-    });
-  });
-
-  it('allows admins to delete a sighting', async () => {
-    const user = userEvent.setup();
-
-    render(
-      <BrowserRouter>
-        <AdminDashboard />
-      </BrowserRouter>,
-    );
-
-    await user.click(await screen.findByRole('button', { name: /delete sighting/i }));
-
-    await waitFor(() => {
-      expect(SightingsService.deleteSighting).toHaveBeenCalledWith('sighting-1');
     });
   });
 

@@ -4,6 +4,7 @@ import type { User } from 'firebase/auth';
 import { Link } from 'react-router-dom';
 import { RafflesGoService, SightingsService } from '../api';
 import { getAllDrafts } from '../services/SightingDraftsService';
+import InvitationNotifications from '../components/InvitationNotifications';
 
 type MySightingsDashboard = Awaited<ReturnType<typeof SightingsService.getMySightingsDashboard>>;
 type JoinedSurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalksForCurrentUser>>['surveyWalks'][number];
@@ -321,6 +322,8 @@ export default function Dashboard({ user }: { user: User }) {
             ) : null}
           </div>
         </section>
+
+        <InvitationNotifications userEmail={userEmail} />
 
         <section aria-labelledby="next-walk-heading" style={sectionStyle} className="next-walk-section">
           <h2 id="next-walk-heading">Next Upcoming Walk</h2>

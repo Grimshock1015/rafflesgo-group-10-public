@@ -38,6 +38,20 @@ export class SurveyWalkRepository {
         return snapshot.docs.map((doc) => this.toEntity(doc.id, doc.data()));
     }
 
+    // Finds all walks scheduled on a given date (format: "YYYY-MM-DD").
+    // Uses a range query since dates are stored as Firestore Timestamps.
+    async findByDate(date: string): Promise<SurveyWalkEntity[]> {
+        const start = new Date(`${date}T00:00:00.000Z`);
+        const end = new Date(`${date}T23:59:59.999Z`);
+
+        const snapshot = await this.collection()
+            .where('date', '>=', start)
+            .where('date', '<=', end)
+            .get();
+
+        return snapshot.docs.map((doc) => this.toEntity(doc.id, doc.data()));
+    }
+
     async create(payload: SurveyWalkWrite): Promise<SurveyWalkEntity> {
         const ref = this.collection().doc();
         await ref.set(payload);
