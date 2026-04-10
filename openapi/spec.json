@@ -394,6 +394,55 @@
         }
       }
     },
+    "/api/surveyPeriods/active": {
+      "get": {
+        "operationId": "getActiveSurveyPeriod",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Get the current active survey period (uid, name, minWalks)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "required": [
+                        "uid",
+                        "name",
+                        "minWalks"
+                      ],
+                      "properties": {
+                        "uid": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "minWalks": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/surveyPeriods": {
       "get": {
         "operationId": "listSurveyPeriods",
