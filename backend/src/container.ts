@@ -7,6 +7,8 @@ import { SurveyWalkRepository } from './repositories/surveyWalk.repository';
 import { InvitationRepository } from './repositories/invitation.repository';
 import { EmailService } from './services/email.service';
 import { InvitationService } from './services/invitation.service';
+import { WeatherService } from './services/weather.service';
+import { WalkReminderService } from './services/walkReminder.service';
 
 export interface Container {
   userRepository: UserRepository;
@@ -18,6 +20,8 @@ export interface Container {
   invitationRepository: InvitationRepository;
   emailService: EmailService;
   invitationService: InvitationService;
+  weatherService: WeatherService;
+  walkReminderService: WalkReminderService;
 }
 
 export function createContainer(): Container {
@@ -38,6 +42,8 @@ export function createContainer(): Container {
     surveyPeriodRepository,
     emailService,
   );
+  const weatherService = new WeatherService();
+  const walkReminderService = new WalkReminderService(surveyWalkRepository, emailService, weatherService);
 
   return {
     userRepository,
@@ -49,6 +55,8 @@ export function createContainer(): Container {
     invitationRepository,
     emailService,
     invitationService,
+    weatherService,
+    walkReminderService,
   };
 }
 
