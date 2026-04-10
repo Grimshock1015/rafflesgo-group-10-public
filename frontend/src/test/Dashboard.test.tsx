@@ -16,6 +16,7 @@ vi.mock('../api', () => ({
     sayHello: vi.fn(),
     getCurrentUser: vi.fn(),
     listSurveyWalksForCurrentUser: vi.fn(),
+    getActiveSurveyPeriod: vi.fn().mockResolvedValue(null),
   },
   SightingsService: {
     getMySightingsDashboard: vi.fn(),
