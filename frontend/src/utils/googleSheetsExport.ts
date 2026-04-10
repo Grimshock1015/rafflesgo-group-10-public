@@ -78,11 +78,18 @@ export function exportAdminDataToGoogleSheets(payload: ExportPayload) {
     endTime: surveyWalk.endTime,
     capacity: surveyWalk.capacity,
     isFinished: surveyWalk.isFinished,
+    completedAt: surveyWalk.completedAt ?? '',
     leaderUid: surveyWalk.leader.uid,
     leaderName: surveyWalk.leader.name,
     volunteerCount: surveyWalk.volunteers.length,
+    attendeeCount: surveyWalk.attendees.length,
+    noShowCount: surveyWalk.noShows.length,
     volunteerUids: joinList(surveyWalk.volunteers.map((volunteer) => volunteer.uid)),
     volunteerNames: joinList(surveyWalk.volunteers.map((volunteer) => volunteer.name)),
+    attendeeUids: joinList(surveyWalk.attendees.map((volunteer) => volunteer.uid)),
+    attendeeNames: joinList(surveyWalk.attendees.map((volunteer) => volunteer.name)),
+    noShowUids: joinList(surveyWalk.noShows.map((volunteer) => volunteer.uid)),
+    noShowNames: joinList(surveyWalk.noShows.map((volunteer) => volunteer.name)),
   }));
 
   const sightingRows = payload.sightings.map((sighting) => ({

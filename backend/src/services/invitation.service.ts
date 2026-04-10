@@ -56,7 +56,7 @@ export class InvitationService {
         // Send invitation email - if it fails, mark invitation as declined (rollback)
         try {
             await this.emailService.sendInvitationEmail(inviteeEmail, inviterName, walk.name, invitation.uid);
-        } catch (error) {
+        } catch {
             await this.invitationRepository.update(invitation.uid, { status: 'declined' });
             throw new BadRequestError('Failed to send invitation email. Please try again.');
         }
