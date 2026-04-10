@@ -9,6 +9,7 @@ import { toaster } from "./ui/toaster";
 import type { User } from "firebase/auth";
 import { BiTransfer } from "react-icons/bi";
 import { MdDelete, MdModeEdit, MdDoneAll, MdPhotoLibrary } from "react-icons/md";
+import { InviteVolunteerButton } from "./InviteVolunteerButton";
 import { buildAdminSightingStats, listAdminSightingsForSurveyWalk, type AdminSighting } from "@/lib/adminSightings";
 
 type SurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalks>>["surveyWalks"][number];
@@ -886,6 +887,9 @@ function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; on
                     >
                         {hasJoined ? <><MdGroupRemove /> Quit</> : <><MdGroupAdd /> Join</>}
                     </Button>
+                    {!sw.isFinished && (
+                        <InviteVolunteerButton surveyWalkId={sw.uid} />
+                    )}
                     {isLeader && !sw.isFinished && (
                         <MarkCompleteButton surveyWalk={sw} />
                     )}

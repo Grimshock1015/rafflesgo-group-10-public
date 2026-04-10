@@ -12,7 +12,8 @@ export default defineConfig({
             // Exclude example files or boilerplate code from coverage report
             exclude: [
                 'src/handlers/health.handler.ts',
-                'src/handlers/hello.handler.ts'
+                'src/handlers/hello.handler.ts',
+                'src/services/.gitkeep'
             ],
         },
     },
