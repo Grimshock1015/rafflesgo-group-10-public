@@ -4059,6 +4059,7 @@ input:checked + .slider:before {
     cursor: pointer;
     font-size: var(--font-size-base);
     transition: all var(--transition-fast);
+    font-weight: 600;
 }
 
 .btn-warning:hover {

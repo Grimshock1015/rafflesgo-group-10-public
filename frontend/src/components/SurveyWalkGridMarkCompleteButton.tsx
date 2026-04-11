@@ -10,9 +10,10 @@ import { toaster } from "./ui/toaster";
 type MarkCompleteButtonProps = {
     surveyWalk: SurveyWalk;
     onJoin: () => void;
+    isFinished?: boolean;
 };
 
-export function MarkCompleteButton({ surveyWalk, onJoin }: MarkCompleteButtonProps) {
+export function MarkCompleteButton({ surveyWalk, onJoin, isFinished }: MarkCompleteButtonProps) {
     const [open, setOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const initialAttendeeUids = surveyWalk.attendeeUids ?? [];
@@ -65,9 +66,9 @@ export function MarkCompleteButton({ surveyWalk, onJoin }: MarkCompleteButtonPro
     return (
         <Dialog.Root size={"sm"} open={open} onOpenChange={(event) => setOpen(event.open)}>
             <Dialog.Trigger asChild>
-                <Button size={"sm"} variant="plain" className="btn btn-secondary btn-compact">
+                <Button size={"sm"} variant="plain" className="btn btn-secondary btn-compact" disabled={isFinished}>
                     <MdDoneAll />
-                    Mark Complete
+                    {isFinished ? "Completed" : "Mark Complete"}
                 </Button>
             </Dialog.Trigger>
             <Portal>

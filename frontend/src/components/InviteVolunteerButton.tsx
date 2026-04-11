@@ -17,6 +17,11 @@ export function InviteVolunteerButton({ surveyWalkId }: InviteVolunteerButtonPro
 
     const inputBg = effectiveTheme === "dark" ? "gray.800" : "white";
     const inputBorder = effectiveTheme === "dark" ? "gray.600" : "gray.200";
+    const dialogBg = effectiveTheme === "dark" ? "gray.900" : "white";
+    const dialogBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.200";
+    const dialogTextColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
+    const cardSubtleTextColor = effectiveTheme === "dark" ? "whiteAlpha.800" : "gray.700";
+    const cardTextColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
 
     const handleSend = async () => {
         if (!email.trim()) {
@@ -62,7 +67,7 @@ export function InviteVolunteerButton({ surveyWalkId }: InviteVolunteerButtonPro
     return (
         <Dialog.Root size="sm" open={open} onOpenChange={(event) => { setOpen(event.open); setEmail(''); }}>
             <Dialog.Trigger asChild>
-                <Button variant="plain" size="sm" className="btn btn-secondary btn-compact">
+                <Button variant="plain" size="sm" className="btn btn-primary btn-compact">
                     <MdPersonAdd />
                     Invite
                 </Button>
@@ -70,22 +75,24 @@ export function InviteVolunteerButton({ surveyWalkId }: InviteVolunteerButtonPro
             <Portal>
                 <Dialog.Backdrop />
                 <Dialog.Positioner position="fixed" inset={0} display="flex" alignItems="center" justifyContent="center">
-                    <Dialog.Content p={5}>
+                    <Dialog.Content p={5} bg={dialogBg} borderWidth="1px" borderColor={dialogBorder} color={dialogTextColor}>
                         <Dialog.Header>
                             <Dialog.Title>Invite a Volunteer</Dialog.Title>
                         </Dialog.Header>
                         <Dialog.Body color="fg">
-                            <Text mb={3}>Enter the Gmail address of the volunteer you want to invite.</Text>
+                            <Text mb={3} color={cardSubtleTextColor}>Enter the Gmail address of the volunteer you want to invite.</Text>
                             <Input
                                 placeholder="volunteer@gmail.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 bg={inputBg}
                                 borderColor={inputBorder}
+                                color={cardTextColor}
+                                _placeholder={{ color: cardSubtleTextColor }}
                                 type="email"
                             />
                         </Dialog.Body>
-                        <Dialog.Footer>
+                        <Dialog.Footer mt={4}>
                             <Dialog.ActionTrigger asChild>
                                 <Button variant="plain" className="btn btn-secondary btn-compact" disabled={isLoading}>
                                     Cancel

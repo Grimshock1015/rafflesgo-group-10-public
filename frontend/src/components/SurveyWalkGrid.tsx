@@ -134,7 +134,7 @@ export default function SurveyWalkGrid({ user }: { user: User }) {
                     <Select.Label />
 
                     <Select.Control>
-                        <Select.Trigger px={3} py={2} bg={"transparent"} borderColor={selectBorder}>
+                        <Select.Trigger px={3} py={2} bg={"transparent"} borderColor={selectBorder} borderRadius="var(--radius-md)">
                             <Select.ValueText px={1} />
                         </Select.Trigger>
                         <Select.IndicatorGroup pr={2}>
@@ -143,7 +143,7 @@ export default function SurveyWalkGrid({ user }: { user: User }) {
                     </Select.Control>
 
                     <Select.Positioner>
-                        <Select.Content bg={selectBg} borderColor={selectBorder}>
+                        <Select.Content bg={selectBg} borderColor={selectBorder} borderRadius="var(--radius-md)">
                             {volunteerWalkScopeCollection.items.map((item) => (
                                 <Select.Item item={item} key={item.value} py={2.5} px={3} bg={selectBg} _highlighted={{ bg: selectItemHoverBg }}>
                                     {item.label}
@@ -177,7 +177,7 @@ export default function SurveyWalkGrid({ user }: { user: User }) {
                     <Select.Label />
 
                     <Select.Control>
-                        <Select.Trigger px={3} py={2} bg={"transparent"} borderColor={selectBorder}>
+                        <Select.Trigger px={3} py={2} bg={"transparent"} borderColor={selectBorder} borderRadius="var(--radius-md)">
                             <Select.ValueText px={1} />
                         </Select.Trigger>
                         <Select.IndicatorGroup pr={2}>
@@ -186,7 +186,7 @@ export default function SurveyWalkGrid({ user }: { user: User }) {
                     </Select.Control>
 
                     <Select.Positioner>
-                        <Select.Content bg={selectBg} borderColor={selectBorder}>
+                        <Select.Content bg={selectBg} borderColor={selectBorder} borderRadius="var(--radius-md)">
                             {adminWalkScopeCollection.items.map((item) => (
                                 <Select.Item item={item} key={item.value} py={2.5} px={3} bg={selectBg} _highlighted={{ bg: selectItemHoverBg }}>
                                     {item.label}
@@ -198,7 +198,7 @@ export default function SurveyWalkGrid({ user }: { user: User }) {
                 </Select.Root>
             )}
 
-            <Grid templateColumns="repeat(auto-fill, minmax(320px, 1fr))" gridAutoRows="1fr" gap={4} mt={3}>
+            <Grid templateColumns="repeat(auto-fill, minmax(320px, 1fr))" gridAutoRows="1fr" gapX={5} gapY={7} mt={3}>
                 {displayedWalks.map((sw) => (
                     <SurveyWalkCard
                         key={sw.uid}

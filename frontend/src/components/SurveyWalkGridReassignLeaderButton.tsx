@@ -1,6 +1,6 @@
 import { RafflesGoService } from "@/api";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Button, CloseButton, Dialog, Portal, Select, createListCollection } from "@chakra-ui/react";
+import { Button, CloseButton, Dialog, Portal, Select, Text, createListCollection } from "@chakra-ui/react";
 import { useState } from "react";
 import { BiTransfer } from "react-icons/bi";
 
@@ -84,9 +84,10 @@ export function ReassignLeaderButton({ surveyWalkId, leaderUid, volunteers, onDe
                             <Dialog.Title>Reassign Leader</Dialog.Title>
                         </Dialog.Header>
                         <Dialog.Body color={"fg"}>
-                            <Select.Root collection={volunteersCollection} value={selectedParticipantUid} onValueChange={(event) => setSelectedParticipantUid(event.value)} size="sm" my={5}>
+                            <Text mb={3} color={cardSubtleTextColor}>Assign a new leader for this survey walk.</Text>
+                            <Select.Root collection={volunteersCollection} value={selectedParticipantUid} onValueChange={(event) => setSelectedParticipantUid(event.value)} size="sm" mb={5}>
                                 <Select.HiddenSelect />
-                                <Select.Label color={cardSubtleTextColor}>Select participant</Select.Label>
+                                {/* <Select.Label color={cardSubtleTextColor}>Select participant</Select.Label> */}
                                 <Select.Control>
                                     <Select.Trigger px={3} bg={selectBg} borderColor={selectBorder} color={cardTextColor}>
                                         <Select.ValueText placeholder="Select participant" />

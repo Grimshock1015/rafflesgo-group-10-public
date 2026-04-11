@@ -8,6 +8,7 @@ import { MdDelete, MdPhotoLibrary } from "react-icons/md";
 import type { SurveyWalk } from "./SurveyWalkGrid.types";
 import { formatTimestamp } from "./SurveyWalkGrid.utils";
 import { toaster } from "./ui/toaster";
+import { FaEye } from "react-icons/fa";
 
 export function SurveyWalkSightingsButton({ surveyWalk }: { surveyWalk: SurveyWalk }) {
     const [open, setOpen] = useState(false);
@@ -30,6 +31,9 @@ export function SurveyWalkSightingsButton({ surveyWalk }: { surveyWalk: SurveyWa
     const statBg = effectiveTheme === "dark" ? "rgba(255, 255, 255, 0.04)" : "white";
     const statBorder = effectiveTheme === "dark" ? "rgba(255, 255, 255, 0.08)" : "gray.200";
     const statValueColor = effectiveTheme === "dark" ? "white" : "gray.900";
+    const closeButtonColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.700";
+    const closeButtonBg = effectiveTheme === "dark" ? "whiteAlpha.200" : "gray.100";
+    const closeButtonHoverBg = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.200";
 
     const stats = useMemo(() => buildAdminSightingStats(sightings), [sightings]);
     const topSpecies = stats.speciesBreakdown[0];
@@ -130,7 +134,7 @@ export function SurveyWalkSightingsButton({ surveyWalk }: { surveyWalk: SurveyWa
                         maxH="85vh"
                         overflow="hidden"
                     >
-                        <Dialog.Header>
+                        <Dialog.Header pb={2}>
                             <Dialog.Title>{surveyWalk.name} Sightings</Dialog.Title>
                         </Dialog.Header>
                         <Dialog.Body color={"fg"} overflowY="auto">
@@ -178,7 +182,7 @@ export function SurveyWalkSightingsButton({ surveyWalk }: { surveyWalk: SurveyWa
                                     </Box>
 
                                     {sightings.length === 0 ? (
-                                        <Text>No sightings have been submitted for this survey walk yet.</Text>
+                                        <Text color={subtleTextColor}>No sightings have been submitted for this survey walk yet.</Text>
                                     ) : (
                                         <Stack gap={4}>
                                             {visibleSightings.map((sighting) => {
@@ -188,60 +192,92 @@ export function SurveyWalkSightingsButton({ surveyWalk }: { surveyWalk: SurveyWa
                                                             <Card.Body p={5}>
                                                                 <Box display="flex" justifyContent="space-between" gap={5} flexWrap="wrap" alignItems="start">
                                                                     <Box flex="1" minW="240px">
-                                                                        <Text fontSize="lg" fontWeight="semibold">
+                                                                        <Text fontSize="lg" fontWeight="semibold" color={subtleTextColor} mb={1}>
                                                                             {sighting.result === "sighted" ? (sighting.species || "Sighting recorded") : "Zero-sighting walk"}
                                                                         </Text>
-                                                                        <Text mt={1}>{sighting.location}</Text>
-                                                                        <Text color={subtleTextColor} mt={1}>
+                                                                        <Text color={subtleTextColor} mb={1}>
+                                                                            {sighting.location}
+                                                                        </Text>
+                                                                        <Text color={subtleTextColor} mt={1} mb={1}>
                                                                             Submitted by: {resolveSubmitterLabel(sighting.submittedBy)}
                                                                         </Text>
                                                                     </Box>
                                                                     <Box textAlign={{ base: "left", md: "right" }}>
-                                                                        <Text>{sighting.date} at {sighting.time}</Text>
-                                                                        <Text color={subtleTextColor}>{formatTimestamp(sighting.createdAt)}</Text>
+                                                                        <Text color={subtleTextColor} mb={1}>
+                                                                            {sighting.date} at {sighting.time}
+                                                                        </Text>
+                                                                        <Text color={subtleTextColor} mb={1}>
+                                                                            {formatTimestamp(sighting.createdAt)}
+                                                                        </Text>
                                                                     </Box>
                                                                 </Box>
 
-                                                                <Box display="flex" gap={2} flexWrap="wrap" mt={5}>
-                                                                    <Box px={3} py={1.5} borderRadius="full" bg={sighting.result === "sighted" ? emphasisBg : chipBg} color={sighting.result === "sighted" ? emphasisTextColor : chipTextColor} fontSize="sm" fontWeight="medium">
+                                                                <Box display="flex" gap={2} flexWrap="wrap" mt={1} alignItems="center">
+                                                                    <Box px={3} py={1} borderRadius="full" bg={sighting.result === "sighted" ? emphasisBg : chipBg} color={sighting.result === "sighted" ? emphasisTextColor : chipTextColor} fontSize="xs" fontWeight="medium">
                                                                         {sighting.result === "sighted" ? "Sighted" : "Not sighted"}
                                                                     </Box>
                                                                     {typeof sighting.adults === "number" ? (
-                                                                        <Box px={3} py={1.5} borderRadius="full" bg={chipBg} color={chipTextColor} fontSize="sm" fontWeight="medium">
+                                                                        <Box px={3} py={1} borderRadius="full" bg={chipBg} color={chipTextColor} fontSize="xs" fontWeight="medium">
                                                                             Adults: {sighting.adults}
                                                                         </Box>
                                                                     ) : null}
                                                                     {typeof sighting.juveniles === "number" ? (
-                                                                        <Box px={3} py={1.5} borderRadius="full" bg={chipBg} color={chipTextColor} fontSize="sm" fontWeight="medium">
+                                                                        <Box px={3} py={1} borderRadius="full" bg={chipBg} color={chipTextColor} fontSize="xs" fontWeight="medium">
                                                                             Juveniles: {sighting.juveniles}
                                                                         </Box>
                                                                     ) : null}
+                                                                    <Box ml="auto" display="flex" gap={2} flexWrap="wrap" justifyContent="flex-end">
+                                                                        <Collapsible.Trigger asChild>
+                                                                            <Button
+                                                                                size="sm"
+                                                                                variant="plain"
+                                                                                className="btn btn-secondary btn-compact"
+                                                                                _hover={{
+                                                                                    transform: "translateY(-1px)",
+                                                                                    boxShadow: "var(--shadow-md)",
+                                                                                }}
+                                                                                disabled={!sighting.behaviour && !sighting.notes && !sighting.mediaUrl}
+                                                                            >
+                                                                                <FaEye />
+                                                                                View Details
+                                                                            </Button>
+                                                                        </Collapsible.Trigger>
+                                                                        <Button
+                                                                            size="sm"
+                                                                            variant="plain"
+                                                                            className="btn btn-secondary btn-compact"
+                                                                            _hover={{
+                                                                                transform: "translateY(-1px)",
+                                                                                boxShadow: "var(--shadow-md)",
+                                                                            }}
+                                                                            onClick={() => void handleDeleteSighting(sighting.id)}
+                                                                            loading={busySightingId === sighting.id}
+                                                                        >
+                                                                            <MdDelete />
+                                                                            Delete Sighting
+                                                                        </Button>
+                                                                    </Box>
                                                                 </Box>
 
-                                                                <Collapsible.Trigger asChild>
-                                                                    <Button
-                                                                        mt={4}
-                                                                        size="sm"
-                                                                        variant="plain"
-                                                                        className="btn btn-secondary btn-compact"
-                                                                    >
-                                                                        View details
-                                                                    </Button>
-                                                                </Collapsible.Trigger>
+                                                                
 
                                                                 <Collapsible.Content>
                                                                     <Stack gap={4} mt={4}>
                                                                         {sighting.behaviour ? (
-                                                                            <Box bg={detailBg} borderWidth="1px" borderColor={dialogBorder} borderRadius="md" p={4}>
-                                                                                <Text fontSize="sm" color={subtleTextColor} mb={1}>Behaviour</Text>
-                                                                                <Text whiteSpace="pre-wrap">{sighting.behaviour}</Text>
+                                                                            <Box bg={detailBg} borderWidth="1px" borderColor={dialogBorder} borderRadius="md" px={4} py={2}>
+                                                                                <Text fontSize="md" color={subtleTextColor} mb={1}>Behaviour</Text>
+                                                                                <Text whiteSpace="pre-wrap" color={subtleTextColor} mb={1}>
+                                                                                    {sighting.behaviour}
+                                                                                </Text>
                                                                             </Box>
                                                                         ) : null}
 
                                                                         {sighting.notes ? (
-                                                                            <Box bg={detailBg} borderWidth="1px" borderColor={dialogBorder} borderRadius="md" p={4}>
-                                                                                <Text fontSize="sm" color={subtleTextColor} mb={1}>Notes</Text>
-                                                                                <Text whiteSpace="pre-wrap">{sighting.notes}</Text>
+                                                                            <Box bg={detailBg} borderWidth="1px" borderColor={dialogBorder} borderRadius="md" px={4} py={2}>
+                                                                                <Text fontSize="md" color={subtleTextColor} mb={1}>Notes</Text>
+                                                                                <Text whiteSpace="pre-wrap" color={subtleTextColor} mb={1}>
+                                                                                    {sighting.notes}
+                                                                                </Text>
                                                                             </Box>
                                                                         ) : null}
 
@@ -250,27 +286,13 @@ export function SurveyWalkSightingsButton({ surveyWalk }: { surveyWalk: SurveyWa
                                                                                 <Image
                                                                                     src={sighting.mediaUrl}
                                                                                     alt={`${sighting.species || "Survey walk"} submission media`}
-                                                                                    maxH="280px"
                                                                                     w="100%"
                                                                                     borderRadius="md"
-                                                                                    objectFit="contain"
+                                                                                    objectFit="cover"
                                                                                     bg={detailBg}
                                                                                 />
                                                                             </Box>
                                                                         ) : null}
-
-                                                                        <Box>
-                                                                            <Button
-                                                                                size="sm"
-                                                                                variant="plain"
-                                                                                className="btn btn-secondary btn-compact"
-                                                                                onClick={() => void handleDeleteSighting(sighting.id)}
-                                                                                loading={busySightingId === sighting.id}
-                                                                            >
-                                                                                <MdDelete />
-                                                                                Delete Sighting
-                                                                            </Button>
-                                                                        </Box>
                                                                     </Stack>
                                                                 </Collapsible.Content>
                                                             </Card.Body>
@@ -295,7 +317,14 @@ export function SurveyWalkSightingsButton({ surveyWalk }: { surveyWalk: SurveyWa
                             )}
                         </Dialog.Body>
                         <Dialog.CloseTrigger asChild>
-                            <CloseButton size="sm" />
+                            <CloseButton
+                                size="sm"
+                                color={closeButtonColor}
+                                bg={closeButtonBg}
+                                _hover={{ bg: closeButtonHoverBg }}
+                                mt={2}
+                                mr={2}
+                            />
                         </Dialog.CloseTrigger>
                     </Dialog.Content>
                 </Dialog.Positioner>

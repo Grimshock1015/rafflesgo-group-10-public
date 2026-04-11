@@ -167,46 +167,54 @@ export function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyW
                             </Stack>
                         </Stack>
                     </Card.Body>
-                    <Card.Footer justifyContent={"flex-end"} p={4} pt={2} gap={1.5} flexWrap={"wrap"} flexShrink={0}>
-                        <Collapsible.Trigger asChild>
-                            <Button
-                                variant="plain"
-                                className="btn btn-secondary btn-compact"
-                            >
-                                {open ? <><FaEyeSlash />Hide Details</> : <><FaEye /> View Details</>}
-                            </Button>
-                        </Collapsible.Trigger>
-                        <Button
-                            variant="plain"
-                            className="btn btn-primary btn-compact"
-                            onClick={hasJoined ? handleQuit : handleJoin}
-                            disabled={sw.isFinished || (isFull && !hasJoined)}
-                            loading={isLoading}
-                        >
-                            {hasJoined ? <><MdGroupRemove /> Quit</> : <><MdGroupAdd /> Join</>}
-                        </Button>
-                        {!sw.isFinished && (
-                            <InviteVolunteerButton surveyWalkId={sw.uid} />
-                        )}
-                        
-                        {isLeader && (
-                            <ReassignLeaderButton surveyWalkId={sw.uid} leaderUid={sw.leader.uid} volunteers={sw.volunteers} onDeleted={onJoin} />
-                        )}
-                        {isLeader && !sw.isFinished && (
-                            <MarkCompleteButton surveyWalk={sw} onJoin={onJoin} />
-                        )}
-                        {/* <Box flexBasis="100%" height={0} /> */}
-                        {role === "admin" && (
-                            <>
-                                <SurveyWalkSightingsButton surveyWalk={sw} />
-                                <DeleteSurveyWalkButton surveyWalkId={sw.uid} onDeleted={async () => {
-                                    onJoin();
-                                }} />
-                                <Button variant="plain" className="btn btn-secondary btn-compact" onClick={() => onEdit(sw.uid)}>
-                                    <MdModeEdit />Edit
+                    <Card.Footer p={4} pt={2} flexShrink={0}>
+                        <Stack w="100%" gap={2}>
+                            <Box display="flex" justifyContent="flex-end" gap={1.5} flexWrap="wrap">
+                                <Collapsible.Trigger asChild>
+                                    <Button
+                                        variant="plain"
+                                        className="btn btn-secondary btn-compact"
+                                    >
+                                        {open ? <><FaEyeSlash />Hide Details</> : <><FaEye /> View Details</>}
+                                    </Button>
+                                </Collapsible.Trigger>
+                                <Button
+                                    variant="plain"
+                                    className={hasJoined ? "btn btn-secondary btn-compact" : "btn btn-primary btn-compact"}
+                                    onClick={hasJoined ? handleQuit : handleJoin}
+                                    disabled={sw.isFinished || (isFull && !hasJoined)}
+                                    loading={isLoading}
+                                >
+                                    {hasJoined ? <><MdGroupRemove /> Quit</> : <><MdGroupAdd /> Join</>}
                                 </Button>
-                            </>
-                        )}
+                                {!sw.isFinished && hasJoined && (
+                                    <InviteVolunteerButton surveyWalkId={sw.uid} />
+                                )}
+                            </Box>
+
+                            {isLeader && (
+                                <Box display="flex" justifyContent="flex-end" gap={1.5} flexWrap="wrap">
+                                    {isLeader && (
+                                        <ReassignLeaderButton surveyWalkId={sw.uid} leaderUid={sw.leader.uid} volunteers={sw.volunteers} onDeleted={onJoin} />
+                                    )}
+                                    {isLeader && (
+                                        <MarkCompleteButton surveyWalk={sw} onJoin={onJoin} isFinished={sw.isFinished} />
+                                    )}
+                                </Box>
+                            )}
+
+                            {role === "admin" && (
+                                <Box display="flex" justifyContent="flex-end" gap={1.5} flexWrap="wrap">
+                                    <SurveyWalkSightingsButton surveyWalk={sw} />
+                                    <DeleteSurveyWalkButton surveyWalkId={sw.uid} onDeleted={async () => {
+                                        onJoin();
+                                    }} />
+                                    <Button variant="plain" className="btn btn-secondary btn-compact" onClick={() => onEdit(sw.uid)}>
+                                        <MdModeEdit />Edit
+                                    </Button>
+                                </Box>
+                            )}
+                        </Stack>
                     </Card.Footer>
                 </Card.Root>
             </Collapsible.Root>

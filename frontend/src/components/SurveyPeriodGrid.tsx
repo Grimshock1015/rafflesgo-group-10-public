@@ -201,7 +201,7 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                         <Select.HiddenSelect />
                         <Select.Label mb={0}>Select active survey period:</Select.Label>
                         <Select.Control>
-                            <Select.Trigger px={3} py={2} bg={"transparent"} borderColor={selectBorder} color={selectText}>
+                            <Select.Trigger px={3} py={2} bg={"transparent"} borderColor={selectBorder} color={selectText} borderRadius="var(--radius-md)">
                                 <Select.ValueText placeholder="Select active survey period" px={1} color={activeSelectionUid[0] ? selectText : selectPlaceholder}/>
                             </Select.Trigger>
                             <Select.IndicatorGroup pr={2}>
@@ -209,7 +209,7 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                             </Select.IndicatorGroup>
                         </Select.Control>
                         <Select.Positioner>
-                            <Select.Content backgroundColor={selectItemBg} borderColor={selectBorder} color={selectText}>
+                            <Select.Content backgroundColor={selectItemBg} borderColor={selectBorder} color={selectText} borderRadius="var(--radius-md)">
                                 {activePeriodCollection.items.map((item) => (
                                     <Select.Item item={item} key={item.value} py={2} px={3} backgroundColor={selectItemBg} color={selectText} _highlighted={{ bg: selectItemHoverBg }}>
                                         {item.label}
