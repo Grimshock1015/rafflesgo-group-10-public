@@ -11,6 +11,7 @@ type ObservationDatePickerProps = {
   minDate?: string;
   maxDate?: string;
   disabled?: boolean;
+  labelSize?: "sm" | "md";
 };
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -77,6 +78,7 @@ export function ObservationDatePicker({
   minDate,
   maxDate,
   disabled = false,
+  labelSize = "md",
 }: ObservationDatePickerProps) {
   const initialSelectedDate = parseDateString(value);
   const [isOpen, setIsOpen] = useState(false);
@@ -170,19 +172,21 @@ export function ObservationDatePicker({
   }
 
   function selectDate(date: Date) {
-    if (isDateOutsideRange(date)) {
+    const normalizedDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    if (isDateOutsideRange(normalizedDate)) {
       return;
     }
 
-    const nextValue = toIsoDateString(date);
+    const nextValue = toIsoDateString(normalizedDate);
     commitValue(nextValue);
-    setVisibleMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+    setVisibleMonth(new Date(normalizedDate.getFullYear(), normalizedDate.getMonth(), 1));
     setIsOpen(false);
   }
 
   return (
     <Field.Root required={required} display="block" w="100%">
-      <Field.Label htmlFor={id}>
+      <Field.Label htmlFor={id} fontSize={labelSize}>
         {label}
         {required ? <Field.RequiredIndicator /> : null}
       </Field.Label>
@@ -362,7 +366,22 @@ export function ObservationDatePicker({
                 bg="var(--primary-green)"
                 color="var(--text-inverse)"
                 _hover={{ bg: "var(--secondary-green)" }}
-                onClick={() => selectDate(new Date())}
+                onClick={() => {
+                  const today = new Date();
+                  const localToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+                  let nextDate = localToday;
+
+                  if (minSelectableDate && nextDate < minSelectableDate) {
+                    nextDate = minSelectableDate;
+                  }
+
+                  if (maxSelectableDate && nextDate > maxSelectableDate) {
+                    nextDate = maxSelectableDate;
+                  }
+
+                  selectDate(nextDate);
+                }}
               >
                 Today
               </Button>

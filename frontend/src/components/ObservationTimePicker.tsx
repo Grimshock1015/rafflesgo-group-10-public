@@ -246,7 +246,7 @@ export function ObservationTimePicker({
 
   return (
     <Field.Root required={required} display="block" w="100%">
-      <Field.Label htmlFor={id}>
+      <Field.Label htmlFor={id} fontSize={"md"}>
         {label}
         {required ? <Field.RequiredIndicator /> : null}
       </Field.Label>

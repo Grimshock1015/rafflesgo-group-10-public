@@ -981,6 +981,38 @@ input:focus, select:focus, textarea:focus {
     padding-bottom: var(--spacing-xxl);
 }
 
+.create-survey-period-page {
+    max-width: 600px;
+    margin: 0 auto;
+    padding-bottom: var(--spacing-xxl);
+}
+
+.create-period-intro {
+    align-items: flex-start;
+}
+
+.create-period-intro h2 {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-xs);
+}
+
+.create-period-intro .text-secondary {
+    margin-bottom: 0;
+}
+
+.create-period-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--spacing-lg);
+}
+
+.create-period-action-button {
+    min-height: 56px;
+    min-width: 220px;
+    font-size: var(--font-size-lg);
+}
+
+
 .section-container {
     margin-bottom: var(--spacing-lg);
     border-width: 1px;

@@ -12,7 +12,7 @@ type DateRangePickerProps = {
 export function DateRangePicker({
     value,
     onChange,
-    label = "Select date range",
+    label = "Date Range",
     required = false,
     disabled = false
 }: DateRangePickerProps) {
@@ -26,7 +26,10 @@ export function DateRangePicker({
             disabled={disabled}
             locale="en-SG"
         >
-            <DatePicker.Label>{label}</DatePicker.Label>
+            <DatePicker.Label>
+                {label}
+                {required && <span style={{ color: "red", marginLeft: "4px" }}>*</span>}
+            </DatePicker.Label>
             <DatePicker.Control>
                 <DatePicker.Input index={0} />
                 <DatePicker.Input index={1} />
