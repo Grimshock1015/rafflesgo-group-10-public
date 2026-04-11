@@ -188,11 +188,12 @@ export function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyW
                         {!sw.isFinished && (
                             <InviteVolunteerButton surveyWalkId={sw.uid} />
                         )}
-                        {isLeader && !sw.isFinished && (
-                            <MarkCompleteButton surveyWalk={sw} onJoin={onJoin} />
-                        )}
+                        
                         {isLeader && (
                             <ReassignLeaderButton surveyWalkId={sw.uid} leaderUid={sw.leader.uid} volunteers={sw.volunteers} onDeleted={onJoin} />
+                        )}
+                        {isLeader && !sw.isFinished && (
+                            <MarkCompleteButton surveyWalk={sw} onJoin={onJoin} />
                         )}
                         {/* <Box flexBasis="100%" height={0} /> */}
                         {role === "admin" && (

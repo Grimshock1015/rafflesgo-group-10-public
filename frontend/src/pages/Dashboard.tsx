@@ -335,7 +335,7 @@ export default function Dashboard({ user }: { user: User }) {
               </Badge>
             ) : null}
             {userEmail ? (
-              <Box display="inline-flex" alignItems="center" bg="var(--bg-secondary)" border="1px solid var(--border-color-light)" borderRadius="10px" px={3} py={1.5} ml="auto">
+              <Box display="inline-flex" alignItems="center" bg="var(--bg-secondary)" borderWidth="1px" borderStyle="solid" borderColor="var(--border-color-light)" borderRadius="10px" px={3} py={1.5} ml="auto">
                 <Text as="span" fontWeight="medium" color="var(--text-primary)" mb={0}>{userEmail}</Text>
               </Box>
             ) : null}

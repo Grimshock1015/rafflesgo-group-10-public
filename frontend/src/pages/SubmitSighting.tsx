@@ -17,6 +17,7 @@ import { ObservationDatePicker } from '../components/ObservationDatePicker';
 import { ObservationTimePicker } from '../components/ObservationTimePicker';
 import { MdOutlineGpsFixed } from 'react-icons/md';
 import { Container } from '@chakra-ui/react';
+import { IoMdSave, IoMdSend } from 'react-icons/io';
 
 // Fix leaflet icon issue in react-leaflet
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
@@ -225,15 +226,6 @@ export default function SubmitSightingPage({ user }: { user: User }) {
     setMediaFiles(prev => prev.filter((_, index) => index !== indexToRemove));
   };
 
-  const adjustCount = (
-    currentValue: number | '',
-    setter: React.Dispatch<React.SetStateAction<number | ''>>,
-    delta: 1 | -1
-  ) => {
-    const baseValue = typeof currentValue === 'number' ? currentValue : 0;
-    setter(Math.max(0, baseValue + delta));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -362,11 +354,11 @@ export default function SubmitSightingPage({ user }: { user: User }) {
 
           <section className="card draft-link-card">
             <div>
-              <p className="draft-link-eyebrow">
+              {/* <p className="draft-link-eyebrow">
                 {draftId ? 'Editing saved draft' : 'Working on this later?'}
-              </p>
-              <h2>{draftId ? 'This report is linked to a saved draft' : 'Save progress and reopen it from Saved Drafts'}</h2>
-              <p className="text-secondary">
+              </p> */}
+              <h2>{draftId ? 'This report is linked to a saved draft' : 'Save progress and reopen it later'}</h2>
+              <p className="text-secondary" style={{ marginBottom: '4px' }}>
                 {draftId
                   ? 'Submitting this report will remove the saved draft automatically.'
                   : 'Drafts are stored on this device so you can come back without losing your form.'}
@@ -428,7 +420,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
                 ) : null}
               </div>
 
-              <div className="form-row">
+              <div className="form-row date-time-row">
                 <ObservationDatePicker
                   id="date"
                   label="Date"
@@ -490,7 +482,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
                   {speciesSelect === 'Other' && (
                     <div className="form-group submit-form-group">
                       <label htmlFor="otherSpecies">Specify Other Species</label>
-                      <input id="otherSpecies" type="text" value={otherSpecies} onChange={(e) => setOtherSpecies(e.target.value)} required />
+                      <input className="sighting-control sighting-text-input" id="otherSpecies" type="text" value={otherSpecies} onChange={(e) => setOtherSpecies(e.target.value)} required />
                     </div>
                   )}
 
@@ -498,71 +490,31 @@ export default function SubmitSightingPage({ user }: { user: User }) {
                     <div className="primate-fields">
                       <div>
                         <label htmlFor="adults">Adults</label>
-                        <div className="count-input-shell">
-                          <input
-                            className="count-input"
-                            id="adults"
-                            type="number"
-                            min="0"
-                            step="1"
-                            value={adults}
-                            onChange={(e) => setAdults(e.target.value === '' ? '' : Number(e.target.value))}
-                          />
-                          <div className="count-stepper" aria-hidden="true">
-                            <button
-                              type="button"
-                              className="count-stepper-btn"
-                              onClick={() => adjustCount(adults, setAdults, 1)}
-                              aria-label="Increase adults"
-                            >
-                              ▲
-                            </button>
-                            <button
-                              type="button"
-                              className="count-stepper-btn"
-                              onClick={() => adjustCount(adults, setAdults, -1)}
-                              aria-label="Decrease adults"
-                            >
-                              ▼
-                            </button>
-                          </div>
-                        </div>
+                        <input
+                          className="native-number-input sighting-control sighting-number-input"
+                          id="adults"
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={adults}
+                          onChange={(e) => setAdults(e.target.value === '' ? '' : Number(e.target.value))}
+                        />
                       </div>
                       <div>
                         <label htmlFor="juveniles">Juveniles</label>
-                        <div className="count-input-shell">
-                          <input
-                            className="count-input"
-                            id="juveniles"
-                            type="number"
-                            min="0"
-                            step="1"
-                            value={juveniles}
-                            onChange={(e) => setJuveniles(e.target.value === '' ? '' : Number(e.target.value))}
-                          />
-                          <div className="count-stepper" aria-hidden="true">
-                            <button
-                              type="button"
-                              className="count-stepper-btn"
-                              onClick={() => adjustCount(juveniles, setJuveniles, 1)}
-                              aria-label="Increase juveniles"
-                            >
-                              ▲
-                            </button>
-                            <button
-                              type="button"
-                              className="count-stepper-btn"
-                              onClick={() => adjustCount(juveniles, setJuveniles, -1)}
-                              aria-label="Decrease juveniles"
-                            >
-                              ▼
-                            </button>
-                          </div>
-                        </div>
+                        <input
+                          className="native-number-input sighting-control sighting-number-input"
+                          id="juveniles"
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={juveniles}
+                          onChange={(e) => setJuveniles(e.target.value === '' ? '' : Number(e.target.value))}
+                        />
                       </div>
                       <div className="primate-behaviour-field">
                         <label htmlFor="behaviour">Behaviour</label>
-                        <textarea id="behaviour" value={behaviour} onChange={(e) => setBehaviour(e.target.value)} placeholder="e.g., Feeding, resting..." />
+                        <textarea className="sighting-control sighting-textarea" id="behaviour" value={behaviour} onChange={(e) => setBehaviour(e.target.value)} placeholder="e.g., Feeding, resting..." />
                       </div>
                     </div>
                   )}
@@ -599,11 +551,12 @@ export default function SubmitSightingPage({ user }: { user: User }) {
             {/* SECTION 6: NOTES */}
             <div className="card section-container notes-section">
               <h3>Additional Notes</h3>
-              <textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={result === 'not_sighted' ? 'Any trail blockages, bad weather etc?' : 'Any other details?'} />
+              <textarea className="sighting-control sighting-textarea" id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={result === 'not_sighted' ? 'Any trail blockages, bad weather etc?' : 'Any other details?'} />
             </div>
 
             <div className="sighting-actions">
               <button type="submit" className="btn-primary sighting-action-button" disabled={submitting || loadingSurveyWalks || leaderSurveyWalks.length === 0}>
+                <IoMdSend />
                 {submitting ? 'Submitting...' : 'Submit Report'}
               </button>
               <button
@@ -612,6 +565,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
                 onClick={handleSaveDraft}
                 disabled={submitting || loadingSurveyWalks || leaderSurveyWalks.length === 0}
               >
+                <IoMdSave />
                 Save Draft
               </button>
             </div>

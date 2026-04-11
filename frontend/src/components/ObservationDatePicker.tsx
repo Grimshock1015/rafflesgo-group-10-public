@@ -14,6 +14,15 @@ type ObservationDatePickerProps = {
 };
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const PICKER_CONTROL_STYLE = {
+  bg: "var(--white)",
+  color: "var(--text-primary)",
+  borderWidth: "1px",
+  borderStyle: "solid",
+  borderColor: "var(--border-color-light)",
+  borderRadius: "var(--radius-md)",
+  h: "40px",
+};
 
 function parseDateString(value: string): Date | null {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
@@ -172,13 +181,13 @@ export function ObservationDatePicker({
   }
 
   return (
-    <Field.Root required={required}>
+    <Field.Root required={required} display="block" w="100%">
       <Field.Label htmlFor={id}>
         {label}
         {required ? <Field.RequiredIndicator /> : null}
       </Field.Label>
-      <Box ref={rootRef} position="relative">
-        <Flex gap={2}>
+      <Box ref={rootRef} position="relative" w="100%">
+        <Flex gap={2} w="100%" align="stretch">
           <Input
             id={id}
             value={isOpen ? inputValue : value}
@@ -188,9 +197,10 @@ export function ObservationDatePicker({
             required={required}
             onFocus={openPicker}
             disabled={disabled}
-            bg="var(--bg-card)"
-            color="var(--text-primary)"
-            borderColor="var(--border-color)"
+            {...PICKER_CONTROL_STYLE}
+            px="var(--spacing-md)"
+            flex="1"
+            minW="0"
           />
           <Button
             type="button"
@@ -209,9 +219,10 @@ export function ObservationDatePicker({
               openPicker();
             }}
             disabled={disabled}
-            color="var(--text-primary)"
-            borderColor="var(--border-color)"
-            bg="var(--bg-card)"
+            {...PICKER_CONTROL_STYLE}
+            borderWidth="1px"
+            minW="2.75rem"
+            px={0}
           >
             <LuCalendarDays />
           </Button>

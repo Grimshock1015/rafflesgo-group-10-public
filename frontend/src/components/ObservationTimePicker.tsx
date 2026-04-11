@@ -62,6 +62,16 @@ function formatDisplayTime(value: string): string {
   return `${converted.hour}:${parsed.minute} ${converted.meridiem}`;
 }
 
+const PICKER_CONTROL_STYLE = {
+  bg: "var(--white)",
+  color: "var(--text-primary)",
+  borderWidth: "1px",
+  borderStyle: "solid",
+  borderColor: "var(--border-color-light)",
+  borderRadius: "var(--radius-md)",
+  h: "40px",
+};
+
 export function ObservationTimePicker({
   id,
   label,
@@ -235,13 +245,13 @@ export function ObservationTimePicker({
   }
 
   return (
-    <Field.Root required={required}>
+    <Field.Root required={required} display="block" w="100%">
       <Field.Label htmlFor={id}>
         {label}
         {required ? <Field.RequiredIndicator /> : null}
       </Field.Label>
-      <Box ref={rootRef} position="relative">
-        <Flex gap={2}>
+      <Box ref={rootRef} position="relative" w="100%">
+        <Flex gap={2} w="100%" align="stretch">
           <Input
             id={id}
             value={isOpen ? inputValue : value}
@@ -251,9 +261,10 @@ export function ObservationTimePicker({
             placeholder="HH:MM"
             required={required}
             onFocus={openPicker}
-            bg="var(--bg-card)"
-            color="var(--text-primary)"
-            borderColor="var(--border-color)"
+            {...PICKER_CONTROL_STYLE}
+            px="var(--spacing-md)"
+            flex="1"
+            minW="0"
           />
           <Button
             type="button"
@@ -267,9 +278,10 @@ export function ObservationTimePicker({
 
               openPicker();
             }}
-            color="var(--text-primary)"
-            borderColor="var(--border-color)"
-            bg="var(--bg-card)"
+            {...PICKER_CONTROL_STYLE}
+            borderWidth="1px"
+            minW="2.75rem"
+            px={0}
           >
             <LuClock3 />
           </Button>
