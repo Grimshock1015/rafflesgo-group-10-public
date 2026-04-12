@@ -19,6 +19,7 @@ import {
 import { RafflesGoService, SightingsService } from '../api';
 import { getAllDrafts } from '../services/SightingDraftsService';
 import InvitationNotifications from '../components/InvitationNotifications';
+import { Badge, Box, Container, Text } from '@chakra-ui/react';
 
 type MySightingsDashboard = Awaited<ReturnType<typeof SightingsService.getMySightingsDashboard>>;
 type JoinedSurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalksForCurrentUser>>['surveyWalks'][number];
@@ -47,6 +48,7 @@ const sectionStyle: CSSProperties = {
   borderRadius: '16px',
   padding: '1.5rem',
   marginTop: '1.5rem',
+  marginBottom: '1.5rem',
 };
 
 const cardStyle: CSSProperties = {
@@ -220,6 +222,7 @@ export default function Dashboard({ user }: { user: User }) {
   }, [user.uid]);
 
   const displayRole = userRole === 'user' ? 'Volunteer' : userRole === 'admin' ? 'Admin' : userRole;
+  const roleColorPalette = userRole === 'admin' ? 'yellow' : userRole === 'user' ? 'green' : 'gray';
   const stats = sightingsData?.stats;
   const sightings = sightingsData?.sightings ?? [];
   const displayName = user.displayName || userEmail || 'Volunteer';
@@ -322,12 +325,24 @@ export default function Dashboard({ user }: { user: User }) {
       <div className="container" style={{ paddingBottom: '3rem' }}>
 
         {/* Welcome */}
-        <header className="welcome-header" style={sectionStyle}>
-          <h1><span>Welcome back, </span><span id="volunteerName">{displayName}</span></h1>
-          {displayRole ? <p>Role: {displayRole}</p> : null}
-          {userEmail ? <p>Email: {userEmail}</p> : null}
+        {/* <header className="welcome-header" style={sectionStyle}> */}
+        <Container mt={5}>
+          <Box display="flex" alignItems="center" gap={3} flexWrap="wrap" w="100%">
+            <h1 style={{ margin: 0 }}><span>Welcome back, </span><span id="volunteerName">{displayName}</span></h1>
+            {displayRole ? (
+              <Badge colorPalette={roleColorPalette} variant="solid" px={2} py={1} borderRadius="md" textTransform="none" fontWeight="semibold">
+                {displayRole}
+              </Badge>
+            ) : null}
+            {userEmail ? (
+              <Box display="inline-flex" alignItems="center" bg="var(--bg-secondary)" borderWidth="1px" borderStyle="solid" borderColor="var(--border-color-light)" borderRadius="10px" px={3} py={1.5} ml="auto">
+                <Text as="span" fontWeight="medium" color="var(--text-primary)" mb={0}>{userEmail}</Text>
+              </Box>
+            ) : null}
+          </Box>
           {detailsError ? <p className="text-error">Something went wrong getting your details. Please try again later.</p> : null}
-        </header>
+        {/* </header> */}
+        </Container>
 
         {/* Quick Actions */}
         <section className="quick-actions" style={sectionStyle}>

@@ -10,12 +10,14 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import exifr from 'exifr';
-import { useTheme } from '../contexts/ThemeContext';
 import { saveDraft, getDraft, deleteDraft } from '../services/SightingDraftsService';
 import type { DraftMedia, SightingDraftFormData } from '../types/sightingDrafts';
 import { buildDraft } from '../utils/buildDraft';
 import { ObservationDatePicker } from '../components/ObservationDatePicker';
 import { ObservationTimePicker } from '../components/ObservationTimePicker';
+import { MdOutlineGpsFixed } from 'react-icons/md';
+import { Container } from '@chakra-ui/react';
+import { IoMdSave, IoMdSend } from 'react-icons/io';
 
 // Fix leaflet icon issue in react-leaflet
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
@@ -77,10 +79,6 @@ export default function SubmitSightingPage({ user }: { user: User }) {
   const [message, setMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const { effectiveTheme } = useTheme();
-  const selectBackground = effectiveTheme === 'dark' ? '#2a2a2a' : '#ffffff';
-  const selectTextColor = effectiveTheme === 'dark' ? 'rgba(255, 255, 255, 0.87)' : '#212529';
-  const selectBorderColor = effectiveTheme === 'dark' ? '#404040' : '#dee2e6';
 
   const navigate = useNavigate();
   const selectedSurveyWalk = leaderSurveyWalks.find((walk) => walk.uid === selectedSurveyWalkUid) ?? null;
@@ -340,216 +338,240 @@ export default function SubmitSightingPage({ user }: { user: User }) {
       void loadDraftById(existingDraftId);
     }
   }, [loadDraftById, searchParams]);
+
+  const isMessageError = message ? /(failed|could not|not found|not currently)/i.test(message) : false;
+
   return (
     <>
       {/* <Navigation user={user} /> */}
 
-      <main className="main-content" style={{ padding: '1rem', maxWidth: '600px', margin: '0 auto' }}>
-        <header className="welcome-header" style={{ marginBottom: '2rem' }}>
-          <h1>Log an Observation</h1>
-          <p className="welcome-subtitle">Report a sighting or a zero-catch walk</p>
-        </header>
+      <main className="main-content">
+        <div className="container submit-sighting-page">
+          <Container className="welcome-header" mt={5}>
+            <h1>Log an Observation</h1>
+            <p className="welcome-subtitle">Report a sighting or a zero-catch walk</p>
+          </Container>
 
-        <section className="card draft-link-card">
-          <div>
-            <p className="draft-link-eyebrow">
-              {draftId ? 'Editing saved draft' : 'Working on this later?'}
-            </p>
-            <h2>{draftId ? 'This report is linked to a saved draft' : 'Save progress and reopen it from Saved Drafts'}</h2>
-            <p className="text-secondary">
-              {draftId
-                ? 'Submitting this report will remove the saved draft automatically.'
-                : 'Drafts are stored on this device so you can come back without losing your form.'}
-            </p>
-          </div>
-          <Link className="btn-secondary" to="/drafts">
-            Open Saved Drafts
-          </Link>
-        </section>
-
-        <form onSubmit={handleSubmit}>
-
-          {/* SECTION 1: OBSERVATION TYPE */}
-          <div className="card section-container" style={{ marginBottom: '1.5rem', padding: '1rem', border: '1px solid #ccc', borderRadius: '8px' }}>
-            <h3>Observation Status</h3>
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-              <button
-                type="button"
-                style={{ flex: 1, padding: '1rem', backgroundColor: result === 'sighted' ? '#2f855a' : '#edf2f7', color: result === 'sighted' ? 'white' : 'black', borderRadius: '6px', border: 'none' }}
-                onClick={() => setResult('sighted')}
-              >
-                🐒 Animal Sighted
-              </button>
-              <button
-                type="button"
-                style={{ flex: 1, padding: '1rem', backgroundColor: result === 'not_sighted' ? '#c53030' : '#edf2f7', color: result === 'not_sighted' ? 'white' : 'black', borderRadius: '6px', border: 'none' }}
-                onClick={() => setResult('not_sighted')}
-              >
-                ❌ Zero Sightings
-              </button>
+          <section className="card draft-link-card">
+            <div>
+              {/* <p className="draft-link-eyebrow">
+                {draftId ? 'Editing saved draft' : 'Working on this later?'}
+              </p> */}
+              <h2>{draftId ? 'This report is linked to a saved draft' : 'Save progress and reopen it later'}</h2>
+              <p className="text-secondary" style={{ marginBottom: '4px' }}>
+                {draftId
+                  ? 'Submitting this report will remove the saved draft automatically.'
+                  : 'Drafts are stored on this device so you can come back without losing your form.'}
+              </p>
             </div>
-          </div>
+            <Link className="btn-primary" to="/drafts">
+              Open Saved Drafts
+            </Link>
+          </section>
 
-          {/* SECTION 2: BASIC WALK INFO (Applies to both) */}
-          <div className="card section-container" style={{ marginBottom: '1.5rem', padding: '1rem', border: '1px solid #ccc', borderRadius: '8px' }}>
-            <h3>Walk Details</h3>
-            <div style={{ marginBottom: '1rem', marginTop: '0.5rem' }}>
-              <label htmlFor="surveyWalk">Survey Walk (Leader Only)</label>
-              <select
-                id="surveyWalk"
-                value={selectedSurveyWalkUid}
-                onChange={(e) => setSelectedSurveyWalkUid(e.target.value)}
-                style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', backgroundColor: selectBackground, color: selectTextColor, border: `1px solid ${selectBorderColor}` }}
-                disabled={loadingSurveyWalks || leaderSurveyWalks.length === 0}
-                required
-              >
-                {leaderSurveyWalks.map((walk) => (
-                  <option key={walk.uid} value={walk.uid} style={{ backgroundColor: selectBackground, color: selectTextColor }}>
-                    {walk.name} - {new Date(walk.date).toLocaleDateString('en-SG', { timeZone: 'UTC' })} ({walk.startTime}-{walk.endTime})
-                  </option>
-                ))}
-              </select>
-              {loadingSurveyWalks ? <p style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#666' }}>Loading your leader survey walks...</p> : null}
-              {surveyWalksError ? <p style={{ marginTop: '0.5rem', color: '#c53030', fontSize: '0.85rem' }}>{surveyWalksError}</p> : null}
-              {!loadingSurveyWalks && !surveyWalksError && leaderSurveyWalks.length === 0 ? (
-                <p style={{ marginTop: '0.5rem', color: '#c53030', fontSize: '0.85rem' }}>
-                  You are not currently the leader of any survey walk. Only walk leaders can submit sightings.
-                </p>
-              ) : null}
+          <form onSubmit={handleSubmit} className="report-form">
+
+            {/* SECTION 1: OBSERVATION TYPE */}
+            <div className="card section-container">
+              <h3>Observation Status</h3>
+              <div className="observation-status-toggle">
+                <button
+                  type="button"
+                  className={`status-toggle-button ${result === 'sighted' ? 'is-active sighted' : ''}`}
+                  onClick={() => setResult('sighted')}
+                >
+                  Animal Sighted
+                </button>
+                <button
+                  type="button"
+                  className={`status-toggle-button ${result === 'not_sighted' ? 'is-active not-sighted' : ''}`}
+                  onClick={() => setResult('not_sighted')}
+                >
+                  Zero Sightings
+                </button>
+              </div>
             </div>
 
-            <div className="form-row">
-              <ObservationDatePicker
-                id="date"
-                label="Date"
-                value={date}
-                onChange={setDate}
-                required
-              />
-              <ObservationTimePicker
-                id="time"
-                label="Time"
-                value={time}
-                onChange={setTime}
-                required
-              />
-            </div>
-          </div>
+            {/* SECTION 2: BASIC WALK INFO (Applies to both) */}
+            <div className="card section-container">
+              <h3>Walk Details</h3>
+              <div className="form-group submit-form-group">
+                <label htmlFor="surveyWalk">Survey Walk (Leader Only)</label>
+                <select
+                  id="surveyWalk"
+                  className="status-select"
+                  value={selectedSurveyWalkUid}
+                  onChange={(e) => setSelectedSurveyWalkUid(e.target.value)}
+                  disabled={loadingSurveyWalks || leaderSurveyWalks.length === 0}
+                  required
+                >
+                  {leaderSurveyWalks.map((walk) => (
+                    <option key={walk.uid} value={walk.uid}>
+                      {walk.name} - {new Date(walk.date).toLocaleDateString('en-SG', { timeZone: 'UTC' })} ({walk.startTime}-{walk.endTime})
+                    </option>
+                  ))}
+                </select>
+                {loadingSurveyWalks ? <p className="form-feedback">Loading your leader survey walks...</p> : null}
+                {surveyWalksError ? <p className="form-feedback text-error">{surveyWalksError}</p> : null}
+                {!loadingSurveyWalks && !surveyWalksError && leaderSurveyWalks.length === 0 ? (
+                  <p className="form-feedback text-error">
+                    You are not currently the leader of any survey walk. Only walk leaders can submit sightings.
+                  </p>
+                ) : null}
+              </div>
 
-          {/* ONLY RENDER THESE SECTIONS IF AN ANIMAL WAS SIGHTED */}
-          {result === 'sighted' && (
-            <>
-              {/* SECTION 3: MEDIA UPLOAD (Plural) */}
-              <div className="card section-container" style={{ marginBottom: '1.5rem', padding: '1rem', border: '1px solid #ccc', borderRadius: '8px' }}>
-                <h3>Photos / Videos</h3>
-                <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>Select multiple files. GPS will be auto-extracted if available.</p>
-                <input
-                  id="mediaFiles"
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  accept="image/*,video/*"
-                  onChange={handleFileChange}
-                  style={{ marginBottom: '1rem' }}
+              <div className="form-row date-time-row">
+                <ObservationDatePicker
+                  id="date"
+                  label="Date"
+                  value={date}
+                  onChange={setDate}
+                  required
                 />
-
-                {mediaFiles.length > 0 && (
-                  <ul className="media-file-list">
-                    {mediaFiles.map((file, idx) => (
-                      <li key={idx} className="media-file-item">
-                        <span className="media-file-name">{file.name}</span>
-                        <button type="button" className="btn-remove-media" onClick={() => removeFile(idx)} aria-label={`Remove ${file.name}`}>
-                          X
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <ObservationTimePicker
+                  id="time"
+                  label="Time"
+                  value={time}
+                  onChange={setTime}
+                  required
+                />
               </div>
+            </div>
 
-              {/* SECTION 4: ANIMAL DETAILS */}
-              <div className="card section-container" style={{ marginBottom: '1.5rem', padding: '1rem', border: '1px solid #ccc', borderRadius: '8px' }}>
-                <h3>Animal Details</h3>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label htmlFor="species">Species</label>
-                  <select id="species" value={speciesSelect} onChange={(e) => setSpeciesSelect(e.target.value)} style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', backgroundColor: selectBackground, color: selectTextColor, border: `1px solid ${selectBorderColor}` }}>
-                    {SPECIES_OPTIONS.map(opt => <option key={opt} value={opt} style={{ backgroundColor: selectBackground, color: selectTextColor }}>{opt}</option>)}
-                  </select>
+            {/* ONLY RENDER THESE SECTIONS IF AN ANIMAL WAS SIGHTED */}
+            {result === 'sighted' && (
+              <>
+                {/* SECTION 3: MEDIA UPLOAD (Plural) */}
+                <div className="card section-container">
+                  <h3>Photos / Videos</h3>
+                  <p className="form-hint">Select multiple files. GPS will be auto-extracted if available.</p>
+                  <input
+                    id="mediaFiles"
+                    ref={fileInputRef}
+                    className="media-input"
+                    type="file"
+                    multiple
+                    accept="image/*,video/*"
+                    onChange={handleFileChange}
+                  />
+
+                  {mediaFiles.length > 0 && (
+                    <ul className="media-file-list">
+                      {mediaFiles.map((file, idx) => (
+                        <li key={idx} className="media-file-item">
+                          <span className="media-file-name">{file.name}</span>
+                          <button type="button" className="btn-remove-media" onClick={() => removeFile(idx)} aria-label={`Remove ${file.name}`}>
+                            X
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
 
-                {speciesSelect === 'Other' && (
-                  <div style={{ marginBottom: '1rem' }}>
-                    <label htmlFor="otherSpecies">Specify Other Species</label>
-                    <input id="otherSpecies" type="text" value={otherSpecies} onChange={(e) => setOtherSpecies(e.target.value)} required style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
+                {/* SECTION 4: ANIMAL DETAILS */}
+                <div className="card section-container">
+                  <h3>Animal Details</h3>
+                  <div className="form-group submit-form-group">
+                    <label htmlFor="species">Species</label>
+                    <select id="species" className="status-select" value={speciesSelect} onChange={(e) => setSpeciesSelect(e.target.value)}>
+                      {SPECIES_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                    </select>
                   </div>
-                )}
 
-                {isPrimate(speciesSelect) && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-                    <div>
-                      <label htmlFor="adults">Adults</label>
-                      <input id="adults" type="number" min="0" value={adults} onChange={(e) => setAdults(e.target.value === '' ? '' : Number(e.target.value))} style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
+                  {speciesSelect === 'Other' && (
+                    <div className="form-group submit-form-group">
+                      <label htmlFor="otherSpecies">Specify Other Species</label>
+                      <input className="sighting-control sighting-text-input" id="otherSpecies" type="text" value={otherSpecies} onChange={(e) => setOtherSpecies(e.target.value)} required />
                     </div>
-                    <div>
-                      <label htmlFor="juveniles">Juveniles</label>
-                      <input id="juveniles" type="number" min="0" value={juveniles} onChange={(e) => setJuveniles(e.target.value === '' ? '' : Number(e.target.value))} style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
+                  )}
+
+                  {isPrimate(speciesSelect) && (
+                    <div className="primate-fields">
+                      <div>
+                        <label htmlFor="adults">Adults</label>
+                        <input
+                          className="native-number-input sighting-control sighting-number-input"
+                          id="adults"
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={adults}
+                          onChange={(e) => setAdults(e.target.value === '' ? '' : Number(e.target.value))}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="juveniles">Juveniles</label>
+                        <input
+                          className="native-number-input sighting-control sighting-number-input"
+                          id="juveniles"
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={juveniles}
+                          onChange={(e) => setJuveniles(e.target.value === '' ? '' : Number(e.target.value))}
+                        />
+                      </div>
+                      <div className="primate-behaviour-field">
+                        <label htmlFor="behaviour">Behaviour</label>
+                        <textarea className="sighting-control sighting-textarea" id="behaviour" value={behaviour} onChange={(e) => setBehaviour(e.target.value)} placeholder="e.g., Feeding, resting..." />
+                      </div>
                     </div>
-                    <div style={{ gridColumn: 'span 2' }}>
-                      <label htmlFor="behaviour">Behaviour</label>
-                      <textarea id="behaviour" value={behaviour} onChange={(e) => setBehaviour(e.target.value)} placeholder="e.g., Feeding, resting..." style={{ width: '100%', padding: '0.75rem', borderRadius: '4px', border: '1px solid #ccc' }} />
-                    </div>
+                  )}
+                </div>
+
+                {/* SECTION 5: MAP (Only for Sightings) */}
+                <div className="card section-container">
+                  <div className="map-section-header">
+                    <h3 style={{margin: 0}}>Pinpoint Location</h3>
+                    <button
+                      type="button"
+                      className="btn-primary map-location-button"
+                      onClick={() => {
+                        navigator.geolocation.getCurrentPosition((pos) => {
+                          setPosition(new L.LatLng(pos.coords.latitude, pos.coords.longitude));
+                        });
+                      }}
+                    >
+                      <MdOutlineGpsFixed />
+                      Use Device GPS
+                    </button>
                   </div>
-                )}
-              </div>
-
-              {/* SECTION 5: MAP (Only for Sightings) */}
-              <div className="card section-container" style={{ marginBottom: '1.5rem', padding: '1rem', border: '1px solid #ccc', borderRadius: '8px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <h3>Pinpoint Location</h3>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigator.geolocation.getCurrentPosition((pos) => {
-                        setPosition(new L.LatLng(pos.coords.latitude, pos.coords.longitude));
-                      });
-                    }}
-                    style={{ padding: '0.5rem', fontSize: '0.85rem', backgroundColor: '#e2e8f0', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                  >
-                    📍 Use Device GPS
-                  </button>
+                  <div className="sighting-map submit-sighting-map">
+                    <MapContainer center={[1.3521, 103.8198]} zoom={11} style={{ height: '100%', width: '100%', zIndex: 0 }}>
+                      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                      <LocationMarker position={position} setPosition={setPosition} />
+                    </MapContainer>
+                  </div>
+                  {position && <p className="form-hint pinned-location">Pinned: {position.lat.toFixed(5)}, {position.lng.toFixed(5)}</p>}
                 </div>
-                <div style={{ height: '250px', width: '100%', zIndex: 0, position: 'relative' }}>
-                  <MapContainer center={[1.3521, 103.8198]} zoom={11} style={{ height: '100%', width: '100%', zIndex: 0, borderRadius: '4px' }}>
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                    <LocationMarker position={position} setPosition={setPosition} />
-                  </MapContainer>
-                </div>
-                {position && <p style={{ fontSize: '0.85rem', color: '#666', marginTop: '0.5rem' }}>Pinned: {position.lat.toFixed(5)}, {position.lng.toFixed(5)}</p>}
-              </div>
-            </>
-          )}
+              </>
+            )}
 
-          {/* SECTION 6: NOTES */}
-          <div className="card section-container" style={{ marginBottom: '2rem', padding: '1rem', border: '1px solid #ccc', borderRadius: '8px' }}>
-            <h3>Additional Notes</h3>
-            <textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={result === 'not_sighted' ? "Any trail blockages, bad weather etc?" : "Any other details?"} style={{ width: '100%', padding: '0.75rem', minHeight: '80px', borderRadius: '4px', border: '1px solid #ccc' }} />
-          </div>
+            {/* SECTION 6: NOTES */}
+            <div className="card section-container notes-section">
+              <h3>Additional Notes</h3>
+              <textarea className="sighting-control sighting-textarea" id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={result === 'not_sighted' ? 'Any trail blockages, bad weather etc?' : 'Any other details?'} />
+            </div>
 
-          <div className="sighting-actions">
-            <button type="submit" className="btn-primary sighting-action-button" disabled={submitting || loadingSurveyWalks || leaderSurveyWalks.length === 0}>
-              {submitting ? 'Submitting...' : 'Submit Report'}
-            </button>
-            <button
-              type="button"
-              className="btn-secondary sighting-action-button"
-              onClick={handleSaveDraft}
-              disabled={submitting || loadingSurveyWalks || leaderSurveyWalks.length === 0}
-            >
-              Save Draft
-            </button>
-          </div>
-          {message && <p style={{ textAlign: 'center', marginTop: '1rem', color: '#2f855a', fontWeight: 'bold' }}>{message}</p>}
-        </form>
+            <div className="sighting-actions">
+              <button type="submit" className="btn-primary sighting-action-button" disabled={submitting || loadingSurveyWalks || leaderSurveyWalks.length === 0}>
+                <IoMdSend />
+                {submitting ? 'Submitting...' : 'Submit Report'}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary sighting-action-button"
+                onClick={handleSaveDraft}
+                disabled={submitting || loadingSurveyWalks || leaderSurveyWalks.length === 0}
+              >
+                <IoMdSave />
+                Save Draft
+              </button>
+            </div>
+            {message && <p className={`submit-message ${isMessageError ? 'text-error' : 'text-success'}`}>{message}</p>}
+          </form>
+        </div>
       </main>
     </>
   );

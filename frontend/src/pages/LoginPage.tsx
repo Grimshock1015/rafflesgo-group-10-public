@@ -38,7 +38,7 @@ export default function LoginPage({ user }: Props) {
   }, [user])
   
 
-  const logoSrc = '/assets/images/icons/icon.png'
+  const logoSrc = '/assets/images/icons/icon-nobg.png'
 
   const handleGoogleSignIn = async () => {
     setError(null)

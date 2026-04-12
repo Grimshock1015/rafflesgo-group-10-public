@@ -9,6 +9,7 @@
   --color-text-muted: #888;
   --color-background: #242424;
   --color-surface: #1a1a1a;
+  --color-border: rgba(255, 255, 255, 0.14);
 
   /* Typography */
   --font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -41,5 +42,6 @@
     --color-text: #213547;
     --color-background: #ffffff;
     --color-surface: #f9f9f9;
+    --color-border: rgba(15, 23, 42, 0.16);
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import type { TutorialStep } from '../constants/tutorialSteps'
 
 type TutorialModalProps = {
@@ -78,7 +78,7 @@ export default function TutorialModal({ steps, onFinish }: TutorialModalProps) {
   )
 }
 
-const imageStyle: React.CSSProperties = {
+const imageStyle: CSSProperties = {
   width: '100%',
   maxWidth: '240px',
   height: 'auto',
@@ -86,11 +86,12 @@ const imageStyle: React.CSSProperties = {
   margin: '0 auto 1.5rem auto',
   borderRadius: '12px',
   objectFit: 'cover',
+  border: '1px solid var(--border-color-light)',
 }
 
-const primaryButtonStyle: React.CSSProperties = {
-  backgroundColor: '#14532d',
-  color: 'white',
+const primaryButtonStyle: CSSProperties = {
+  backgroundColor: 'var(--primary-green)',
+  color: 'var(--text-light)',
   border: 'none',
   borderRadius: '8px',
   padding: '0.75rem 1.25rem',
@@ -99,46 +100,46 @@ const primaryButtonStyle: React.CSSProperties = {
   cursor: 'pointer',
 }
 
-const secondaryButtonStyle: React.CSSProperties = {
-  backgroundColor: '#f3f4f6',
-  color: '#1f2937',
-  border: '1px solid #d1d5db',
+const secondaryButtonStyle: CSSProperties = {
+  backgroundColor: 'var(--bg-secondary)',
+  color: 'var(--text-primary)',
+  border: '1px solid var(--border-color-light)',
   borderRadius: '8px',
   padding: '0.75rem 1.25rem',
   fontSize: '1rem',
   fontWeight: 600,
 }
 
-const titleStyle: React.CSSProperties = {
-  color: '#1f2937',
+const titleStyle: CSSProperties = {
+  color: 'var(--text-primary)',
   fontSize: '2rem',
   fontWeight: 700,
   marginBottom: '1rem',
 }
 
-const descriptionStyle: React.CSSProperties = {
-  color: '#4b5563',
+const descriptionStyle: CSSProperties = {
+  color: 'var(--text-secondary)',
   fontSize: '1rem',
   lineHeight: 1.6,
   marginBottom: '1.5rem',
 }
 
-const overlayStyle: React.CSSProperties = {
+const overlayStyle: CSSProperties = {
   position: 'fixed',
   top: 0,
   left: 0,
   width: '100vw',
   height: '100vh',
-  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  backgroundColor: 'var(--bg-overlay)',
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
   zIndex: 1000,
 }
 
-const modalStyle: React.CSSProperties = {
+const modalStyle: CSSProperties = {
   position: 'relative',
-  backgroundColor: 'white',
+  backgroundColor: 'var(--bg-card)',
   padding: '2rem',
   borderRadius: '12px',
   width: '90%',
@@ -148,29 +149,37 @@ const modalStyle: React.CSSProperties = {
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'space-between',
+  border: '1px solid var(--border-color)',
+  boxShadow: 'var(--shadow-lg)',
 }
 
-const skipButtonStyle: React.CSSProperties = {
+const skipButtonStyle: CSSProperties = {
   position: 'absolute',
   top: '1rem',
   right: '1rem',
+  border: 'none',
+  backgroundColor: 'transparent',
+  color: 'var(--text-secondary)',
+  fontSize: '0.95rem',
+  fontWeight: 600,
+  cursor: 'pointer',
 }
 
-const dotsContainerStyle: React.CSSProperties = {
+const dotsContainerStyle: CSSProperties = {
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
   gap: '8px',
 }
 
-const dotStyle: React.CSSProperties = {
+const dotStyle: CSSProperties = {
   width: '10px',
   height: '10px',
   borderRadius: '50%',
-  backgroundColor: 'black',
+  backgroundColor: 'var(--primary-green)',
 }
 
-const controlsRowStyle: React.CSSProperties = {
+const controlsRowStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',

@@ -63,13 +63,13 @@ export default function DraftsPage({ user }: { user: User }) {
             </button>
           </header>
 
-          <section className="card drafts-summary-card">
+          {/* <section className="card drafts-summary-card">
             <p className="drafts-summary-eyebrow">Local storage</p>
             <h2>{drafts.length} saved draft{drafts.length === 1 ? '' : 's'}</h2>
             <p className="text-secondary">
               Drafts stay on this device and account until you submit or delete them.
             </p>
-          </section>
+          </section> */}
 
           {drafts.length === 0 ? (
             <section className="card drafts-empty-state">
@@ -87,7 +87,7 @@ export default function DraftsPage({ user }: { user: User }) {
                 <article key={draft.id} className="card draft-card">
                   <div className="draft-card-top">
                     <span className={`draft-pill ${draft.formData.result === 'not_sighted' ? 'zero' : 'sighted'}`}>
-                      {draft.formData.result === 'not_sighted' ? 'Zero sighting' : 'Animal sighting'}
+                      {draft.formData.result === 'not_sighted' ? 'Zero Sighting' : 'Animal Sighting'}
                     </span>
                     <span className="draft-updated">
                       Updated {new Date(draft.updatedAt).toLocaleString()}

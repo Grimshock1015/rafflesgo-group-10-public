@@ -1,7 +1,6 @@
 import { RafflesGoService } from "@/api/services/RafflesGoService";
 import { ObservationDatePicker } from "@/components/ObservationDatePicker";
 import { toaster } from "@/components/ui/toaster";
-import { useTheme } from "@/contexts/ThemeContext";
 import { Container, Button, Input, Stack, Field, Select, createListCollection } from "@chakra-ui/react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { IoMdAdd } from "react-icons/io";
@@ -30,7 +29,6 @@ function getDateFromIso(isoString: string): string {
 
 export default function CreateSurveyWalk() {
     const navigate = useNavigate();
-    const { effectiveTheme } = useTheme();
     const [surveyPeriodUid, setSurveyPeriodUid] = useState<string[]>([]);
     const [name, setName] = useState("");
     const [date, setDate] = useState("");
@@ -79,11 +77,6 @@ export default function CreateSurveyWalk() {
         [surveyPeriods]
     );
     const selectedSurveyPeriod = surveyPeriods.find((period) => period.uid === surveyPeriodUid[0]);
-    const selectBg = effectiveTheme === "dark" ? "gray.800" : "white";
-    const selectBorder = effectiveTheme === "dark" ? "gray.600" : "gray.200";
-    const selectText = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
-    const selectPlaceholder = effectiveTheme === "dark" ? "whiteAlpha.700" : "gray.500";
-    const selectItemHoverBg = effectiveTheme === "dark" ? "gray.700" : "gray.50";
 
     useEffect(() => {
         const minDate = selectedSurveyPeriod ? getDateFromIso(selectedSurveyPeriod.startDate) : "";
@@ -142,98 +135,127 @@ export default function CreateSurveyWalk() {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <main className="main-content">
-                <Container display={"flex"} flexDirection={"column"} alignItems={"center"} gap={5}>
-                    <Container justifyContent={"center"} display={"flex"} alignItems={"center"} mt={5}>
-                        <h1>Create Survey Walk</h1>
-                    </Container>
-                    <Stack maxWidth={420} gap={4} width={"100%"}>
-                        <Select.Root
-                            collection={surveyPeriodCollection}
-                            value={surveyPeriodUid}
-                            onValueChange={(event) => setSurveyPeriodUid(event.value)}
-                            disabled={isLoadingPeriods || surveyPeriods.length === 0}
-                        >
-                            <Select.HiddenSelect />
-                            <Select.Label>Survey Period</Select.Label>
-                            <Select.Control>
-                                <Select.Trigger px={3} py={2} bg={selectBg} borderColor={selectBorder} color={selectText}>
-                                <Select.ValueText px={1} placeholder={"Select a survey period"} color={surveyPeriodUid[0] ? selectText : selectPlaceholder}/>
-                                </Select.Trigger>
-                                <Select.IndicatorGroup pr={2}>
-                                    <Select.Indicator color={selectText} />
-                                </Select.IndicatorGroup>
-                            </Select.Control>
-                            <Select.Positioner>
-                                <Select.Content bg={selectBg} borderColor={selectBorder} color={selectText}>
-                                    {surveyPeriodCollection.items.map((item) => (
-                                        <Select.Item item={item} key={item.value} py={2} px={2} bg={selectBg} color={selectText} _highlighted={{ bg: selectItemHoverBg }}>
-                                            {item.label}
-                                            <Select.ItemIndicator />
-                                        </Select.Item>
-                                    ))}
-                                </Select.Content>
-                            </Select.Positioner>
-                        </Select.Root>
-
-                        <Field.Root required>
-                            <Field.Label>
-                                Walk name <Field.RequiredIndicator />
-                            </Field.Label>
-                            <Input placeholder="Enter a name for the survey walk" value={name} onChange={(e) => setName(e.target.value)} required />
-                        </Field.Root>
-
-                        <ObservationDatePicker
-                            id="survey-walk-date"
-                            label="Date"
-                            value={date}
-                            onChange={setDate}
-                            required
-                            disabled={isLoadingPeriods || !selectedSurveyPeriod}
-                            minDate={selectedSurveyPeriod ? getDateFromIso(selectedSurveyPeriod.startDate) : undefined}
-                            maxDate={selectedSurveyPeriod ? getDateFromIso(selectedSurveyPeriod.endDate) : undefined}
-                        />
-
-                        <Field.Root required>
-                            <Field.Label>
-                                Start time <Field.RequiredIndicator />
-                            </Field.Label>
-                            <Input
-                                type="time"
-                                value={startTime}
-                                onChange={(e) => setStartTime(e.target.value)}
-                                required
-                                style={{ lineHeight: 1.5, paddingTop: "0.1875rem", paddingBottom: "0.1875rem" }}
-                            />
-                        </Field.Root>
-
-                        <Field.Root required>
-                            <Field.Label>
-                                End time <Field.RequiredIndicator />
-                            </Field.Label>
-                            <Input
-                                type="time"
-                                value={endTime}
-                                onChange={(e) => setEndTime(e.target.value)}
-                                required
-                                style={{ lineHeight: 1.5, paddingTop: "0.1875rem", paddingBottom: "0.1875rem" }}
-                            />
-                        </Field.Root>
-
-                        <Field.Root required>
-                            <Field.Label>
-                                Capacity <Field.RequiredIndicator />
-                            </Field.Label>
-                            <Input type="number" min={1} value={capacity} onChange={(e) => setCapacity(parseInt(e.target.value, 10) || 1)} required />
-                        </Field.Root>
-
-                        <Button backgroundColor="green.fg" px={3} alignSelf={"end"} mt={5} type="submit" loading={isSubmitting} disabled={isLoadingPeriods || surveyPeriods.length === 0}>
-                            <IoMdAdd />Add survey walk
-                        </Button>
-                    </Stack>
+        <main className="main-content">
+            <div className="container create-survey-period-page">
+                <Container className="welcome-header" mt={5}>
+                    <h1>Create Survey Walk</h1>
+                    <p className="welcome-subtitle">Schedule a new survey walk within a campaign period.</p>
                 </Container>
-            </main>
-        </form>
+
+                <form onSubmit={handleSubmit} className="report-form">
+                    <div className="card section-container">
+                        <h3>Walk Details</h3>
+                        <Stack gap={2} width={"100%"}>
+                            <div className="submit-form-group">
+                                <Select.Root
+                                    collection={surveyPeriodCollection}
+                                    value={surveyPeriodUid}
+                                    onValueChange={(event) => setSurveyPeriodUid(event.value)}
+                                    disabled={isLoadingPeriods || surveyPeriods.length === 0}
+                                    
+                                >
+                                    <Select.HiddenSelect />
+                                    <Select.Label>Survey Period</Select.Label>
+                                    <Select.Control>
+                                        <Select.Trigger px={3} py={2} bg="var(--white)" borderColor="var(--border-color-light)" color="var(--text-primary)" className="sighting-control">
+                                        <Select.ValueText px={1} placeholder={"Select a survey period"} color="var(--text-primary)"/>
+                                        </Select.Trigger>
+                                        <Select.IndicatorGroup pr={2}>
+                                            <Select.Indicator color="var(--text-primary)" />
+                                        </Select.IndicatorGroup>
+                                    </Select.Control>
+                                    <Select.Positioner>
+                                        <Select.Content bg="var(--white)" borderColor="var(--border-color-light)" color="var(--text-primary)">
+                                            {surveyPeriodCollection.items.map((item) => (
+                                                <Select.Item item={item} key={item.value} py={2} px={2} bg="var(--white)" color="var(--text-primary)" _highlighted={{ bg: "var(--bg-hover)" }}>
+                                                    {item.label}
+                                                    <Select.ItemIndicator />
+                                                </Select.Item>
+                                            ))}
+                                        </Select.Content>
+                                    </Select.Positioner>
+                                </Select.Root>
+                            </div>
+
+                            <Field.Root required className="submit-form-group" mb={0}>
+                                <Field.Label>
+                                    Walk name <Field.RequiredIndicator />
+                                </Field.Label>
+                                <Input
+                                    className="sighting-control sighting-text-input"
+                                    placeholder="Enter a name for the survey walk"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required
+                                />
+                            </Field.Root>
+
+                            <div className="submit-form-group">
+                                <ObservationDatePicker
+                                    id="survey-walk-date"
+                                    label="Date"
+                                    value={date}
+                                    onChange={setDate}
+                                    required
+                                    labelSize="sm"
+                                    disabled={isLoadingPeriods || !selectedSurveyPeriod}
+                                    minDate={selectedSurveyPeriod ? getDateFromIso(selectedSurveyPeriod.startDate) : undefined}
+                                    maxDate={selectedSurveyPeriod ? getDateFromIso(selectedSurveyPeriod.endDate) : undefined}
+                                />
+                            </div>
+
+                            <Field.Root required className="submit-form-group" mb={0}>
+                                <Field.Label>
+                                    Start time <Field.RequiredIndicator />
+                                </Field.Label>
+                                <Input
+                                    className="sighting-control"
+                                    type="time"
+                                    value={startTime}
+                                    onChange={(e) => setStartTime(e.target.value)}
+                                    required
+                                    style={{ lineHeight: 1.5, paddingTop: "0.1875rem", paddingBottom: "0.1875rem" }}
+                                />
+                            </Field.Root>
+
+                            <Field.Root required className="submit-form-group" mb={0}>
+                                <Field.Label>
+                                    End time <Field.RequiredIndicator />
+                                </Field.Label>
+                                <Input
+                                    className="sighting-control"
+                                    type="time"
+                                    value={endTime}
+                                    onChange={(e) => setEndTime(e.target.value)}
+                                    required
+                                    style={{ lineHeight: 1.5, paddingTop: "0.1875rem", paddingBottom: "0.1875rem" }}
+                                />
+                            </Field.Root>
+
+                            <Field.Root required className="submit-form-group" mb={0}>
+                                <Field.Label>
+                                    Capacity <Field.RequiredIndicator />
+                                </Field.Label>
+                                <Input
+                                    className="native-number-input sighting-control sighting-number-input"
+                                    type="number"
+                                    min={1}
+                                    value={capacity}
+                                    onChange={(e) => setCapacity(parseInt(e.target.value, 10) || 1)}
+                                    required
+                                />
+                            </Field.Root>
+                        </Stack>
+                    </div>
+
+                    <div className="create-period-actions">
+                        <Button variant="plain" className="btn btn-primary create-period-action-button" type="submit" loading={isSubmitting} disabled={isLoadingPeriods || surveyPeriods.length === 0}>
+                            <IoMdAdd />
+                            {isSubmitting ? "Creating..." : "Add Survey Walk"}
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </main>
     );
 }

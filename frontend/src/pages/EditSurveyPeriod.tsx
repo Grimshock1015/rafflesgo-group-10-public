@@ -78,41 +78,71 @@ export default function EditSurveyPeriod() {
     }, [surveyPeriodId]);
     
     return (
-        <form onSubmit={handleSubmit}>
-            <main className="main-content">
-                <Container display={"flex"} flexDirection={"column"} alignItems={"center"} gap={5}>
-                    <Container justifyContent={"center"} display={"flex"} alignItems={"center"} mt={5}>
-                        <h1>
-                            Edit Survey Period
-                        </h1>
-                    </Container>
-                    <Stack maxWidth={400} gap={4} width={"100%"}>
-                        <Field.Root required>
-                            <Field.Label>
-                                Name <Field.RequiredIndicator />
-                            </Field.Label>
-                            <Input placeholder="Enter a name for the survey period" value={name} onChange={(e) => setName(e.target.value)} required disabled={isLoading} />
-                        </Field.Root>
-                        <Field.Root required>
-                            <Field.Label>
-                                Min. no. of walks <Field.RequiredIndicator />
-                            </Field.Label>
-                            <Input value={minWalks} onChange={(e) => setMinWalks(parseInt(e.target.value) || 0)} required disabled={isLoading} />
-                        </Field.Root>
-                        <Checkbox.Root display={"flex"} checked={isFinished} onCheckedChange={(checked) => setIsFinished(!!checked.checked)} disabled={isLoading}>
-                            <Checkbox.HiddenInput />
-                            <Checkbox.Control>
-                                <Checkbox.Indicator />
-                            </Checkbox.Control>
-                            <Checkbox.Label>Is completed?</Checkbox.Label>
-                        </Checkbox.Root>
-                        <DateRangePicker value={dateRange} onChange={setDateRange} required disabled={isLoading} />
-                        <Button backgroundColor="green.fg" px={3} alignSelf={"end"} mt={5} type="submit" loading={isSubmitting} disabled={isLoading}>
-                            <MdSave />Save Changes
-                        </Button>
-                    </Stack>
+        <main className="main-content">
+            <div className="container create-survey-period-page">
+                <Container className="welcome-header" mt={5}>
+                    <h1>Edit Survey Period</h1>
+                    <p className="welcome-subtitle">Update campaign details and parameters.</p>
                 </Container>
-            </main>
-        </form>
+
+                <form onSubmit={handleSubmit} className="report-form">
+                    <div className="card section-container">
+                        <h3>Period Details</h3>
+                        <Stack gap={2} width={"100%"}>
+                            <Field.Root required className="submit-form-group" mb={0}>
+                                <Field.Label>
+                                    Name <Field.RequiredIndicator />
+                                </Field.Label>
+                                <Input
+                                    className="sighting-control sighting-text-input"
+                                    placeholder="Enter a name for the survey period"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required
+                                    disabled={isLoading}
+                                />
+                            </Field.Root>
+
+                            <Field.Root required className="submit-form-group" mb={0}>
+                                <Field.Label>
+                                    Min. no. of walks <Field.RequiredIndicator />
+                                </Field.Label>
+                                <Input
+                                    className="native-number-input sighting-control sighting-number-input"
+                                    type="number"
+                                    min={0}
+                                    step={1}
+                                    value={minWalks}
+                                    onChange={(e) => setMinWalks(parseInt(e.target.value) || 0)}
+                                    required
+                                    disabled={isLoading}
+                                />
+                            </Field.Root>
+
+                            <div className="submit-form-group">
+                                <DateRangePicker value={dateRange} onChange={setDateRange} label="Date Range" required disabled={isLoading} />
+                            </div>
+
+                            <div className="submit-form-group">
+                                <Checkbox.Root display={"flex"} checked={isFinished} onCheckedChange={(checked) => setIsFinished(!!checked.checked)} disabled={isLoading}>
+                                    <Checkbox.HiddenInput />
+                                    <Checkbox.Control>
+                                        <Checkbox.Indicator />
+                                    </Checkbox.Control>
+                                    <Checkbox.Label>Is completed?</Checkbox.Label>
+                                </Checkbox.Root>
+                            </div>
+                        </Stack>
+                    </div>
+
+                    <div className="create-period-actions">
+                        <Button variant="plain" className="btn btn-primary create-period-action-button" type="submit" loading={isSubmitting} disabled={isLoading}>
+                            <MdSave />
+                            {isSubmitting ? "Saving..." : "Save Changes"}
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </main>
     );
 }

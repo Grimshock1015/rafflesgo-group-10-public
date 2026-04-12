@@ -68,9 +68,10 @@ describe('EditSurveyPeriod', () => {
 
         // Initial loading might be brief, wait for inputs to be populated
         await waitFor(() => {
-            const inputs = screen.getAllByRole('textbox');
-            expect((inputs[0] as HTMLInputElement).value).toBe('Existing SP');
-            expect((inputs[1] as HTMLInputElement).value).toBe('10');
+            const nameInput = screen.getByLabelText(/name/i) as HTMLInputElement;
+            const minWalksInput = screen.getByLabelText(/min\. no\. of walks/i) as HTMLInputElement;
+            expect(nameInput.value).toBe('Existing SP');
+            expect(minWalksInput.value).toBe('10');
         });
 
         expect(RafflesGoService.getSurveyPeriod).toHaveBeenCalledWith('test-id');
@@ -103,13 +104,14 @@ describe('EditSurveyPeriod', () => {
         );
 
         await waitFor(() => {
-            const inputs = screen.getAllByRole('textbox');
-            expect((inputs[0] as HTMLInputElement).value).toBe('Existing SP');
+            const nameInput = screen.getByLabelText(/name/i) as HTMLInputElement;
+            expect(nameInput.value).toBe('Existing SP');
         });
 
-        const inputs = screen.getAllByRole('textbox');
-        fireEvent.change(inputs[0], { target: { value: 'Updated SP' } });
-        fireEvent.change(inputs[1], { target: { value: '15' } });
+        const nameInput = screen.getByLabelText(/name/i);
+        const minWalksInput = screen.getByLabelText(/min\. no\. of walks/i);
+        fireEvent.change(nameInput, { target: { value: 'Updated SP' } });
+        fireEvent.change(minWalksInput, { target: { value: '15' } });
         fireEvent.click(screen.getByTestId('mock-date-picker'));
 
         const form = document.querySelector('form');
@@ -149,8 +151,8 @@ describe('EditSurveyPeriod', () => {
         );
 
         await waitFor(() => {
-            const inputs = screen.getAllByRole('textbox');
-            expect((inputs[0] as HTMLInputElement).value).toBe('Existing SP');
+            const nameInput = screen.getByLabelText(/name/i) as HTMLInputElement;
+            expect(nameInput.value).toBe('Existing SP');
         });
 
         fireEvent.click(screen.getByRole('button', { name: /save changes/i }));

@@ -49,34 +49,66 @@ export default function CreateSurveyPeriod() {
     }
     
     return (
-        <form onSubmit={handleSubmit}>
-            <main className="main-content">
-                <Container display={"flex"} flexDirection={"column"} alignItems={"center"} gap={5}>
-                    <Container justifyContent={"center"} display={"flex"} alignItems={"center"} mt={5}>
-                        <h1>
-                            Create Survey Period
-                        </h1>
-                    </Container>
-                    <Stack maxWidth={400} gap={4} width={"100%"}>
-                        <Field.Root required>
-                            <Field.Label>
-                                Name <Field.RequiredIndicator />
-                            </Field.Label>
-                            <Input placeholder="Enter a name for the survey period" value={name} onChange={(e) => setName(e.target.value)} required />
-                        </Field.Root>
-                        <Field.Root required>
-                            <Field.Label>
-                                Min. no. of walks <Field.RequiredIndicator />
-                            </Field.Label>
-                            <Input value={minWalks} onChange={(e) => setMinWalks(parseInt(e.target.value) || 0)} required />
-                        </Field.Root>
-                        <DateRangePicker value={dateRange} onChange={setDateRange} required />
-                        <Button backgroundColor="green.fg" px={3} alignSelf={"end"} mt={5} type="submit" loading={isSubmitting}>
-                            <IoMdAdd />Add survey period
-                        </Button>
-                    </Stack>
+        <main className="main-content">
+            <div className="container create-survey-period-page">
+                <Container className="welcome-header" mt={5}>
+                    <h1>Create Survey Period</h1>
+                    <p className="welcome-subtitle">Define the campaign window and minimum participation target.</p>
                 </Container>
-            </main>
-        </form>
+
+                {/* <section className="card draft-link-card create-period-intro">
+                    <div>
+                        <h2>Set up a new survey campaign</h2>
+                        <p className="text-secondary">The start and end dates control when associated survey walks can run.</p>
+                    </div>
+                </section> */}
+
+                <form onSubmit={handleSubmit} className="report-form">
+                    <div className="card section-container">
+                        <h3>Period Details</h3>
+                        <Stack gap={2} width={"100%"}>
+                            <Field.Root required className="submit-form-group" mb={0}>
+                                <Field.Label>
+                                    Name <Field.RequiredIndicator />
+                                </Field.Label>
+                                <Input
+                                    className="sighting-control sighting-text-input"
+                                    placeholder="Enter a name for the survey period"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required
+                                />
+                            </Field.Root>
+
+                            <Field.Root required className="submit-form-group" mb={0}>
+                                <Field.Label>
+                                    Min. no. of walks <Field.RequiredIndicator />
+                                </Field.Label>
+                                <Input
+                                    className="native-number-input sighting-control sighting-number-input"
+                                    type="number"
+                                    min={0}
+                                    step={1}
+                                    value={minWalks}
+                                    onChange={(e) => setMinWalks(parseInt(e.target.value) || 0)}
+                                    required
+                                />
+                            </Field.Root>
+
+                            <div className="submit-form-group">
+                                <DateRangePicker value={dateRange} onChange={setDateRange} label="Date Range" required />
+                            </div>
+                        </Stack>
+                    </div>
+
+                    <div className="create-period-actions">
+                        <Button variant="plain" className="btn btn-primary create-period-action-button" type="submit" loading={isSubmitting}>
+                            <IoMdAdd />
+                            {isSubmitting ? "Creating..." : "Add Survey Period"}
+                        </Button>
+                    </div>
+                </form>
+            </div>
+        </main>
     );
 }

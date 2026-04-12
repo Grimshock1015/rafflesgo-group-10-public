@@ -4,22 +4,23 @@ import { Link, Navigate } from 'react-router-dom';
 import { RafflesGoService } from '../api';
 import { listAllAdminSightings } from '../lib/adminSightings';
 import { exportAdminDataToGoogleSheets } from '../utils/googleSheetsExport';
+import { Container } from '@chakra-ui/react';
 
 type AdminUser = Awaited<ReturnType<typeof RafflesGoService.listUsers>>['users'][number];
 type AdminSighting = Awaited<ReturnType<typeof listAllAdminSightings>>['sightings'][number];
 type AdminSurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalks>>['surveyWalks'][number];
 
 const sectionStyle: CSSProperties = {
-  background: 'var(--color-surface)',
-  border: '1px solid var(--color-border, rgba(255, 255, 255, 0.08))',
+  background: 'var(--bg-card)',
+  border: '1px solid var(--border-color)',
   borderRadius: '16px',
   padding: '1.5rem',
   marginTop: '1.5rem',
 };
 
 const cardStyle: CSSProperties = {
-  background: 'rgba(255, 255, 255, 0.03)',
-  border: '1px solid var(--color-border, rgba(255, 255, 255, 0.08))',
+  background: 'var(--bg-secondary)',
+  border: '1px solid var(--border-color)',
   borderRadius: '14px',
   padding: '1rem 1.25rem',
 };
@@ -29,8 +30,8 @@ const avatarStyle: CSSProperties = {
   height: '56px',
   borderRadius: '50%',
   objectFit: 'cover',
-  border: '1px solid var(--color-border, rgba(255, 255, 255, 0.08))',
-  background: 'rgba(255, 255, 255, 0.06)',
+  border: '1px solid var(--border-color)',
+  background: 'var(--bg-secondary)',
   flexShrink: 0,
 };
 
@@ -185,10 +186,10 @@ export default function AdminDashboard() {
   return (
     <main className="main-content">
       <div className="container" style={{ paddingBottom: '3rem' }}>
-        <header className="welcome-header">
+        <Container className="welcome-header" mt={5}>
           <h1>Admin Dashboard</h1>
           <p>Manage volunteers, control account access, and review platform activity.</p>
-        </header>
+        </Container>
 
         <section style={sectionStyle}>
           <h2>Admin Overview</h2>

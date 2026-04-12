@@ -76,10 +76,10 @@ describe('CreateSurveyPeriod', () => {
             </BrowserRouter>
         );
 
-        const inputs = screen.getAllByRole('textbox');
-        // First input is usually Name, second is Min walks
-        fireEvent.change(inputs[0], { target: { value: 'New SP' } });
-        fireEvent.change(inputs[1], { target: { value: '5' } });
+        const nameInput = screen.getByLabelText(/name/i);
+        const minWalksInput = screen.getByLabelText(/min\. no\. of walks/i);
+        fireEvent.change(nameInput, { target: { value: 'New SP' } });
+        fireEvent.change(minWalksInput, { target: { value: '5' } });
 
         // Trigger date selection
         fireEvent.click(screen.getByTestId('mock-date-picker'));
@@ -108,8 +108,8 @@ describe('CreateSurveyPeriod', () => {
             </BrowserRouter>
         );
 
-        const inputs = screen.getAllByRole('textbox');
-        fireEvent.change(inputs[0], { target: { value: 'New SP' } });
+        const nameInput = screen.getByLabelText(/name/i);
+        fireEvent.change(nameInput, { target: { value: 'New SP' } });
 
         fireEvent.click(screen.getByRole('button', { name: /add survey period/i }));
 

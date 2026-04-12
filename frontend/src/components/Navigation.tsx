@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { signOut } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import type { User } from 'firebase/auth'
-import { Button } from '@chakra-ui/react'
+import { Box, Button, Tabs } from '@chakra-ui/react'
 import { RafflesGoService } from '../api'
+import { useTheme } from '../contexts/ThemeContext'
 
 interface NavigationProps {
   user: User
@@ -13,8 +14,41 @@ interface NavigationProps {
 
 export function Navigation({ user, onOpenTutorial }: NavigationProps) {
   const navigate = useNavigate()
+  const location = useLocation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [role, setRole] = useState<'user' | 'admin'>('user')
+  const { effectiveTheme } = useTheme()
+
+  const tabText = effectiveTheme === 'dark' ? 'whiteAlpha.900' : 'gray.700'
+  const brandGreen = 'var(--primary-green)'
+  const tabLineColor = effectiveTheme === 'dark' ? 'var(--light-green)' : 'var(--primary-green)'
+  const tabLineWidth = effectiveTheme === 'dark' ? '4px' : '3px'
+  const tabBorderBottomWidth = { base: '0px', md: tabLineWidth }
+  const selectedTabStyles = {
+    color: brandGreen,
+    borderBottomColor: { base: 'transparent', md: tabLineColor },
+  }
+
+  const activeTab = (() => {
+    if (location.pathname.startsWith('/submit-sighting')) return 'submit-sighting'
+    if (location.pathname.startsWith('/dashboard')) return 'dashboard'
+    if (location.pathname.startsWith('/admin')) return 'admin'
+    if (
+      location.pathname.startsWith('/survey-periods') ||
+      location.pathname.startsWith('/create-survey-period') ||
+      location.pathname.startsWith('/edit-survey-period')
+    ) {
+      return 'survey-periods'
+    }
+    if (
+      location.pathname.startsWith('/survey-walks') ||
+      location.pathname.startsWith('/create-survey-walk') ||
+      location.pathname.startsWith('/edit-survey-walk')
+    ) {
+      return 'survey-walks'
+    }
+    return 'survey-walks'
+  })()
 
   const handleLogout = async () => {
     await signOut(auth)
@@ -48,8 +82,8 @@ export function Navigation({ user, onOpenTutorial }: NavigationProps) {
       const navToggle = target.closest('.nav-toggle')
       
       if (isMobileMenuOpen && navContainer && !navToggle) {
-        // If clicking inside nav but not on toggle button, check if it's a link
-        const isNavLink = target.closest('.nav-link')
+        // If clicking inside nav but not on toggle button, check if it's a tab trigger
+        const isNavLink = target.closest('[data-nav-link]')
         if (!isNavLink) {
           closeMobileMenu()
         }
@@ -98,7 +132,7 @@ export function Navigation({ user, onOpenTutorial }: NavigationProps) {
     <nav className="main-nav">
       <div className="nav-container">
         <div className="nav-brand">
-          <img src="/assets/images/icons/icon.png" alt="Raffles Go Logo" className="logo" />
+          <img src="/assets/images/icons/icon-nobg.png" alt="Raffles Go Logo" className="logo" />
           <span className="brand-name">Raffles Go</span>
         </div>
 
@@ -112,68 +146,118 @@ export function Navigation({ user, onOpenTutorial }: NavigationProps) {
         </button>
 
         <div className={`nav-menu-wrapper ${isMobileMenuOpen ? 'open' : ''}`}>
-          <ul className="nav-menu">
-            {role === 'admin' && (
-              <li>
-                <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/survey-periods');}} px={2}>
+          <Tabs.Root value={activeTab} className="nav-menu">
+            <Tabs.List gap={5} className="nav-menu-list">
+
+              <Tabs.Trigger
+                value="dashboard"
+                className="nav-link"
+                data-nav-link
+                color={tabText}
+                borderBottomWidth={tabBorderBottomWidth}
+                borderBottomStyle="solid"
+                borderBottomColor="transparent"
+                _hover={{ color: brandGreen }}
+                _selected={selectedTabStyles}
+                onClick={() => { closeMobileMenu(); navigate('/dashboard'); }}
+              >
+                Dashboard
+              </Tabs.Trigger>
+
+              {role === 'admin' && (
+                <Tabs.Trigger
+                  value="admin"
+                  className="nav-link"
+                  data-nav-link
+                  color={tabText}
+                  borderBottomWidth={tabBorderBottomWidth}
+                  borderBottomStyle="solid"
+                  borderBottomColor="transparent"
+                  _hover={{ color: brandGreen }}
+                  _selected={selectedTabStyles}
+                  onClick={() => { closeMobileMenu(); navigate('/admin'); }}
+                >
+                  Admin Dashboard
+                </Tabs.Trigger>
+              )}
+
+              <Tabs.Trigger
+                value="survey-walks"
+                className="nav-link"
+                data-nav-link
+                color={tabText}
+                borderBottomWidth={tabBorderBottomWidth}
+                borderBottomStyle="solid"
+                borderBottomColor="transparent"
+                _hover={{ color: brandGreen }}
+                _selected={selectedTabStyles}
+                onClick={() => { closeMobileMenu(); navigate('/survey-walks'); }}
+              >
+                Survey Walks
+              </Tabs.Trigger>
+
+              {role === 'admin' && (
+                <Tabs.Trigger
+                  value="survey-periods"
+                  className="nav-link"
+                  data-nav-link
+                  color={tabText}
+                  borderBottomWidth={tabBorderBottomWidth}
+                  borderBottomStyle="solid"
+                  borderBottomColor="transparent"
+                  _hover={{ color: brandGreen }}
+                  _selected={selectedTabStyles}
+                  onClick={() => { closeMobileMenu(); navigate('/survey-periods'); }}
+                >
                   Survey Periods
-                </Button>
-              </li>
-            )}
-            
-            <li>
-              <Button
-                backgroundColor={"green.fg"}
-                onClick={() => {
-                  closeMobileMenu()
-                  onOpenTutorial()
-                }}
-                px={2}
+                </Tabs.Trigger>
+              )}
+
+              <Tabs.Trigger
+                value="submit-sighting"
+                className="nav-link"
+                data-nav-link
+                color={tabText}
+                borderBottomWidth={tabBorderBottomWidth}
+                borderBottomStyle="solid"
+                borderBottomColor="transparent"
+                _hover={{ color: brandGreen }}
+                _selected={selectedTabStyles}
+                onClick={() => { closeMobileMenu(); navigate('/submit-sighting'); }}
+              >
+                Submit Sighting
+              </Tabs.Trigger>
+
+              <Tabs.Trigger
+                value="tutorial"
+                className="nav-link"
+                data-nav-link
+                color={tabText}
+                borderBottomWidth={tabBorderBottomWidth}
+                borderBottomStyle="solid"
+                borderBottomColor="transparent"
+                _hover={{ color: brandGreen }}
+                _selected={selectedTabStyles}
+                onClick={() => { closeMobileMenu(); onOpenTutorial(); }}
               >
                 Tutorial
-              </Button>
-            </li>
-
-            <li>
-                <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/survey-walks');}} px={2}>
-                  Survey Walks
-                </Button>
-            </li>
-
-            <li>
-              <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/submit-sighting');}} px={2}>
-                Submit Sighting
-              </Button>
-            </li>
-
-            <li>
-              <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/drafts');}} px={2}>
-                Saved Drafts
-              </Button>
-            </li>
-
-            <li>
-              <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/dashboard');}} px={2}>
-                Dashboard
-              </Button>
-            </li>
-
-            {role === 'admin' && (
-              <li>
-                <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/admin');}} px={2}>
-                  Admin
-                </Button>
-              </li>
-            )}
-          </ul>
+              </Tabs.Trigger>
+            </Tabs.List>
+          </Tabs.Root>
 
           <div className="nav-actions">
             {/* <ThemeToggle /> */}
             <div className="user-menu mobile-user-menu">
-              <span className="user-name">{user.displayName || user.email}</span>
-              <button onClick={handleLogout} className="btn-logout">
+              <Box as="span" className="user-menu-label" color={brandGreen}>
+                {user.displayName || user.email}
+              </Box>
+              <Button
+                onClick={handleLogout}
+                size="sm"
+                className="user-menu-logout"
+              >
                 Logout
-              </button>
+              </Button>
             </div>
           </div>
         </div>
