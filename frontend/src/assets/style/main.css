@@ -1274,6 +1274,7 @@ input:focus, select:focus, textarea:focus {
     align-items: end;
     justify-content: space-between;
     gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-sm);
 }
 
 .drafts-summary-card,
@@ -1297,12 +1298,12 @@ input:focus, select:focus, textarea:focus {
 .draft-card {
     padding: var(--spacing-lg);
     display: grid;
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
 }
 
 .draft-card-top {
     display: flex;
-    align-items: center;
+    align-items: start;
     justify-content: space-between;
     gap: var(--spacing-md);
 }
@@ -1314,6 +1315,8 @@ input:focus, select:focus, textarea:focus {
     border-radius: 999px;
     font-size: var(--font-size-xs);
     font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .draft-pill.sighted {
