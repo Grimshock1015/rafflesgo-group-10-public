@@ -8,9 +8,10 @@ import { RafflesGoService } from '../api'
 
 interface NavigationProps {
   user: User
+  onOpenTutorial: () => void
 }
 
-export function Navigation({ user }: NavigationProps) {
+export function Navigation({ user, onOpenTutorial }: NavigationProps) {
   const navigate = useNavigate()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [role, setRole] = useState<'user' | 'admin'>('user')
@@ -119,7 +120,19 @@ export function Navigation({ user }: NavigationProps) {
                 </Button>
               </li>
             )}
-
+            
+            <li>
+              <Button
+                backgroundColor={"green.fg"}
+                onClick={() => {
+                  closeMobileMenu()
+                  onOpenTutorial()
+                }}
+                px={2}
+              >
+                Tutorial
+              </Button>
+            </li>
 
             <li>
                 <Button backgroundColor={"green.fg"} onClick={() => {closeMobileMenu(); navigate('/survey-walks');}} px={2}>

@@ -94,10 +94,7 @@ function ProtectedLayout({ user }: { user: User | null }) {
 
     if (!hasSeenTutorial) {
       setShowTutorial(true)
-    } else {
-      setShowTutorial(false)
     }
-
   }, [user, userRole, roleChecked])
 
   useEffect(() => {
@@ -149,7 +146,7 @@ function ProtectedLayout({ user }: { user: User | null }) {
 
   return (
     <RequireAuth user={user}>
-      <Navigation user={user!} />
+      <Navigation user={user!} onOpenTutorial={() => setShowTutorial(true)} />
       {showTutorial && roleChecked && (
         <TutorialModal
           steps={selectedTutorialSteps}
@@ -172,6 +169,8 @@ function ProtectedLayout({ user }: { user: User | null }) {
     </RequireAuth>
   )
 }
+
+export { ProtectedLayout }
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null)
