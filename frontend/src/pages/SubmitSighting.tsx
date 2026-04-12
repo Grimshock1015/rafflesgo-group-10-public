@@ -11,6 +11,8 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import exifr from 'exifr';
 import { saveDraft, getDraft, deleteDraft } from '../services/SightingDraftsService';
+import { cacheSurveyWalks, getCachedSurveyWalks } from '../services/SurveyWalkCacheService';
+import { useOfflineStatus } from '../hooks/useOfflineStatus';
 import type { DraftMedia, SightingDraftFormData } from '../types/sightingDrafts';
 import { buildDraft } from '../utils/buildDraft';
 import { ObservationDatePicker } from '../components/ObservationDatePicker';
@@ -81,6 +83,8 @@ export default function SubmitSightingPage({ user }: { user: User }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const navigate = useNavigate();
+  const isOffline = useOfflineStatus();
+  const [usingCachedWalks, setUsingCachedWalks] = useState(false);
   const selectedSurveyWalk = leaderSurveyWalks.find((walk) => walk.uid === selectedSurveyWalkUid) ?? null;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -307,6 +311,7 @@ export default function SubmitSightingPage({ user }: { user: User }) {
     async function loadLeaderSurveyWalks() {
       setLoadingSurveyWalks(true);
       setSurveyWalksError(null);
+      setUsingCachedWalks(false);
 
       try {
         const token = await user.getIdToken();
@@ -315,6 +320,9 @@ export default function SubmitSightingPage({ user }: { user: User }) {
         const leaderWalks = response.surveyWalks.filter((walk) => walk.leader.uid === user.uid);
         setLeaderSurveyWalks(leaderWalks);
 
+        // Save to IndexedDB so we have something to fall back on when offline
+        await cacheSurveyWalks(user.uid, leaderWalks);
+
         setSelectedSurveyWalkUid((current) => {
           if (current && leaderWalks.some((walk) => walk.uid === current)) {
             return current;
@@ -322,8 +330,22 @@ export default function SubmitSightingPage({ user }: { user: User }) {
           return leaderWalks[0]?.uid ?? '';
         });
       } catch (error) {
-        console.error('Failed to load survey walks for sighting submission:', error);
-        setSurveyWalksError('Could not load your leader survey walks. Please refresh and try again.');
+        // API failed — try the local cache before giving up
+        console.error('Failed to load survey walks, trying cache:', error);
+        const cached = await getCachedSurveyWalks(user.uid);
+
+        if (cached && cached.walks.length > 0) {
+          setLeaderSurveyWalks(cached.walks as SurveyWalk[]);
+          setUsingCachedWalks(true);
+          setSelectedSurveyWalkUid((current) => {
+            if (current && cached.walks.some((walk) => walk.uid === current)) {
+              return current;
+            }
+            return cached.walks[0]?.uid ?? '';
+          });
+        } else {
+          setSurveyWalksError('Could not load your leader survey walks. Please refresh and try again.');
+        }
       } finally {
         setLoadingSurveyWalks(false);
       }
@@ -412,6 +434,10 @@ export default function SubmitSightingPage({ user }: { user: User }) {
                   ))}
                 </select>
                 {loadingSurveyWalks ? <p className="form-feedback">Loading your leader survey walks...</p> : null}
+                {/* Show a warning if we're offline or fell back to cached data */}
+                {(isOffline || usingCachedWalks) && !loadingSurveyWalks && leaderSurveyWalks.length > 0 ? (
+                  <p className="form-feedback">You're offline — showing your walks from last sync.</p>
+                ) : null}
                 {surveyWalksError ? <p className="form-feedback text-error">{surveyWalksError}</p> : null}
                 {!loadingSurveyWalks && !surveyWalksError && leaderSurveyWalks.length === 0 ? (
                   <p className="form-feedback text-error">

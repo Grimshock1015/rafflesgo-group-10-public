@@ -1,15 +1,22 @@
 import { openDB } from 'idb';
 import type { DBSchema, IDBPDatabase } from 'idb';
 import type { SightingDraft } from '../types/sightingDrafts';
+import type { CachedSurveyWalks } from './SurveyWalkCacheService';
 
 const DB_NAME = 'rafflesgo-db';
-const DB_VERSION = 1;
+// bump version when adding new stores
+const DB_VERSION = 2;
 const STORE_NAME = 'sighting-drafts';
+const WALK_CACHE_STORE = 'survey-walk-cache';
 
 interface RafflesGoDB extends DBSchema {
   [STORE_NAME]: {
     key: string;
     value: SightingDraft;
+  };
+  [WALK_CACHE_STORE]: {
+    key: string; // keyed by user uid
+    value: CachedSurveyWalks;
   };
 }
 
@@ -22,12 +29,17 @@ function getDB() {
         if (!db.objectStoreNames.contains(STORE_NAME)) {
           db.createObjectStore(STORE_NAME, { keyPath: 'id' });
         }
+        if (!db.objectStoreNames.contains(WALK_CACHE_STORE)) {
+          db.createObjectStore(WALK_CACHE_STORE, { keyPath: 'uid' });
+        }
       },
     });
   }
 
   return dbPromise;
 }
+
+export { WALK_CACHE_STORE };
 
 export async function saveDraft(draft: SightingDraft): Promise<void> {
   const db = await getDB();

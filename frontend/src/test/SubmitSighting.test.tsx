@@ -61,6 +61,12 @@ vi.mock('../services/SightingDraftsService', () => ({
     deleteDraft: vi.fn().mockResolvedValue(undefined),
 }));
 
+// Mock SurveyWalkCacheService to avoid indexedDB not being available in jsdom
+vi.mock('../services/SurveyWalkCacheService', () => ({
+    getCachedSurveyWalks: vi.fn().mockResolvedValue(undefined),
+    cacheSurveyWalks: vi.fn().mockResolvedValue(undefined),
+}));
+
 const mockUser = {
     uid: 'test-user-123',
     email: 'test@example.com',

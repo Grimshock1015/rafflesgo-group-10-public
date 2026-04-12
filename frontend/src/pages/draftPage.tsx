@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { getAllDrafts, deleteDraft } from '../services/SightingDraftsService';
 import type { SightingDraft } from '../types/sightingDrafts';
 import type { User } from 'firebase/auth';
+import { Box, Text } from '@chakra-ui/react'
 
 export default function DraftsPage({ user }: { user: User }) {
   const [drafts, setDrafts] = useState<SightingDraft[]>([]);
@@ -84,23 +85,20 @@ export default function DraftsPage({ user }: { user: User }) {
           ) : (
             <section className="drafts-grid">
               {drafts.map((draft) => (
-                <article key={draft.id} className="card draft-card">
+                <Box key={draft.id} className="card draft-card">
                   <div className="draft-card-top">
                     <span className={`draft-pill ${draft.formData.result === 'not_sighted' ? 'zero' : 'sighted'}`}>
                       {draft.formData.result === 'not_sighted' ? 'Zero Sighting' : 'Animal Sighting'}
                     </span>
-                    <span className="draft-updated">
-                      Updated {new Date(draft.updatedAt).toLocaleString()}
+                    <span className="draft-updated" style={{textAlign: 'right'}}>
+                      Updated {new Date(draft.updatedAt).toUTCString()}
                     </span>
                   </div>
 
-                  <h2>{draft.formData.location || 'No route selected'}</h2>
-                  <p className="draft-meta">
-                    {draft.formData.date || 'No date'} {draft.formData.time || ''}
-                  </p>
-                  <p className="draft-meta">
-                    {draft.formData.species || (draft.formData.result === 'not_sighted' ? 'No animals recorded' : 'Species not set')}
-                  </p>
+                  <h2 style={{marginBottom: '0'}}>{draft.formData.location || 'No route selected'}</h2>
+                  <Text className="draft-meta" mb={0}>
+                    {draft.formData.date || 'No date'}{draft.formData.time || ''},  {draft.formData.species || (draft.formData.result === 'not_sighted' ? 'No animals recorded' : 'Species not set')}
+                  </Text>
 
                   <div className="draft-card-actions">
                     <button className="btn-primary" onClick={() => handleOpen(draft.id)}>
@@ -114,7 +112,7 @@ export default function DraftsPage({ user }: { user: User }) {
                       Delete
                     </button>
                   </div>
-                </article>
+                </Box>
               ))}
             </section>
           )}
