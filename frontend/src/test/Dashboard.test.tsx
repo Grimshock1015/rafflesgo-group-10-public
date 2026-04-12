@@ -52,7 +52,7 @@ describe('Dashboard', () => {
         ok: true,
         json: async () => ({
           hourly: {
-            time: ['2026-04-12T08:00', '2026-04-14T08:00'],
+            time: ['2026-04-16T08:00', '2026-04-22T08:00'],
             precipitation_probability: [20, 10],
             weather_code: [1, 1],
           },
@@ -72,7 +72,7 @@ describe('Dashboard', () => {
           surveyPeriodUid: 'period-1',
           surveyPeriodName: 'April 2026 Survey Period',
           name: 'MacRitchie Reservoir Loop',
-          date: '2026-04-12T00:00:00.000Z',
+          date: '2026-04-16T00:00:00.000Z',
           startTime: '07:30',
           endTime: '09:30',
           capacity: 8,
@@ -96,7 +96,7 @@ describe('Dashboard', () => {
           surveyPeriodUid: 'period-1',
           surveyPeriodName: 'April 2026 Survey Period',
           name: 'Springleaf Trail',
-          date: '2026-04-14T00:00:00.000Z',
+          date: '2026-04-22T00:00:00.000Z',
           startTime: '08:00',
           endTime: '10:00',
           capacity: 10,
@@ -253,7 +253,7 @@ describe('Dashboard', () => {
         ok: true,
         json: async () => ({
           hourly: {
-            time: ['2026-04-12T08:00'],
+            time: ['2026-04-16T08:00'],
             precipitation_probability: [85],
             weather_code: [82],
           },
