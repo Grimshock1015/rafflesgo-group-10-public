@@ -9,9 +9,10 @@ import { useTheme } from '../contexts/ThemeContext'
 
 interface NavigationProps {
   user: User
+  onOpenTutorial: () => void
 }
 
-export function Navigation({ user }: NavigationProps) {
+export function Navigation({ user, onOpenTutorial }: NavigationProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -225,6 +226,21 @@ export function Navigation({ user }: NavigationProps) {
                 onClick={() => { closeMobileMenu(); navigate('/submit-sighting'); }}
               >
                 Submit Sighting
+              </Tabs.Trigger>
+
+              <Tabs.Trigger
+                value="tutorial"
+                className="nav-link"
+                data-nav-link
+                color={tabText}
+                borderBottomWidth={tabBorderBottomWidth}
+                borderBottomStyle="solid"
+                borderBottomColor="transparent"
+                _hover={{ color: brandGreen }}
+                _selected={selectedTabStyles}
+                onClick={() => { closeMobileMenu(); onOpenTutorial(); }}
+              >
+                Tutorial
               </Tabs.Trigger>
             </Tabs.List>
           </Tabs.Root>

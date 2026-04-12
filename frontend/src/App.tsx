@@ -19,6 +19,8 @@ import CreateSurveyWalk from './pages/CreateSurveyWalk'
 import EditSurveyWalk from './pages/EditSurveyWalk'
 import { RafflesGoService } from './api'
 import AdminDashboard from './pages/AdminDashboard'
+import { userTutorialSteps, adminTutorialSteps } from './constants/tutorialSteps'
+import TutorialModal from './components/TutorialModal'
 
 function RequireAuth({ user, children }: { user: User | null; children: ReactNode }) {
   const location = useLocation()
@@ -78,10 +80,79 @@ function ProtectedLayout({ user }: { user: User | null }) {
   const [displayedOutlet, setDisplayedOutlet] = useState(outlet)
   const [displayedPath, setDisplayedPath] = useState(location.pathname)
   const isTransitioning = location.pathname !== displayedPath
+  const [userRole, setUserRole] = useState<'admin' | 'user'>('user')
+  const [roleChecked, setRoleChecked] = useState(false)
+  const [showTutorial, setShowTutorial] = useState(false)
+
+  useEffect(() => {
+    if (!user || !roleChecked) {
+      return
+    }
+
+    const tutorialKey = `hasSeenTutorial_${userRole}_${user.uid}`
+    const hasSeenTutorial = localStorage.getItem(tutorialKey)
+
+    if (!hasSeenTutorial) {
+      setShowTutorial(true)
+    }
+  }, [user, userRole, roleChecked])
+
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchUserRole = async () => {
+      if (!user) {
+        if (isMounted) setRoleChecked(true)
+        return
+      }
+
+      try {
+        const currentUser = await RafflesGoService.getCurrentUser()
+        if (isMounted) {
+          setUserRole(currentUser.role === 'admin' ? 'admin' : 'user')
+        }
+      } catch {
+        if (isMounted) {
+          setUserRole('user')
+        }
+      } finally {
+        if (isMounted) {
+          setRoleChecked(true)
+        }
+      }
+    }
+
+    fetchUserRole()
+
+    return () => {
+      isMounted = false
+    }
+  }, [user])
+
+  const tutorialKey =
+    user && roleChecked
+      ? `hasSeenTutorial_${userRole}_${user.uid}`
+      : null
+
+  const selectedTutorialSteps =
+    userRole === 'admin' ? adminTutorialSteps : userTutorialSteps
+
+  const handleTutorialFinish = () => {
+    if (!tutorialKey) return
+
+    localStorage.setItem(tutorialKey, 'true')
+    setShowTutorial(false)
+  }
 
   return (
     <RequireAuth user={user}>
-      <Navigation user={user!} />
+      <Navigation user={user!} onOpenTutorial={() => setShowTutorial(true)} />
+      {showTutorial && roleChecked && (
+        <TutorialModal
+          steps={selectedTutorialSteps}
+          onFinish={handleTutorialFinish}
+        />
+      )}
       <div
         onTransitionEnd={(event) => {
           if (event.target !== event.currentTarget || !isTransitioning) return
@@ -98,6 +169,8 @@ function ProtectedLayout({ user }: { user: User | null }) {
     </RequireAuth>
   )
 }
+
+export { ProtectedLayout }
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null)
