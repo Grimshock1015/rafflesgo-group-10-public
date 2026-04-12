@@ -2,8 +2,33 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import type { User } from 'firebase/auth'
-import { ProtectedLayout } from '../App'
-import { RafflesGoService } from '../api'
+
+vi.mock('firebase/app', () => ({
+  initializeApp: vi.fn(() => ({})),
+}))
+
+vi.mock('firebase/auth', () => ({
+  signOut: vi.fn(),
+  onAuthStateChanged: vi.fn(),
+  getAuth: vi.fn(() => ({})),
+  GoogleAuthProvider: vi.fn(),
+}))
+
+vi.mock('firebase/storage', () => ({
+  getStorage: vi.fn(() => ({})),
+}))
+
+vi.mock('../lib/firebase', () => ({
+  auth: {},
+  googleProvider: {},
+  storage: {},
+}))
+
+vi.mock('../api', () => ({
+  RafflesGoService: {
+    getCurrentUser: vi.fn(),
+  },
+}))
 
 vi.mock('../components/Navigation', () => ({
   Navigation: ({
@@ -40,11 +65,8 @@ vi.mock('../constants/tutorialSteps', () => ({
   adminTutorialSteps: [{ title: 'Admin Step 1' }],
 }))
 
-vi.mock('../api', () => ({
-  RafflesGoService: {
-    getCurrentUser: vi.fn(),
-  },
-}))
+const { ProtectedLayout } = await import('../App')
+const { RafflesGoService } = await import('../api')
 
 function renderProtectedLayout(user: User | null) {
   return render(
