@@ -40,7 +40,15 @@ const SINGAPORE_COORDINATES = { latitude: 1.3521, longitude: 103.8198 };
 const GREEN = '#4caf72';
 const ORANGE = '#f0a500';
 const BLUE = '#5b9cf6';
-const GRAY = 'rgba(255,255,255,0.12)';
+const GRAY = 'var(--border-color-light)';
+const MUTED_TEXT = 'var(--text-secondary)';
+const SUBTLE_GRID = 'var(--border-color-light)';
+const TOOLTIP_STYLE: CSSProperties = {
+  background: 'var(--bg-card)',
+  border: '1px solid var(--border-color)',
+  borderRadius: 8,
+  color: 'var(--text-primary)',
+};
 
 const sectionStyle: CSSProperties = {
   background: 'var(--bg-card)',
@@ -133,7 +141,7 @@ function DonutLabel({ cx, cy, pct, label }: { cx: number; cy: number; pct: numbe
   return (
     <g>
       <text x={cx} y={cy - 8} textAnchor="middle" fill="currentColor" fontSize={26} fontWeight={700}>{pct}%</text>
-      <text x={cx} y={cy + 14} textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize={11}>{label}</text>
+      <text x={cx} y={cy + 14} textAnchor="middle" fill={MUTED_TEXT} fontSize={11}>{label}</text>
     </g>
   );
 }
@@ -458,7 +466,7 @@ export default function Dashboard({ user }: { user: User }) {
                           <Cell fill={GREEN} />
                           <Cell fill={GRAY} />
                         </Pie>
-                        <Tooltip formatter={(val: unknown) => [`${val} walks`, '']} contentStyle={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }} />
+                        <Tooltip formatter={(val: unknown) => [`${val} walks`, '']} contentStyle={TOOLTIP_STYLE} />
                       </PieChart>
                     </ResponsiveContainer>
                     <p style={{ fontSize: '0.85rem', opacity: 0.6 }}>{chartData.attended} attended / {chartData.finishedWalks} completed walks</p>
@@ -495,7 +503,7 @@ export default function Dashboard({ user }: { user: User }) {
                           <Cell fill={BLUE} />
                           <Cell fill={GRAY} />
                         </Pie>
-                        <Tooltip formatter={(val: unknown) => [`${val} submissions`, '']} contentStyle={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }} />
+                        <Tooltip formatter={(val: unknown) => [`${val} submissions`, '']} contentStyle={TOOLTIP_STYLE} />
                       </PieChart>
                     </ResponsiveContainer>
                     <p style={{ fontSize: '0.85rem', opacity: 0.6 }}>{chartData.sightedCount} sighted / {chartData.totalSubmissions} total submissions</p>
@@ -519,10 +527,10 @@ export default function Dashboard({ user }: { user: User }) {
                   layout="vertical"
                   margin={{ top: 8, right: 24, left: 16, bottom: 8 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis type="number" allowDecimals={false} tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 12 }} />
-                  <YAxis type="category" dataKey="name" width={140} tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 13 }} />
-                  <Tooltip contentStyle={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }} formatter={(val: unknown) => [`${val} time${val !== 1 ? 's' : ''}`, 'Recorded']} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={SUBTLE_GRID} />
+                  <XAxis type="number" allowDecimals={false} tick={{ fill: MUTED_TEXT, fontSize: 12 }} />
+                  <YAxis type="category" dataKey="name" width={140} tick={{ fill: 'var(--text-primary)', fontSize: 13 }} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(val: unknown) => [`${val} time${val !== 1 ? 's' : ''}`, 'Recorded']} />
                   <Bar dataKey="count" fill={GREEN} radius={[0, 6, 6, 0]} />
                 </BarChart>
               </ResponsiveContainer>

@@ -1,21 +1,35 @@
 import { Box, Image, List, Text } from "@chakra-ui/react";
+import { useState } from "react";
 
 import type { WalkPerson } from "./SurveyWalkGrid.types";
 
 export function PersonAvatar({ person, size = "28px" }: { person: WalkPerson; size?: string }) {
     const label = person.name || person.uid || "?";
     const initial = label.slice(0, 1).toUpperCase();
+    const [didPhotoFail, setDidPhotoFail] = useState(false);
+    const [didGenericFail, setDidGenericFail] = useState(false);
 
-    if (person.photoURL) {
+    const genericAvatarSrc = "/assets/images/avatars/icon.png";
+    const imageSrc = didPhotoFail ? genericAvatarSrc : person.photoURL;
+
+    if (imageSrc && !didGenericFail) {
         return (
             <Image
-                src={person.photoURL}
+                src={imageSrc}
                 alt={`${label} profile`}
                 boxSize={size}
                 borderRadius="full"
                 objectFit="cover"
                 flexShrink={0}
                 position={"relative"}
+                onError={() => {
+                    if (!didPhotoFail && person.photoURL) {
+                        setDidPhotoFail(true);
+                        return;
+                    }
+
+                    setDidGenericFail(true);
+                }}
             />
         );
     }
