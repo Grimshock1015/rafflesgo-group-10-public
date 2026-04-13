@@ -133,10 +133,12 @@ export class EmailService {
         toEmail: string,
         inviterName: string,
         walkName: string,
+        // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         invitationUid: string,
     ): Promise<void> {
         const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
-        const link = `${frontendUrl}/survey-walks?invitation=${invitationUid}`;
+        const link = `${frontendUrl}/dashboard`;
 
         await this.transporter.sendMail({
             from: `"RafflesGo" <${process.env.GMAIL_USER}>`,
