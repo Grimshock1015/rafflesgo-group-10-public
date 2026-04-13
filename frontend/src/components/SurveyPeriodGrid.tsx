@@ -18,6 +18,10 @@ type DeleteSurveyPeriodButtonProps = {
 function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPeriodButtonProps) {
     const [open, setOpen] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const { effectiveTheme } = useTheme();
+    const dialogBg = effectiveTheme === "dark" ? "gray.900" : "white";
+    const dialogBorder = effectiveTheme === "dark" ? "whiteAlpha.300" : "gray.200";
+    const dialogTextColor = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
 
     const handleDelete = async () => {
         try {
@@ -55,20 +59,20 @@ function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPer
             <Portal>
                 <Dialog.Backdrop />
                 <Dialog.Positioner position="fixed" inset={0} display="flex" alignItems="center" justifyContent="center">
-                    <Dialog.Content p={5}>
+                    <Dialog.Content p={5} bg={dialogBg} borderWidth="1px" borderColor={dialogBorder} color={dialogTextColor}>
                         <Dialog.Header>
                             <Dialog.Title>Confirm Delete</Dialog.Title>
                         </Dialog.Header>
-                        <Dialog.Body color={"fg"}>
+                        <Dialog.Body color={"cardSubtleTextColor"}>
                             Are you sure you want to delete this survey period? This action cannot be undone.
                         </Dialog.Body>
                         <Dialog.Footer>
                             <Dialog.ActionTrigger asChild>
-                                <Button variant="plain" className="btn btn-secondary" disabled={isDeleting}>
+                                <Button variant="plain" className="btn btn-secondary btn-compact" disabled={isDeleting}>
                                     Cancel
                                 </Button>
                             </Dialog.ActionTrigger>
-                            <Button variant="plain" className="btn btn-primary" onClick={handleDelete} loading={isDeleting}>
+                            <Button variant="plain" className="btn btn-primary btn-compact" onClick={handleDelete} loading={isDeleting}>
                                 Delete
                             </Button>
                         </Dialog.Footer>
