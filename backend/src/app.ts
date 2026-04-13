@@ -16,6 +16,7 @@ import { usersRoutes } from './routes/users.routes';
 import { surveyWalkRoutes } from './routes/surveyWalks.routes';
 import { sightingRoutes } from './routes/sighting.route';
 import { invitationRoutes } from './routes/invitations.routes';
+import { jobsRoutes } from './routes/jobs.routes';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -92,6 +93,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await fastify.register(surveyWalkRoutes);
   await fastify.register(sightingRoutes);
   await fastify.register(invitationRoutes);
+  await fastify.register(jobsRoutes);
 
   // SPA Fallback
   fastify.setNotFoundHandler((request, reply) => {

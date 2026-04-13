@@ -166,6 +166,46 @@ describe('SurveyWalkGrid', () => {
         expect(screen.getByLabelText('Bea Lim fallback avatar')).toBeInTheDocument();
     });
 
+    it('uses generic avatar image when profile image fails to load', async () => {
+        vi.mocked(RafflesGoService.listSurveyWalksForCurrentUser).mockResolvedValue({
+            surveyWalks: [
+                {
+                    uid: 'walk-1',
+                    surveyPeriodUid: 'period-1',
+                    surveyPeriodName: 'Spring 2026',
+                    name: 'Morning Walk',
+                    date: '2026-04-10T00:00:00.000Z',
+                    startTime: '08:00',
+                    endTime: '10:00',
+                    capacity: 4,
+                    isFinished: false,
+                    volunteerUids: ['user-1'],
+                    attendeeUids: [],
+                    completedAt: null,
+                    volunteers: [
+                        { uid: 'user-1', name: 'Alex Tan', photoURL: 'https://example.com/alex.png' },
+                    ],
+                    attendees: [],
+                    noShows: [],
+                    leader: { uid: 'user-1', name: 'Alex Tan', photoURL: 'https://example.com/alex.png' },
+                },
+            ],
+        } as never);
+
+        render(<SurveyWalkGrid user={mockUser as User} />);
+
+        await waitFor(() => {
+            expect(screen.getByText('Morning Walk')).toBeInTheDocument();
+        });
+
+        const [leaderAvatar] = screen.getAllByAltText('Alex Tan profile');
+        fireEvent.error(leaderAvatar);
+
+        await waitFor(() => {
+            expect(leaderAvatar).toHaveAttribute('src', expect.stringContaining('/assets/images/avatars/icon.png'));
+        });
+    });
+
     it('shows mark complete for the leader even when the walk is in the future', async () => {
         vi.mocked(RafflesGoService.listSurveyWalksForCurrentUser).mockResolvedValue({
             surveyWalks: [

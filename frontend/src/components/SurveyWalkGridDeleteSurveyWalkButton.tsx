@@ -59,7 +59,7 @@ export function DeleteSurveyWalkButton({ surveyWalkId, onDeleted }: DeleteSurvey
                         <Dialog.Header>
                             <Dialog.Title>Confirm Delete</Dialog.Title>
                         </Dialog.Header>
-                        <Dialog.Body color={"fg"}>
+                        <Dialog.Body color={"cardSubtleTextColor"}>
                             Are you sure you want to delete this survey walk? This action cannot be undone.
                         </Dialog.Body>
                         <Dialog.Footer>

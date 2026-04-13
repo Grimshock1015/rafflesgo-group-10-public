@@ -4039,6 +4039,44 @@
         }
       }
     },
+    "/api/jobs/walk-reminder/trigger": {
+      "post": {
+        "operationId": "triggerWalkReminderJob",
+        "tags": [
+          "RafflesGo"
+        ],
+        "description": "Manually trigger walk reminders for tomorrow, including weather alerts when applicable",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success",
+                    "message"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/my-endpoint": {
       "get": {
         "tags": [
