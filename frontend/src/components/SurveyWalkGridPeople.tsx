@@ -3,11 +3,20 @@ import { useState } from "react";
 
 import type { WalkPerson } from "./SurveyWalkGrid.types";
 
+function getFallbackFontSize(size: string) {
+    const parsedSize = Number.parseFloat(size);
+
+    if (!Number.isFinite(parsedSize)) return "xs";
+
+    return `${Math.max(11, Math.round(parsedSize * 0.42))}px`;
+}
+
 export function PersonAvatar({ person, size = "28px" }: { person: WalkPerson; size?: string }) {
     const label = person.name || person.uid || "?";
     const initial = label.slice(0, 1).toUpperCase();
     const [didPhotoFail, setDidPhotoFail] = useState(false);
     const [didGenericFail, setDidGenericFail] = useState(false);
+    const fallbackFontSize = getFallbackFontSize(size);
 
     const genericAvatarSrc = "/assets/images/avatars/icon.png";
     const imageSrc = didPhotoFail ? genericAvatarSrc : person.photoURL;
@@ -44,7 +53,7 @@ export function PersonAvatar({ person, size = "28px" }: { person: WalkPerson; si
             display="flex"
             alignItems="center"
             justifyContent="center"
-            fontSize="xs"
+            fontSize={fallbackFontSize}
             fontWeight="bold"
             flexShrink={0}
         >

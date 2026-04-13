@@ -5,6 +5,7 @@ import { RafflesGoService } from '../api';
 import { listAllAdminSightings } from '../lib/adminSightings';
 import { exportAdminDataToGoogleSheets } from '../utils/googleSheetsExport';
 import { Container } from '@chakra-ui/react';
+import { PersonAvatar } from '../components/SurveyWalkGridPeople';
 
 type AdminUser = Awaited<ReturnType<typeof RafflesGoService.listUsers>>['users'][number];
 type AdminSighting = Awaited<ReturnType<typeof listAllAdminSightings>>['sightings'][number];
@@ -23,16 +24,6 @@ const cardStyle: CSSProperties = {
   border: '1px solid var(--border-color)',
   borderRadius: '14px',
   padding: '1rem 1.25rem',
-};
-
-const avatarStyle: CSSProperties = {
-  width: '56px',
-  height: '56px',
-  borderRadius: '50%',
-  objectFit: 'cover',
-  border: '1px solid var(--border-color)',
-  background: 'var(--bg-secondary)',
-  flexShrink: 0,
 };
 
 const gridStyle: CSSProperties = {
@@ -278,26 +269,14 @@ export default function AdminDashboard() {
                   <article key={managedUser.uid} style={cardStyle}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
                       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                        {managedUser.photoURL ? (
-                          <img
-                            src={managedUser.photoURL}
-                            alt={`${managedUser.displayName || managedUser.email || managedUser.uid} profile`}
-                            style={avatarStyle}
-                          />
-                        ) : (
-                          <div
-                            aria-hidden="true"
-                            style={{
-                              ...avatarStyle,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontWeight: 700,
-                            }}
-                          >
-                            {(managedUser.displayName || managedUser.email || managedUser.uid).slice(0, 1).toUpperCase()}
-                          </div>
-                        )}
+                        <PersonAvatar
+                          person={{
+                            uid: managedUser.uid,
+                            name: managedUser.displayName || managedUser.email || managedUser.uid,
+                            photoURL: managedUser.photoURL,
+                          }}
+                          size="56px"
+                        />
                         <div>
                           <h3 style={{ marginBottom: '0.35rem' }}>{managedUser.displayName || managedUser.email || managedUser.uid}</h3>
                           <p>{managedUser.email || managedUser.uid}</p>
