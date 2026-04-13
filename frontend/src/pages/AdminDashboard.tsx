@@ -168,7 +168,6 @@ export default function AdminDashboard() {
     return <Navigate to="/dashboard" replace />;
   }
 
-  const adminCount = users.filter((user) => user.role === 'admin').length;
   const disabledCount = users.filter((user) => user.disabled).length;
   const sightedCount = sightings.filter((sighting) => sighting.result === 'sighted').length;
   const completedWalks = surveyWalks.filter((walk) => walk.isFinished);
@@ -188,10 +187,6 @@ export default function AdminDashboard() {
             <article style={cardStyle}>
               <p>Total users</p>
               <strong style={{ fontSize: '2rem' }}>{users.length}</strong>
-            </article>
-            <article style={cardStyle}>
-              <p>Admins</p>
-              <strong style={{ fontSize: '2rem' }}>{adminCount}</strong>
             </article>
             <article style={cardStyle}>
               <p>Disabled accounts</p>
