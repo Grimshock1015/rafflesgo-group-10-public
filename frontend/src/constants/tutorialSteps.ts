@@ -11,6 +11,12 @@ export const userTutorialSteps: TutorialStep[] = [
       'Help record Raffles’ banded langur sightings during survey walks.',
   },
   {
+    title: 'Sign up for walks',
+    description:
+      'Coordinate walks with other volunteers.',
+  },
+
+  {
     title: 'Report what you observed',
     description:
       'Submit both sighted and not-sighted observations. Both are useful for conservation.',
@@ -25,27 +31,31 @@ export const userTutorialSteps: TutorialStep[] = [
     description:
       'Save a draft to finish later, or submit once your report is ready.',
   },
-]
+];
 
 export const adminTutorialSteps: TutorialStep[] = [
   {
     title: 'Welcome, Admin',
     description:
-      'Manage survey periods, survey walks, and key system workflows from the admin pages.',
+      'Manage survey periods, survey walks, and sightings from their respective pages.',
+  },
+  {
+    title: 'Manage users',
+    description:
+      'View all signed-up users and disable accounts from the Admin Dashboard.',
   },
   {
     title: 'Create survey periods',
     description:
-      'Set up survey periods so volunteers know when data collection is active.',
+      'Set up survey periods for the month in the Survey Period tab.',
   },
   {
     title: 'Manage survey walks',
     description:
-      'Create and edit survey walks to organize field activities clearly.',
+      'Create and edit survey walks, reassign members and change booking times from the Survey Walks tab.',
   },
   {
-    title: 'Monitor the system',
-    description:
-      'Review dashboards and administration pages to keep the program running smoothly.',
-  },
-]
+    title: 'View sighting data',
+    description: 'View all sighting data and images on the survey walks tab,',
+  }
+];
