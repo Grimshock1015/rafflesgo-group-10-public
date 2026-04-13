@@ -6,6 +6,7 @@ import type { User } from "firebase/auth";
 
 import { SurveyWalkCard } from "./SurveyWalkGridCard";
 import type { SurveyWalk } from "./SurveyWalkGrid.types";
+import { useNavigate } from "react-router-dom";
 
 export default function SurveyWalkGrid({ user }: { user: User }) {
     const [surveyWalks, setSurveyWalks] = useState<SurveyWalk[]>([]);
@@ -19,6 +20,7 @@ export default function SurveyWalkGrid({ user }: { user: User }) {
     const selectBg = effectiveTheme === "dark" ? "gray.800" : "white";
     const selectBorder = effectiveTheme === "dark" ? "gray.600" : "gray.200";
     const selectItemHoverBg = effectiveTheme === "dark" ? "gray.700" : "gray.50";
+    const navigate = useNavigate();
 
     const volunteerWalkScopeCollection = useMemo(() => createListCollection({
         items: [
@@ -207,7 +209,7 @@ export default function SurveyWalkGrid({ user }: { user: User }) {
                         user={user}
                         role={role}
                         onEdit={(uid) => {
-                            window.location.assign('/edit-survey-walk/' + uid);
+                            navigate('/edit-survey-walk/' + uid);
                         }}
                     />
                 ))}

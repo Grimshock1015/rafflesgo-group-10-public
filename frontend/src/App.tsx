@@ -22,6 +22,39 @@ import AdminDashboard from './pages/AdminDashboard'
 import { userTutorialSteps, adminTutorialSteps } from './constants/tutorialSteps'
 import TutorialModal from './components/TutorialModal'
 
+function AppBootLoader({ message }: { message: string }) {
+  return (
+    <main
+      className="main-content"
+      style={{
+        minHeight: '100vh',
+        display: 'grid',
+        placeItems: 'center',
+        background: 'var(--bg-primary, #f6f8f5)',
+      }}
+    >
+      <section
+        className="fade-in"
+        style={{
+          width: 'min(520px, calc(100vw - 2rem))',
+          border: '1px solid var(--border-color, rgba(0, 0, 0, 0.1))',
+          borderRadius: 16,
+          background: 'var(--bg-card, #ffffff)',
+          padding: '1.5rem',
+        }}
+      >
+        <div className="loading-spinner" aria-hidden="true" />
+        <p style={{ textAlign: 'center', marginTop: '0.85rem' }}>{message}</p>
+        <div style={{ marginTop: '1.1rem', display: 'grid', gap: '0.55rem' }}>
+          <div style={{ height: 10, borderRadius: 999, background: 'var(--bg-secondary, #eef3eb)' }} />
+          <div style={{ height: 10, width: '82%', borderRadius: 999, background: 'var(--bg-secondary, #eef3eb)' }} />
+          <div style={{ height: 10, width: '70%', borderRadius: 999, background: 'var(--bg-secondary, #eef3eb)' }} />
+        </div>
+      </section>
+    </main>
+  )
+}
+
 function RequireAuth({ user, children }: { user: User | null; children: ReactNode }) {
   const location = useLocation()
 
@@ -64,7 +97,7 @@ function RequireAdmin({ children }: { children: ReactNode }) {
   }, [])
 
   if (isLoading) {
-    return <div style={{ padding: 24 }}>Checking access...</div>
+    return <AppBootLoader message="Checking your access..." />
   }
 
   if (!isAdmin) {
@@ -184,7 +217,7 @@ export default function App() {
     return () => unsubscribe()
   }, [])
 
-  if (loading) return <div style={{ padding: 24 }}>Loading...</div>
+  if (loading) return <AppBootLoader message="Loading your workspace..." />
 
   return (
     <Routes>

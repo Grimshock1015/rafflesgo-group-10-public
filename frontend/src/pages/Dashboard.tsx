@@ -19,7 +19,7 @@ import {
 import { RafflesGoService, SightingsService } from '../api';
 import { getAllDrafts } from '../services/SightingDraftsService';
 import InvitationNotifications from '../components/InvitationNotifications';
-import { Badge, Box, Container, Text } from '@chakra-ui/react';
+import { Badge, Box, Container, Skeleton, Text } from '@chakra-ui/react';
 
 type MySightingsDashboard = Awaited<ReturnType<typeof SightingsService.getMySightingsDashboard>>;
 type JoinedSurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalksForCurrentUser>>['surveyWalks'][number];
@@ -95,6 +95,35 @@ const chartCardStyle: CSSProperties = {
   textAlign: 'center',
 };
 
+const loadingBlockStyle: CSSProperties = {
+  marginTop: '1rem',
+  display: 'grid',
+  gap: '0.75rem',
+};
+
+const loadingCardStyle: CSSProperties = {
+  ...cardStyle,
+  minHeight: '130px',
+  display: 'grid',
+  gap: '0.75rem',
+};
+
+const nextWalkContentStyle: CSSProperties = {
+  minHeight: '170px',
+};
+
+const progressContentStyle: CSSProperties = {
+  minHeight: '360px',
+};
+
+const activityContentStyle: CSSProperties = {
+  minHeight: '250px',
+};
+
+const sightingsContentStyle: CSSProperties = {
+  minHeight: '220px',
+};
+
 function formatTimestamp(value?: string) {
   if (!value) return 'No submissions yet';
   return new Intl.DateTimeFormat('en-SG', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
@@ -161,6 +190,8 @@ export default function Dashboard({ user }: { user: User }) {
   const [weatherAssessment, setWeatherAssessment] = useState<WeatherAssessment | null>(null);
   const [weatherError, setWeatherError] = useState(false);
   const [isLoadingWeather, setIsLoadingWeather] = useState(false);
+  const [showSmoothLoading, setShowSmoothLoading] = useState(false);
+  const [hasInitialDashboardLoad, setHasInitialDashboardLoad] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -211,11 +242,29 @@ export default function Dashboard({ user }: { user: User }) {
 
       setIsLoadingSightings(false);
       setIsLoadingSurveyWalks(false);
+      setHasInitialDashboardLoad(true);
     };
 
     fetchDashboardData();
     return () => { isMounted = false; };
   }, [user.uid]);
+
+  useEffect(() => {
+    const loading = isLoadingSightings || isLoadingSurveyWalks;
+    let timer: ReturnType<typeof setTimeout>;
+
+    if (loading) {
+      // Delay showing loading UI to prevent flicker on fast responses.
+      timer = setTimeout(() => setShowSmoothLoading(true), 140);
+    } else if (showSmoothLoading) {
+      // Keep placeholders briefly to make transition into loaded content feel smoother.
+      timer = setTimeout(() => setShowSmoothLoading(false), 220);
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [isLoadingSightings, isLoadingSurveyWalks, showSmoothLoading]);
 
   useEffect(() => {
     const loadDraftCount = async () => {
@@ -235,6 +284,11 @@ export default function Dashboard({ user }: { user: User }) {
   const sightings = sightingsData?.sightings ?? [];
   const displayName = user.displayName || userEmail || 'Volunteer';
   const now = new Date();
+  const showLoadingPlaceholders = !hasInitialDashboardLoad || ((isLoadingSightings || isLoadingSurveyWalks) && showSmoothLoading);
+  const nextWalkContainerStyle: CSSProperties = {
+    ...nextWalkContentStyle,
+    minHeight: showLoadingPlaceholders && isLoadingSurveyWalks ? nextWalkContentStyle.minHeight : 'auto',
+  };
 
   const nextUpcomingWalk = joinedSurveyWalks
     .filter((walk) => !walk.isFinished && getWalkStartDateTime(walk) >= now)
@@ -368,29 +422,39 @@ export default function Dashboard({ user }: { user: User }) {
         {/* Next Upcoming Walk */}
         <section aria-labelledby="next-walk-heading" style={sectionStyle} className="next-walk-section">
           <h2 id="next-walk-heading">Next Upcoming Walk</h2>
-          {isLoadingSurveyWalks ? (
-            <p>Loading your next walk...</p>
-          ) : surveyWalksError ? (
-            <p className="text-error">Could not load your upcoming survey walks right now.</p>
-          ) : !nextUpcomingWalk ? (
-            <p>You do not have any upcoming survey walks.</p>
-          ) : (
-            <article style={cardStyle} className="next-walk-card">
-              <h3 style={{ marginBottom: '0.5rem' }}>{nextUpcomingWalk.name}</h3>
-              <p>{formatWalkDate(nextUpcomingWalk.date)}</p>
-              <p>{nextUpcomingWalk.startTime} to {nextUpcomingWalk.endTime}</p>
-              <p>Leader: {nextUpcomingWalk.leader.name}</p>
-              <p>Volunteers: {nextUpcomingWalk.volunteers.map((v) => v.name).join(', ')}</p>
-              {isLoadingWeather ? <p style={{ marginTop: '1rem' }}>Checking Singapore weather for this walk...</p> : null}
-              {weatherAssessment ? (
-                <div role="alert" aria-live="polite" style={weatherWarningStyle}>
-                  Forecast warning: {weatherAssessment.summary} expected near the walk start, with about{' '}
-                  {weatherAssessment.precipitationProbability}% chance of rain in Singapore. Bring rain gear and plan for wet conditions.
-                </div>
-              ) : null}
-              {weatherError ? <p style={{ marginTop: '1rem' }} className="text-error">Weather forecast is unavailable right now.</p> : null}
-            </article>
-          )}
+          <div style={nextWalkContainerStyle}>
+            {showLoadingPlaceholders && isLoadingSurveyWalks ? (
+              <div style={loadingBlockStyle}>
+                <Skeleton height="18px" width="220px" />
+                <article style={loadingCardStyle}>
+                  <Skeleton height="22px" width="60%" />
+                  <Skeleton height="16px" width="45%" />
+                  <Skeleton height="16px" width="55%" />
+                  <Skeleton height="16px" width="70%" />
+                </article>
+              </div>
+            ) : surveyWalksError ? (
+              <p className="text-error">Could not load your upcoming survey walks right now.</p>
+            ) : !nextUpcomingWalk ? (
+              <p>You do not have any upcoming survey walks.</p>
+            ) : (
+              <article style={cardStyle} className="next-walk-card">
+                <h3 style={{ marginBottom: '0.5rem' }}>{nextUpcomingWalk.name}</h3>
+                <p>{formatWalkDate(nextUpcomingWalk.date)}</p>
+                <p>{nextUpcomingWalk.startTime} to {nextUpcomingWalk.endTime}</p>
+                <p>Leader: {nextUpcomingWalk.leader.name}</p>
+                <p>Volunteers: {nextUpcomingWalk.volunteers.map((v) => v.name).join(', ')}</p>
+                {isLoadingWeather ? <p style={{ marginTop: '1rem' }}>Checking Singapore weather for this walk...</p> : null}
+                {weatherAssessment ? (
+                  <div role="alert" aria-live="polite" style={weatherWarningStyle}>
+                    Forecast warning: {weatherAssessment.summary} expected near the walk start, with about{' '}
+                    {weatherAssessment.precipitationProbability}% chance of rain in Singapore. Bring rain gear and plan for wet conditions.
+                  </div>
+                ) : null}
+                {weatherError ? <p style={{ marginTop: '1rem' }} className="text-error">Weather forecast is unavailable right now.</p> : null}
+              </article>
+            )}
+          </div>
         </section>
 
         {/* My Progress — charts */}
@@ -400,10 +464,20 @@ export default function Dashboard({ user }: { user: User }) {
             {chartData.uniquePeriods} survey period{chartData.uniquePeriods !== 1 ? 's' : ''} joined &nbsp;·&nbsp; {joinedSurveyWalks.length} walk{joinedSurveyWalks.length !== 1 ? 's' : ''} joined
           </p>
 
-          {isLoadingSurveyWalks || isLoadingSightings ? (
-            <p style={{ marginTop: '1rem' }}>Loading your progress...</p>
-          ) : (
-            <div style={chartRowStyle}>
+          <div style={progressContentStyle}>
+            {showLoadingPlaceholders ? (
+              <div style={{ ...chartRowStyle, marginTop: '1.25rem' }}>
+                {[1, 2, 3].map((index) => (
+                  <article key={index} style={{ ...chartCardStyle, minHeight: '300px' }}>
+                    <Skeleton height="20px" width="55%" mx="auto" mb={3} />
+                    <Skeleton height="14px" width="70%" mx="auto" mb={5} />
+                    <Skeleton height="160px" borderRadius="12px" />
+                    <Skeleton height="14px" width="65%" mx="auto" mt={4} />
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div style={chartRowStyle}>
 
               {/* Chart 1: Current period progress — radial/semicircle */}
               <article style={chartCardStyle}>
@@ -513,8 +587,9 @@ export default function Dashboard({ user }: { user: User }) {
                 )}
               </article>
 
-            </div>
-          )}
+              </div>
+            )}
+          </div>
 
           {/* Species bar chart */}
           {!isLoadingSightings && chartData.speciesBreakdown.length > 0 && (
@@ -545,77 +620,109 @@ export default function Dashboard({ user }: { user: User }) {
 
           {sightingsError ? (
             <p className="text-error" style={{ marginTop: '1rem' }}>Could not load your sightings right now. Please refresh and try again.</p>
-          ) : isLoadingSightings ? (
-            <p style={{ marginTop: '1rem' }}>Loading...</p>
           ) : (
-            <>
-              <div style={gridStyle}>
-                <article style={cardStyle}>
-                  <p>Walks Attended</p>
-                  <strong style={{ fontSize: '2rem' }}>{stats?.uniqueLocations ?? 0}</strong>
-                </article>
-                <article style={cardStyle}>
-                  <p>Adults counted</p>
-                  <strong style={{ fontSize: '2rem' }}>{stats?.totalAdults ?? 0}</strong>
-                </article>
-                <article style={cardStyle}>
-                  <p>Juveniles counted</p>
-                  <strong style={{ fontSize: '2rem' }}>{stats?.totalJuveniles ?? 0}</strong>
-                </article>
-              </div>
-              <div style={{ ...gridStyle, marginTop: '1.5rem' }}>
-                <article style={cardStyle}>
-                  <h3>Most logged species</h3>
-                  <p>{stats?.speciesBreakdown[0] ? `${stats.speciesBreakdown[0].species} (${stats.speciesBreakdown[0].count})` : 'No species recorded yet'}</p>
-                </article>
-                <article style={cardStyle}>
-                  <h3>Latest submission</h3>
-                  <p>{formatTimestamp(stats?.latestSubmissionAt)}</p>
-                </article>
-              </div>
-            </>
+            <div style={activityContentStyle}>
+              {showLoadingPlaceholders && isLoadingSightings ? (
+                <div style={loadingBlockStyle}>
+                  <div style={gridStyle}>
+                    {[1, 2, 3].map((index) => (
+                      <article key={index} style={{ ...cardStyle, minHeight: '96px' }}>
+                        <Skeleton height="14px" width="70%" mb={3} />
+                        <Skeleton height="34px" width="38%" />
+                      </article>
+                    ))}
+                  </div>
+                  <div style={{ ...gridStyle, marginTop: '0.5rem' }}>
+                    {[1, 2].map((index) => (
+                      <article key={index} style={{ ...cardStyle, minHeight: '90px' }}>
+                        <Skeleton height="18px" width="60%" mb={3} />
+                        <Skeleton height="14px" width="88%" />
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div style={gridStyle}>
+                    <article style={cardStyle}>
+                      <p>Walks Attended</p>
+                      <strong style={{ fontSize: '2rem' }}>{stats?.uniqueLocations ?? 0}</strong>
+                    </article>
+                    <article style={cardStyle}>
+                      <p>Adults counted</p>
+                      <strong style={{ fontSize: '2rem' }}>{stats?.totalAdults ?? 0}</strong>
+                    </article>
+                    <article style={cardStyle}>
+                      <p>Juveniles counted</p>
+                      <strong style={{ fontSize: '2rem' }}>{stats?.totalJuveniles ?? 0}</strong>
+                    </article>
+                  </div>
+                  <div style={{ ...gridStyle, marginTop: '1.5rem' }}>
+                    <article style={cardStyle}>
+                      <h3>Most logged species</h3>
+                      <p>{stats?.speciesBreakdown[0] ? `${stats.speciesBreakdown[0].species} (${stats.speciesBreakdown[0].count})` : 'No species recorded yet'}</p>
+                    </article>
+                    <article style={cardStyle}>
+                      <h3>Latest submission</h3>
+                      <p>{formatTimestamp(stats?.latestSubmissionAt)}</p>
+                    </article>
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </section>
 
         {/* My Sightings list */}
         <section id="my-sightings" aria-labelledby="my-sightings-heading" style={sectionStyle}>
           <h2 id="my-sightings-heading">My Sightings</h2>
-          {isLoadingSightings ? (
-            <p>Loading your sightings...</p>
-          ) : sightingsError ? (
-            <p className="text-error">Your submission history is unavailable right now.</p>
-          ) : sightings.length === 0 ? (
-            <p>You have not submitted any sightings yet.</p>
-          ) : (
-            <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
-              {
-                // @ts-ignore
-                sightings.map((sighting) => (
-                  <article key={sighting.id} style={cardStyle}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-                      <div>
-                        <h3 style={{ marginBottom: '0.35rem' }}>
-                          {sighting.result === 'sighted' ? (sighting.species || 'Sighting recorded') : 'Zero-sighting walk'}
-                        </h3>
-                        <p>{sighting.location}</p>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <p>{sighting.date} at {sighting.time}</p>
-                        <p>{formatTimestamp(sighting.createdAt)}</p>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-                      <span>Result: {sighting.result === 'sighted' ? 'Sighted' : 'Not sighted'}</span>
-                      {typeof sighting.adults === 'number' ? <span>Adults: {sighting.adults}</span> : null}
-                      {typeof sighting.juveniles === 'number' ? <span>Juveniles: {sighting.juveniles}</span> : null}
-                      {sighting.behaviour ? <span>Behaviour: {sighting.behaviour}</span> : null}
-                    </div>
-                    {sighting.notes ? <p style={{ marginTop: '0.75rem' }}><strong>Notes:</strong> {sighting.notes}</p> : null}
+          <div style={sightingsContentStyle}>
+            {showLoadingPlaceholders && isLoadingSightings ? (
+              <div style={loadingBlockStyle}>
+                {[1, 2].map((index) => (
+                  <article key={index} style={{ ...cardStyle, minHeight: '140px' }}>
+                    <Skeleton height="18px" width="35%" mb={3} />
+                    <Skeleton height="14px" width="60%" mb={2} />
+                    <Skeleton height="14px" width="48%" mb={4} />
+                    <Skeleton height="14px" width="85%" />
                   </article>
-                ))
-              }
-            </div>
-          )}
+                ))}
+              </div>
+            ) : sightingsError ? (
+              <p className="text-error">Your submission history is unavailable right now.</p>
+            ) : sightings.length === 0 ? (
+              <p>You have not submitted any sightings yet.</p>
+            ) : (
+              <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
+                {
+                  // @ts-ignore
+                  sightings.map((sighting) => (
+                    <article key={sighting.id} style={cardStyle}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                        <div>
+                          <h3 style={{ marginBottom: '0.35rem' }}>
+                            {sighting.result === 'sighted' ? (sighting.species || 'Sighting recorded') : 'Zero-sighting walk'}
+                          </h3>
+                          <p>{sighting.location}</p>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <p>{sighting.date} at {sighting.time}</p>
+                          <p>{formatTimestamp(sighting.createdAt)}</p>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
+                        <span>Result: {sighting.result === 'sighted' ? 'Sighted' : 'Not sighted'}</span>
+                        {typeof sighting.adults === 'number' ? <span>Adults: {sighting.adults}</span> : null}
+                        {typeof sighting.juveniles === 'number' ? <span>Juveniles: {sighting.juveniles}</span> : null}
+                        {sighting.behaviour ? <span>Behaviour: {sighting.behaviour}</span> : null}
+                      </div>
+                      {sighting.notes ? <p style={{ marginTop: '0.75rem' }}><strong>Notes:</strong> {sighting.notes}</p> : null}
+                    </article>
+                  ))
+                }
+              </div>
+            )}
+          </div>
         </section>
 
       </div>

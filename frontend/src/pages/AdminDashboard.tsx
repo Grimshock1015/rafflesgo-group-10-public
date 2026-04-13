@@ -4,7 +4,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { RafflesGoService } from '../api';
 import { listAllAdminSightings } from '../lib/adminSightings';
 import { exportAdminDataToGoogleSheets } from '../utils/googleSheetsExport';
-import { Container } from '@chakra-ui/react';
+import { Container, Skeleton } from '@chakra-ui/react';
 import { PersonAvatar } from '../components/SurveyWalkGridPeople';
 
 type AdminUser = Awaited<ReturnType<typeof RafflesGoService.listUsers>>['users'][number];
@@ -33,6 +33,31 @@ const gridStyle: CSSProperties = {
   marginTop: '1rem',
 };
 
+const loadingBlockStyle: CSSProperties = {
+  marginTop: '1rem',
+  display: 'grid',
+  gap: '0.75rem',
+};
+
+const loadingCardStyle: CSSProperties = {
+  ...cardStyle,
+  minHeight: '130px',
+  display: 'grid',
+  gap: '0.75rem',
+};
+
+const overviewContentStyle: CSSProperties = {
+  minHeight: '260px',
+};
+
+const attendanceContentStyle: CSSProperties = {
+  minHeight: '220px',
+};
+
+const usersContentStyle: CSSProperties = {
+  minHeight: '260px',
+};
+
 function formatDate(value?: string) {
   if (!value) return 'Unknown';
   return new Intl.DateTimeFormat('en-SG', {
@@ -51,6 +76,8 @@ export default function AdminDashboard() {
   const [surveyWalks, setSurveyWalks] = useState<AdminSurveyWalk[]>([]);
   const [busyUserId, setBusyUserId] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [showSmoothLoading, setShowSmoothLoading] = useState(false);
+  const [hasInitialAdminLoad, setHasInitialAdminLoad] = useState(false);
 
   const loadAdminData = async () => {
     setError(null);
@@ -71,8 +98,23 @@ export default function AdminDashboard() {
       setError('Unable to load admin data right now.');
     } finally {
       setIsLoading(false);
+      setHasInitialAdminLoad(true);
     }
   };
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+
+    if (isLoading) {
+      timer = setTimeout(() => setShowSmoothLoading(true), 140);
+    } else if (showSmoothLoading) {
+      timer = setTimeout(() => setShowSmoothLoading(false), 220);
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [isLoading, showSmoothLoading]);
 
   useEffect(() => {
     let isMounted = true;
@@ -161,7 +203,16 @@ export default function AdminDashboard() {
   };
 
   if (isCheckingAccess) {
-    return <main className="main-content"><div className="container"><p>Checking admin access...</p></div></main>;
+    return (
+      <main className="main-content">
+        <div className="container" style={{ paddingBottom: '3rem' }}>
+          <section style={sectionStyle}>
+            <div className="loading-spinner" aria-hidden="true" />
+            <p style={{ textAlign: 'center', marginTop: '0.85rem' }}>Checking admin access...</p>
+          </section>
+        </div>
+      </main>
+    );
   }
 
   if (!isAdmin) {
@@ -172,6 +223,7 @@ export default function AdminDashboard() {
   const sightedCount = sightings.filter((sighting) => sighting.result === 'sighted').length;
   const completedWalks = surveyWalks.filter((walk) => walk.isFinished);
   const noShowCount = completedWalks.reduce((count, walk) => count + walk.noShows.length, 0);
+  const showLoadingPlaceholders = !hasInitialAdminLoad || (isLoading && showSmoothLoading);
 
   return (
     <main className="main-content">
@@ -183,31 +235,44 @@ export default function AdminDashboard() {
 
         <section style={sectionStyle}>
           <h2>Admin Overview</h2>
-          <div style={gridStyle}>
-            <article style={cardStyle}>
-              <p>Total users</p>
-              <strong style={{ fontSize: '2rem' }}>{users.length}</strong>
-            </article>
-            <article style={cardStyle}>
-              <p>Disabled accounts</p>
-              <strong style={{ fontSize: '2rem' }}>{disabledCount}</strong>
-            </article>
-            <article style={cardStyle}>
-              <p>Total sightings</p>
-              <strong style={{ fontSize: '2rem' }}>{sightings.length}</strong>
-            </article>
-            <article style={cardStyle}>
-              <p>Confirmed sightings</p>
-              <strong style={{ fontSize: '2rem' }}>{sightedCount}</strong>
-            </article>
-            <article style={cardStyle}>
-              <p>Completed walks</p>
-              <strong style={{ fontSize: '2rem' }}>{completedWalks.length}</strong>
-            </article>
-            <article style={cardStyle}>
-              <p>Total no-shows</p>
-              <strong style={{ fontSize: '2rem' }}>{noShowCount}</strong>
-            </article>
+          <div style={overviewContentStyle}>
+            {showLoadingPlaceholders ? (
+              <div style={gridStyle}>
+                {[1, 2, 3, 4, 5, 6].map((index) => (
+                  <article key={index} style={{ ...loadingCardStyle, minHeight: '96px' }}>
+                    <Skeleton height="14px" width="72%" mb={3} />
+                    <Skeleton height="34px" width="40%" />
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div style={gridStyle}>
+                <article style={cardStyle}>
+                  <p>Total users</p>
+                  <strong style={{ fontSize: '2rem' }}>{users.length}</strong>
+                </article>
+                <article style={cardStyle}>
+                  <p>Disabled accounts</p>
+                  <strong style={{ fontSize: '2rem' }}>{disabledCount}</strong>
+                </article>
+                <article style={cardStyle}>
+                  <p>Total sightings</p>
+                  <strong style={{ fontSize: '2rem' }}>{sightings.length}</strong>
+                </article>
+                <article style={cardStyle}>
+                  <p>Confirmed sightings</p>
+                  <strong style={{ fontSize: '2rem' }}>{sightedCount}</strong>
+                </article>
+                <article style={cardStyle}>
+                  <p>Completed walks</p>
+                  <strong style={{ fontSize: '2rem' }}>{completedWalks.length}</strong>
+                </article>
+                <article style={cardStyle}>
+                  <p>Total no-shows</p>
+                  <strong style={{ fontSize: '2rem' }}>{noShowCount}</strong>
+                </article>
+              </div>
+            )}
           </div>
 
           <div className="action-buttons" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1rem' }}>
@@ -223,28 +288,43 @@ export default function AdminDashboard() {
         <section style={sectionStyle}>
           <h2>Attendance Tracking</h2>
           <p>Completed survey walks keep the attendance list so repeated no-shows are visible to admins.</p>
-          <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
-            {completedWalks.length === 0 ? (
-              <p>No completed survey walks yet.</p>
-            ) : (
-              completedWalks
-                .slice()
-                .sort((a, b) => new Date(b.completedAt ?? b.date).getTime() - new Date(a.completedAt ?? a.date).getTime())
-                .map((walk) => (
-                  <article key={walk.uid} style={cardStyle}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-                      <div>
-                        <h3 style={{ marginBottom: '0.35rem' }}>{walk.name}</h3>
-                        <p style={{ margin: 0 }}>Leader: {walk.leader.name || 'Unassigned'}</p>
-                        <p style={{ margin: 0 }}>Completed: {formatDate(walk.completedAt ?? walk.date)}</p>
-                      </div>
-                      <div style={{ minWidth: '220px' }}>
-                        <p style={{ margin: 0 }}>Attended: {walk.attendees.map((user) => user.name || user.uid).join(', ') || 'None recorded'}</p>
-                        <p style={{ margin: 0 }}>No-show: {walk.noShows.map((user) => user.name || user.uid).join(', ') || 'None'}</p>
-                      </div>
-                    </div>
+          <div style={attendanceContentStyle}>
+            {showLoadingPlaceholders ? (
+              <div style={loadingBlockStyle}>
+                {[1, 2].map((index) => (
+                  <article key={index} style={{ ...loadingCardStyle, minHeight: '116px' }}>
+                    <Skeleton height="20px" width="42%" />
+                    <Skeleton height="14px" width="56%" />
+                    <Skeleton height="14px" width="84%" />
+                    <Skeleton height="14px" width="78%" />
                   </article>
-                ))
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
+                {completedWalks.length === 0 ? (
+                  <p>No completed survey walks yet.</p>
+                ) : (
+                  completedWalks
+                    .slice()
+                    .sort((a, b) => new Date(b.completedAt ?? b.date).getTime() - new Date(a.completedAt ?? a.date).getTime())
+                    .map((walk) => (
+                      <article key={walk.uid} style={cardStyle}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                          <div>
+                            <h3 style={{ marginBottom: '0.35rem' }}>{walk.name}</h3>
+                            <p style={{ margin: 0 }}>Leader: {walk.leader.name || 'Unassigned'}</p>
+                            <p style={{ margin: 0 }}>Completed: {formatDate(walk.completedAt ?? walk.date)}</p>
+                          </div>
+                          <div style={{ minWidth: '220px' }}>
+                            <p style={{ margin: 0 }}>Attended: {walk.attendees.map((user) => user.name || user.uid).join(', ') || 'None recorded'}</p>
+                            <p style={{ margin: 0 }}>No-show: {walk.noShows.map((user) => user.name || user.uid).join(', ') || 'None'}</p>
+                          </div>
+                        </div>
+                      </article>
+                    ))
+                )}
+              </div>
             )}
           </div>
         </section>
@@ -253,60 +333,74 @@ export default function AdminDashboard() {
           <h2>User Management</h2>
           <p>Change roles and disable or re-enable accounts without leaving the dashboard.</p>
           {error ? <p className="text-error">{error}</p> : null}
-          {isLoading ? (
-            <p>Loading users...</p>
-          ) : (
-            <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
-              {users.map((managedUser) => {
-                const isBusy = busyUserId === managedUser.uid || busyUserId === managedUser.email;
-
-                return (
-                  <article key={managedUser.uid} style={cardStyle}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-                      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                        <PersonAvatar
-                          person={{
-                            uid: managedUser.uid,
-                            name: managedUser.displayName || managedUser.email || managedUser.uid,
-                            photoURL: managedUser.photoURL,
-                          }}
-                          size="56px"
-                        />
-                        <div>
-                          <h3 style={{ marginBottom: '0.35rem' }}>{managedUser.displayName || managedUser.email || managedUser.uid}</h3>
-                          <p>{managedUser.email || managedUser.uid}</p>
-                          <p>Created: {formatDate(managedUser.createdAt)}</p>
-                        </div>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <p>Role: {managedUser.role}</p>
-                        <p>Status: {managedUser.disabled ? 'Disabled' : 'Active'}</p>
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1rem' }}>
-                      <button
-                        className="btn btn-secondary"
-                        type="button"
-                        onClick={() => handleRoleChange(managedUser.email, managedUser.role === 'admin' ? 'user' : 'admin')}
-                        disabled={isBusy || !managedUser.email}
-                      >
-                        {managedUser.role === 'admin' ? 'Make Volunteer' : 'Make Admin'}
-                      </button>
-                      <button
-                        className="btn btn-secondary"
-                        type="button"
-                        onClick={() => handleStatusToggle(managedUser.uid, !managedUser.disabled)}
-                        disabled={isBusy}
-                      >
-                        {managedUser.disabled ? 'Enable Account' : 'Disable Account'}
-                      </button>
+          <div style={usersContentStyle}>
+            {showLoadingPlaceholders ? (
+              <div style={loadingBlockStyle}>
+                {[1, 2, 3].map((index) => (
+                  <article key={index} style={{ ...loadingCardStyle, minHeight: '150px' }}>
+                    <Skeleton height="20px" width="36%" />
+                    <Skeleton height="14px" width="50%" />
+                    <Skeleton height="14px" width="42%" />
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                      <Skeleton height="34px" width="140px" borderRadius="8px" />
+                      <Skeleton height="34px" width="140px" borderRadius="8px" />
                     </div>
                   </article>
-                );
-              })}
-            </div>
-          )}
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
+                {users.map((managedUser) => {
+                  const isBusy = busyUserId === managedUser.uid || busyUserId === managedUser.email;
+
+                  return (
+                    <article key={managedUser.uid} style={cardStyle}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                          <PersonAvatar
+                            person={{
+                              uid: managedUser.uid,
+                              name: managedUser.displayName || managedUser.email || managedUser.uid,
+                              photoURL: managedUser.photoURL,
+                            }}
+                            size="56px"
+                          />
+                          <div>
+                            <h3 style={{ marginBottom: '0.35rem' }}>{managedUser.displayName || managedUser.email || managedUser.uid}</h3>
+                            <p>{managedUser.email || managedUser.uid}</p>
+                            <p>Created: {formatDate(managedUser.createdAt)}</p>
+                          </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <p>Role: {managedUser.role}</p>
+                          <p>Status: {managedUser.disabled ? 'Disabled' : 'Active'}</p>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '1rem' }}>
+                        <button
+                          className="btn btn-secondary"
+                          type="button"
+                          onClick={() => handleRoleChange(managedUser.email, managedUser.role === 'admin' ? 'user' : 'admin')}
+                          disabled={isBusy || !managedUser.email}
+                        >
+                          {managedUser.role === 'admin' ? 'Make Volunteer' : 'Make Admin'}
+                        </button>
+                        <button
+                          className="btn btn-secondary"
+                          type="button"
+                          onClick={() => handleStatusToggle(managedUser.uid, !managedUser.disabled)}
+                          disabled={isBusy}
+                        >
+                          {managedUser.disabled ? 'Enable Account' : 'Disable Account'}
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </section>
 
       </div>

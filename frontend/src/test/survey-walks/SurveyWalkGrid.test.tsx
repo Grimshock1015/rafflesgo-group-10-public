@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 import { render } from '../test-utils';
 import SurveyWalkGrid from '../../components/SurveyWalkGrid';
 import { RafflesGoService } from '../../api';
@@ -47,6 +48,14 @@ const mockUser: Partial<User> = {
     uid: 'user-1',
 };
 
+function renderSurveyWalkGrid() {
+    return render(
+        <MemoryRouter>
+            <SurveyWalkGrid user={mockUser as User} />
+        </MemoryRouter>
+    );
+}
+
 describe('SurveyWalkGrid', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -56,7 +65,7 @@ describe('SurveyWalkGrid', () => {
     it('renders loading state initially', () => {
         vi.mocked(RafflesGoService.listSurveyWalksForCurrentUser).mockReturnValue(new Promise(() => {}) as never);
 
-        render(<SurveyWalkGrid user={mockUser as User} />);
+        renderSurveyWalkGrid();
 
         expect(screen.getByText('Loading survey walks...')).toBeInTheDocument();
     });
@@ -66,7 +75,7 @@ describe('SurveyWalkGrid', () => {
             surveyWalks: [],
         } as never);
 
-        render(<SurveyWalkGrid user={mockUser as User} />);
+        renderSurveyWalkGrid();
 
         await waitFor(() => {
             expect(screen.getByText('No survey walks found.')).toBeInTheDocument();
@@ -112,7 +121,7 @@ describe('SurveyWalkGrid', () => {
 
         vi.mocked(RafflesGoService.joinSurveyWalk).mockResolvedValue({ success: true } as never);
 
-        render(<SurveyWalkGrid user={mockUser as User} />);
+        renderSurveyWalkGrid();
 
         await waitFor(() => {
             expect(screen.getByText('Morning Walk')).toBeInTheDocument();
@@ -154,7 +163,7 @@ describe('SurveyWalkGrid', () => {
             ],
         } as never);
 
-        render(<SurveyWalkGrid user={mockUser as User} />);
+        renderSurveyWalkGrid();
 
         await waitFor(() => {
             expect(screen.getByText('Morning Walk')).toBeInTheDocument();
@@ -192,7 +201,7 @@ describe('SurveyWalkGrid', () => {
             ],
         } as never);
 
-        render(<SurveyWalkGrid user={mockUser as User} />);
+        renderSurveyWalkGrid();
 
         await waitFor(() => {
             expect(screen.getByText('Morning Walk')).toBeInTheDocument();
@@ -230,7 +239,7 @@ describe('SurveyWalkGrid', () => {
             ],
         } as never);
 
-        render(<SurveyWalkGrid user={mockUser as User} />);
+        renderSurveyWalkGrid();
 
         await waitFor(() => {
             expect(screen.getByText('Morning Walk')).toBeInTheDocument();
@@ -296,7 +305,7 @@ describe('SurveyWalkGrid', () => {
             },
         });
 
-        render(<SurveyWalkGrid user={mockUser as User} />);
+        renderSurveyWalkGrid();
 
         await waitFor(() => {
             expect(screen.getByText('Morning Walk')).toBeInTheDocument();
