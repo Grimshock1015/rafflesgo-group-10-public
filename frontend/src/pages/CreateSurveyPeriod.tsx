@@ -82,7 +82,7 @@ export default function CreateSurveyPeriod() {
 
                             <Field.Root required className="submit-form-group" mb={0}>
                                 <Field.Label>
-                                    Min. no. of walks <Field.RequiredIndicator />
+                                    Min. no. of walks per user <Field.RequiredIndicator />
                                 </Field.Label>
                                 <Input
                                     className="native-number-input sighting-control sighting-number-input"
