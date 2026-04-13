@@ -551,7 +551,7 @@ export default function Dashboard({ user }: { user: User }) {
             <>
               <div style={gridStyle}>
                 <article style={cardStyle}>
-                  <p>Routes covered</p>
+                  <p>Walks Attended</p>
                   <strong style={{ fontSize: '2rem' }}>{stats?.uniqueLocations ?? 0}</strong>
                 </article>
                 <article style={cardStyle}>
