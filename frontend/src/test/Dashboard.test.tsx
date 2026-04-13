@@ -197,7 +197,7 @@ describe('Dashboard', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/total submissions/i)).toBeInTheDocument();
-      expect(screen.getByText(/routes covered/i)).toBeInTheDocument();
+      expect(screen.getByText(/Walks Attended/i)).toBeInTheDocument();
       expect(screen.getByText(/Raffles Banded Langur \(1\)/i)).toBeInTheDocument();
       expect(screen.getByText(/Observed near the trail/i)).toBeInTheDocument();
       expect(screen.getByText(/Result: Not sighted/i)).toBeInTheDocument();
