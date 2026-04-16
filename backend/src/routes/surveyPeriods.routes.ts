@@ -18,6 +18,12 @@ import {
     listSurveyPeriodsHandler,
     updateSurveyPeriodHandler,
 } from '../handlers/surveyPeriod.handler';
+import { bulkCreateSurveyWalksHandler } from '../handlers/surveyWalks.handlers';
+import {
+    BulkCreateSurveyWalksBodySchema,
+    BulkCreateSurveyWalksResponseSchema,
+    SurveyWalkBySurveyPeriodParamsSchema,
+} from '../schemas/surveyWalk.schema';
 
 export const surveyPeriodRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
 
@@ -94,6 +100,21 @@ export const surveyPeriodRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
             },
         },
     }, updateSurveyPeriodHandler);
+
+    fastify.post('/api/surveyPeriods/:surveyPeriodUid/bulk-surveyWalks', {
+        preHandler: [verifyToken, requireAdminEmail],
+        schema: {
+            operationId: 'bulkCreateSurveyWalksForSurveyPeriod',
+            description: 'Bulk create survey walks for a survey period (admin only)',
+            tags: ['RafflesGo'],
+            security: [{ bearerAuth: [] }],
+            params: SurveyWalkBySurveyPeriodParamsSchema,
+            body: BulkCreateSurveyWalksBodySchema,
+            response: {
+                201: BulkCreateSurveyWalksResponseSchema,
+            },
+        },
+    }, bulkCreateSurveyWalksHandler);
 
     // Set active survey period (admin only)
     fastify.post('/api/surveyPeriods/:uid/activate', {
