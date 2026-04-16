@@ -133,22 +133,31 @@ export class EmailService {
         toEmail: string,
         inviterName: string,
         walkName: string,
-        // @ts-ignore
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         invitationUid: string,
+        type: 'walk_invitation' | 'leader_invitation' = 'walk_invitation',
     ): Promise<void> {
         const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
         const link = `${frontendUrl}/dashboard`;
+        const subject = type === 'leader_invitation'
+            ? `You've been invited to become a survey walk leader`
+            : `You've been invited to join a survey walk`;
+        const intro = type === 'leader_invitation'
+            ? `<p><strong>${inviterName}</strong> has invited you to become the leader of the survey walk <strong>${walkName}</strong>.</p>`
+            : `<p><strong>${inviterName}</strong> has invited you to join the survey walk <strong>${walkName}</strong>.</p>`;
+        const action = type === 'leader_invitation'
+            ? 'accept or decline the leadership invitation'
+            : 'accept or decline the invitation';
 
         await this.transporter.sendMail({
             from: `"RafflesGo" <${process.env.GMAIL_USER}>`,
             to: toEmail,
-            subject: `You've been invited to join a survey walk`,
+            subject,
             html: `
                 <p>Hi,</p>
-                <p><strong>${inviterName}</strong> has invited you to join the survey walk <strong>${walkName}</strong>.</p>
-                <p>Click the link below to accept or decline the invitation:</p>
+                ${intro}
+                <p>Click the link below to ${action}:</p>
                 <a href="${link}">${link}</a>
+                <p style="display:none">${invitationUid}</p>
                 <p>If you don't have an account yet, you will be prompted to sign in with Google first.</p>
             `,
         });

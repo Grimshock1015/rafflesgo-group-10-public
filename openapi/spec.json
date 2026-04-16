@@ -3574,6 +3574,7 @@
                         "inviterUid",
                         "inviterName",
                         "inviteeEmail",
+                        "type",
                         "status",
                         "createdAt"
                       ],
@@ -3595,6 +3596,25 @@
                         },
                         "inviteeEmail": {
                           "format": "email",
+                          "type": "string"
+                        },
+                        "type": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "walk_invitation"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "leader_invitation"
+                              ]
+                            }
+                          ]
+                        },
+                        "proposedLeaderUid": {
                           "type": "string"
                         },
                         "status": {
@@ -3675,6 +3695,7 @@
                           "inviterUid",
                           "inviterName",
                           "inviteeEmail",
+                          "type",
                           "status",
                           "createdAt"
                         ],
@@ -3696,6 +3717,25 @@
                           },
                           "inviteeEmail": {
                             "format": "email",
+                            "type": "string"
+                          },
+                          "type": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "walk_invitation"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "leader_invitation"
+                                ]
+                              }
+                            ]
+                          },
+                          "proposedLeaderUid": {
                             "type": "string"
                           },
                           "status": {
@@ -3769,6 +3809,7 @@
                           "inviterUid",
                           "inviterName",
                           "inviteeEmail",
+                          "type",
                           "status",
                           "createdAt"
                         ],
@@ -3790,6 +3831,25 @@
                           },
                           "inviteeEmail": {
                             "format": "email",
+                            "type": "string"
+                          },
+                          "type": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "walk_invitation"
+                                ]
+                              },
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "leader_invitation"
+                                ]
+                              }
+                            ]
+                          },
+                          "proposedLeaderUid": {
                             "type": "string"
                           },
                           "status": {
@@ -3875,6 +3935,7 @@
                         "inviterUid",
                         "inviterName",
                         "inviteeEmail",
+                        "type",
                         "status",
                         "createdAt"
                       ],
@@ -3896,6 +3957,25 @@
                         },
                         "inviteeEmail": {
                           "format": "email",
+                          "type": "string"
+                        },
+                        "type": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "walk_invitation"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "leader_invitation"
+                              ]
+                            }
+                          ]
+                        },
+                        "proposedLeaderUid": {
                           "type": "string"
                         },
                         "status": {
@@ -3980,6 +4060,7 @@
                         "inviterUid",
                         "inviterName",
                         "inviteeEmail",
+                        "type",
                         "status",
                         "createdAt"
                       ],
@@ -4001,6 +4082,25 @@
                         },
                         "inviteeEmail": {
                           "format": "email",
+                          "type": "string"
+                        },
+                        "type": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "walk_invitation"
+                              ]
+                            },
+                            {
+                              "type": "string",
+                              "enum": [
+                                "leader_invitation"
+                              ]
+                            }
+                          ]
+                        },
+                        "proposedLeaderUid": {
                           "type": "string"
                         },
                         "status": {

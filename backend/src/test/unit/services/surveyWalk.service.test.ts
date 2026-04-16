@@ -3,6 +3,7 @@ import { SurveyWalkService } from '../../../services/surveyWalk.service';
 import { SurveyWalkRepository } from '../../../repositories/surveyWalk.repository';
 import { SurveyPeriodRepository } from '../../../repositories/surveyPeriod.repository';
 import { WalkCompletionService } from '../../../services/walkCompletion.service';
+import { InvitationService } from '../../../services/invitation.service';
 import { SurveyWalkEntity } from '../../../entities/surveyWalk.entity';
 import { SurveyPeriodEntity } from '../../../entities/surveyPeriod.entity';
 import { BadRequestError, NotFoundError } from '../../../lib/errors';
@@ -12,6 +13,7 @@ describe('SurveyWalkService Unit Tests', () => {
 	let mockSurveyWalkRepository: Mocked<SurveyWalkRepository>;
 	let mockSurveyPeriodRepository: Mocked<SurveyPeriodRepository>;
 	let mockWalkCompletionService: Mocked<WalkCompletionService>;
+	let mockInvitationService: Mocked<InvitationService>;
 
 	const period: SurveyPeriodEntity = {
 		uid: 'period-1',
@@ -66,7 +68,20 @@ describe('SurveyWalkService Unit Tests', () => {
 			sendAttendanceEmails: vi.fn().mockResolvedValue(undefined),
 		} as unknown as Mocked<WalkCompletionService>;
 
-		service = new SurveyWalkService(mockSurveyWalkRepository, mockSurveyPeriodRepository, mockWalkCompletionService);
+		mockInvitationService = {
+			sendLeaderInvitation: vi.fn().mockResolvedValue({
+				uid: 'inv-1',
+				surveyWalkUid: walk.uid,
+				inviterUid: 'volunteer-1',
+				inviteeEmail: 'volunteer-2@example.com',
+				type: 'leader_invitation',
+				proposedLeaderUid: 'volunteer-2',
+				status: 'pending',
+				createdAt: new Date('2026-04-01T00:00:00.000Z'),
+			}),
+		} as unknown as Mocked<InvitationService>;
+
+		service = new SurveyWalkService(mockSurveyWalkRepository, mockSurveyPeriodRepository, mockWalkCompletionService, mockInvitationService);
 	});
 
 	describe('getAllSurveyWalks', () => {
@@ -474,32 +489,15 @@ describe('SurveyWalkService Unit Tests', () => {
 	});
 
 	describe('reassignLeader', () => {
-		it('should throw BadRequestError when requester is not current leader', async () => {
+		it('should send a leader invitation and keep the current leader until acceptance', async () => {
 			const joinedWalk = { ...walk, volunteerUids: ['volunteer-1', 'volunteer-2'], leader: 'volunteer-1' };
 			mockSurveyWalkRepository.findById.mockResolvedValue(joinedWalk);
-
-			await expect(service.reassignLeader(joinedWalk.uid, 'volunteer-2', 'volunteer-1')).rejects.toThrow(BadRequestError);
-			expect(mockSurveyWalkRepository.update).not.toHaveBeenCalled();
-		});
-
-		it('should throw BadRequestError when new leader is not in volunteers list', async () => {
-			const joinedWalk = { ...walk, volunteerUids: ['volunteer-1', 'volunteer-2'], leader: 'volunteer-1' };
-			mockSurveyWalkRepository.findById.mockResolvedValue(joinedWalk);
-
-			await expect(service.reassignLeader(joinedWalk.uid, 'volunteer-1', 'volunteer-9')).rejects.toThrow(BadRequestError);
-			expect(mockSurveyWalkRepository.update).not.toHaveBeenCalled();
-		});
-
-		it('should update leader when requester is current leader and new leader is valid', async () => {
-			const joinedWalk = { ...walk, volunteerUids: ['volunteer-1', 'volunteer-2'], leader: 'volunteer-1' };
-			const updated = { ...joinedWalk, leader: 'volunteer-2' };
-			mockSurveyWalkRepository.findById.mockResolvedValue(joinedWalk);
-			mockSurveyWalkRepository.update.mockResolvedValue(updated);
 
 			const result = await service.reassignLeader(joinedWalk.uid, 'volunteer-1', 'volunteer-2');
 
-			expect(result).toEqual(updated);
-			expect(mockSurveyWalkRepository.update).toHaveBeenCalledWith(joinedWalk.uid, { leader: 'volunteer-2' });
+			expect(mockInvitationService.sendLeaderInvitation).toHaveBeenCalledWith(joinedWalk.uid, 'volunteer-1', 'volunteer-2');
+			expect(mockSurveyWalkRepository.update).not.toHaveBeenCalled();
+			expect(result).toEqual(joinedWalk);
 		});
 	});
 
