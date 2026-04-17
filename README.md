@@ -31,15 +31,10 @@ jq --version       # jq-1.6 or higher
 make --version     # GNU Make
 ```
 
-You also need to setup firebase by following the instrucitons in this document:
-
-[Firebase Setup](https://docs.google.com/document/d/1HxVM2J8SDZg8KkwlwWnVGyiYuarz6IhqiSVXtwJOz0I)
-
 ## Quick Start
 
 ```bash
-# 1. Setup Firebase project, app, and environment files
-make setup-all PROJECT=YOUR_PROJECT APP_NAME=YOUR_APP_NAME
+# 1. Setup .env files based on the instructions in the appendix of the final submission document, details omitted here for security.
 
 # 2. Complete manual steps printed by setup (service account + auth)
 
@@ -154,16 +149,10 @@ frontend/src/
 
 ### Root Level
 
-```bash
-make setup-all PROJECT=<project-id> APP_NAME=<app-name>
-```
-
-Installs Firebase CLI, fetches SDK config, configures service account, and prints setup instructions.
-
 | Command | Description |
 |---------|-------------|
 | `make test` | Run unit tests (frontend + backend) |
-| `make test-integration` | Run integration tests with Firebase emulator |
+| `make test-integration` | Run integration tests with Firebase emulator, works on Windows |
 | `make test-all` | Run both unit and integration tests |
 
 ### Backend (`cd backend`)
@@ -183,10 +172,6 @@ Installs Firebase CLI, fetches SDK config, configures service account, and print
 | `make build` | Build production bundle |
 | `make test` | Run tests |
 | `make generate-api` | Regenerate API client |
-
-## Deployment
-
-For production hosting, consider containerizing the app with [Docker](https://docs.docker.com/get-started/). A multi-stage Dockerfile can build the frontend, backend, and serve both from a single container.
 
 ## Git Hooks
 
