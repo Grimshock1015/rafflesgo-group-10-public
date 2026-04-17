@@ -163,6 +163,18 @@
           "RafflesGo"
         ],
         "description": "List all users (admin only)",
+        "parameters": [
+          {
+            "schema": {
+              "minimum": 1,
+              "maximum": 500,
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -450,6 +462,18 @@
           "RafflesGo"
         ],
         "description": "List all survey periods",
+        "parameters": [
+          {
+            "schema": {
+              "minimum": 1,
+              "maximum": 500,
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -1220,6 +1244,18 @@
           "RafflesGo"
         ],
         "description": "List all survey walks (admin only)",
+        "parameters": [
+          {
+            "schema": {
+              "minimum": 1,
+              "maximum": 500,
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -1641,6 +1677,18 @@
           "RafflesGo"
         ],
         "description": "List survey walks for periods the current user has joined",
+        "parameters": [
+          {
+            "schema": {
+              "minimum": 1,
+              "maximum": 500,
+              "type": "integer"
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -3377,6 +3425,18 @@
           "Sightings"
         ],
         "description": "Get the authenticated user dashboard for submitted sightings",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -3683,6 +3743,18 @@
           "Sightings"
         ],
         "description": "List all sightings (admin only)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          }
+        ],
         "security": [
           {
             "bearerAuth": []

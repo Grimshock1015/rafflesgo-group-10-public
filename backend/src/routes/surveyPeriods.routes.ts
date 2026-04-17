@@ -4,6 +4,7 @@ import {
     ActiveSurveyPeriodResponseSchema,
     CreateSurveyPeriodBodySchema,
     DeleteSurveyPeriodResponseSchema,
+    ListSurveyPeriodsQuerySchema,
     ListSurveyPeriodsResponseSchema,
     SurveyPeriodParamsSchema,
     UpdateSurveyPeriodBodySchema,
@@ -49,6 +50,7 @@ export const surveyPeriodRoutes: FastifyPluginAsyncTypebox = async (fastify) => 
             description: 'List all survey periods',
             tags: ['RafflesGo'],
             security: [{ bearerAuth: [] }],
+            querystring: ListSurveyPeriodsQuerySchema,
             response: {
                 200: ListSurveyPeriodsResponseSchema,
             },

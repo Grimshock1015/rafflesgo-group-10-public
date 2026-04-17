@@ -29,6 +29,10 @@ export const ListSurveyPeriodsResponseSchema = Type.Object({
     surveyPeriods: Type.Array(surveyPeriodSchema),
 });
 
+export const ListSurveyPeriodsQuerySchema = Type.Object({
+    limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 500 })),
+});
+
 export const DeleteSurveyPeriodResponseSchema = Type.Object({
     success: Type.Boolean(),
     uid: Type.String(),

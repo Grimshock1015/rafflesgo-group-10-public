@@ -33,9 +33,16 @@ export type AdminSightingStats = {
   }>;
 };
 
-export async function listAllAdminSightings(): Promise<{ sightings: AdminSighting[] }> {
+export async function listAllAdminSightings(options?: { limit?: number }): Promise<{ sightings: AdminSighting[] }> {
   const token = typeof OpenAPI.TOKEN === 'function' ? await OpenAPI.TOKEN({ method: 'GET', url: '/api/sightings' }) : OpenAPI.TOKEN;
-  const response = await fetch(`${OpenAPI.BASE}/api/sightings`, {
+  const params = new URLSearchParams();
+  if (typeof options?.limit === 'number') {
+    params.set('limit', String(options.limit));
+  }
+  const query = params.toString();
+  const url = `${OpenAPI.BASE}/api/sightings${query ? `?${query}` : ''}`;
+
+  const response = await fetch(url, {
     method: 'GET',
     headers: {
       Accept: 'application/json',

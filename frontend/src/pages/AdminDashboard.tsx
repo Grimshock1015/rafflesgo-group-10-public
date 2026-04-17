@@ -4,12 +4,19 @@ import { Link, Navigate } from 'react-router-dom';
 import { RafflesGoService } from '../api';
 import { listAllAdminSightings } from '../lib/adminSightings';
 import { exportAdminDataToGoogleSheets } from '../utils/googleSheetsExport';
-import { Container, Skeleton } from '@chakra-ui/react';
+import { Box, ButtonGroup, Container, IconButton, Pagination, Skeleton } from '@chakra-ui/react';
+import { HiChevronLeft, HiChevronRight } from 'react-icons/hi';
 import { PersonAvatar } from '../components/SurveyWalkGridPeople';
 
 type AdminUser = Awaited<ReturnType<typeof RafflesGoService.listUsers>>['users'][number];
 type AdminSighting = Awaited<ReturnType<typeof listAllAdminSightings>>['sightings'][number];
 type AdminSurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalks>>['surveyWalks'][number];
+
+const ADMIN_DASHBOARD_USERS_LIMIT = 100;
+const ADMIN_DASHBOARD_WALKS_LIMIT = 100;
+const ADMIN_DASHBOARD_SIGHTINGS_LIMIT = 100;
+const ADMIN_USERS_PAGE_SIZE = 10;
+const ADMIN_COMPLETED_WALKS_PAGE_SIZE = 10;
 
 const sectionStyle: CSSProperties = {
   background: 'var(--bg-card)',
@@ -78,6 +85,8 @@ export default function AdminDashboard() {
   const [isExporting, setIsExporting] = useState(false);
   const [showSmoothLoading, setShowSmoothLoading] = useState(false);
   const [hasInitialAdminLoad, setHasInitialAdminLoad] = useState(false);
+  const [usersPage, setUsersPage] = useState(1);
+  const [completedWalksPage, setCompletedWalksPage] = useState(1);
 
   const loadAdminData = async () => {
     setError(null);
@@ -85,14 +94,16 @@ export default function AdminDashboard() {
 
     try {
       const [usersResponse, surveyWalksResponse, sightingsResponse] = await Promise.all([
-        RafflesGoService.listUsers(),
-        RafflesGoService.listSurveyWalks(),
-        listAllAdminSightings(),
+        RafflesGoService.listUsers(ADMIN_DASHBOARD_USERS_LIMIT),
+        RafflesGoService.listSurveyWalks(ADMIN_DASHBOARD_WALKS_LIMIT),
+        listAllAdminSightings({ limit: ADMIN_DASHBOARD_SIGHTINGS_LIMIT }),
       ]);
 
       setUsers(usersResponse.users);
       setSurveyWalks(surveyWalksResponse.surveyWalks);
       setSightings(sightingsResponse.sightings);
+      setUsersPage(1);
+      setCompletedWalksPage(1);
     } catch (loadError) {
       console.error('Failed to load admin data:', loadError);
       setError('Unable to load admin data right now.');
@@ -224,6 +235,17 @@ export default function AdminDashboard() {
   const completedWalks = surveyWalks.filter((walk) => walk.isFinished);
   const noShowCount = completedWalks.reduce((count, walk) => count + walk.noShows.length, 0);
   const showLoadingPlaceholders = !hasInitialAdminLoad || (isLoading && showSmoothLoading);
+  const sortedCompletedWalks = completedWalks
+    .slice()
+    .sort((a, b) => new Date(b.completedAt ?? b.date).getTime() - new Date(a.completedAt ?? a.date).getTime());
+  const totalCompletedWalkPages = Math.max(1, Math.ceil(sortedCompletedWalks.length / ADMIN_COMPLETED_WALKS_PAGE_SIZE));
+  const completedWalksPageSafe = Math.min(completedWalksPage, totalCompletedWalkPages);
+  const completedWalksStart = (completedWalksPageSafe - 1) * ADMIN_COMPLETED_WALKS_PAGE_SIZE;
+  const pagedCompletedWalks = sortedCompletedWalks.slice(completedWalksStart, completedWalksStart + ADMIN_COMPLETED_WALKS_PAGE_SIZE);
+  const totalUsersPages = Math.max(1, Math.ceil(users.length / ADMIN_USERS_PAGE_SIZE));
+  const usersPageSafe = Math.min(usersPage, totalUsersPages);
+  const usersStart = (usersPageSafe - 1) * ADMIN_USERS_PAGE_SIZE;
+  const pagedUsers = users.slice(usersStart, usersStart + ADMIN_USERS_PAGE_SIZE);
 
   return (
     <main className="main-content">
@@ -287,7 +309,7 @@ export default function AdminDashboard() {
 
         <section style={sectionStyle}>
           <h2>Attendance Tracking</h2>
-          <p>Completed survey walks keep the attendance list so repeated no-shows are visible to admins.</p>
+          <p>Completed survey walks keep the attendance list so repeated no-shows are visible to admins. Showing up to the latest {ADMIN_DASHBOARD_WALKS_LIMIT} walks.</p>
           <div style={attendanceContentStyle}>
             {showLoadingPlaceholders ? (
               <div style={loadingBlockStyle}>
@@ -305,10 +327,7 @@ export default function AdminDashboard() {
                 {completedWalks.length === 0 ? (
                   <p>No completed survey walks yet.</p>
                 ) : (
-                  completedWalks
-                    .slice()
-                    .sort((a, b) => new Date(b.completedAt ?? b.date).getTime() - new Date(a.completedAt ?? a.date).getTime())
-                    .map((walk) => (
+                  pagedCompletedWalks.map((walk) => (
                       <article key={walk.uid} style={cardStyle}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
                           <div>
@@ -327,11 +346,35 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+          {!showLoadingPlaceholders && completedWalks.length > 0 ? (
+            <Box display="flex" alignItems="center" justifyContent="center" mt={6} mb={1}>
+              <Pagination.Root
+                count={sortedCompletedWalks.length}
+                pageSize={ADMIN_COMPLETED_WALKS_PAGE_SIZE}
+                page={completedWalksPageSafe}
+                onPageChange={(event) => setCompletedWalksPage(event.page)}
+              >
+                <ButtonGroup gap="2" size="sm" variant="outline">
+                  <Pagination.PrevTrigger asChild>
+                    <IconButton aria-label="Previous page">
+                      <HiChevronLeft />
+                    </IconButton>
+                  </Pagination.PrevTrigger>
+                  <Pagination.PageText />
+                  <Pagination.NextTrigger asChild>
+                    <IconButton aria-label="Next page">
+                      <HiChevronRight />
+                    </IconButton>
+                  </Pagination.NextTrigger>
+                </ButtonGroup>
+              </Pagination.Root>
+            </Box>
+          ) : null}
         </section>
 
         <section style={sectionStyle}>
           <h2>User Management</h2>
-          <p>Change roles and disable or re-enable accounts without leaving the dashboard.</p>
+          <p>Change roles and disable or re-enable accounts without leaving the dashboard. Showing up to {ADMIN_DASHBOARD_USERS_LIMIT} users.</p>
           {error ? <p className="text-error">{error}</p> : null}
           <div style={usersContentStyle}>
             {showLoadingPlaceholders ? (
@@ -350,7 +393,7 @@ export default function AdminDashboard() {
               </div>
             ) : (
               <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
-                {users.map((managedUser) => {
+                {pagedUsers.map((managedUser) => {
                   const isBusy = busyUserId === managedUser.uid || busyUserId === managedUser.email;
 
                   return (
@@ -401,6 +444,30 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+          {!showLoadingPlaceholders && users.length > 0 ? (
+            <Box display="flex" alignItems="center" justifyContent="center" mt={6} mb={1}>
+              <Pagination.Root
+                count={users.length}
+                pageSize={ADMIN_USERS_PAGE_SIZE}
+                page={usersPageSafe}
+                onPageChange={(event) => setUsersPage(event.page)}
+              >
+                <ButtonGroup gap="2" size="sm" variant="outline">
+                  <Pagination.PrevTrigger asChild>
+                    <IconButton aria-label="Previous page">
+                      <HiChevronLeft />
+                    </IconButton>
+                  </Pagination.PrevTrigger>
+                  <Pagination.PageText />
+                  <Pagination.NextTrigger asChild>
+                    <IconButton aria-label="Next page">
+                      <HiChevronRight />
+                    </IconButton>
+                  </Pagination.NextTrigger>
+                </ButtonGroup>
+              </Pagination.Root>
+            </Box>
+          ) : null}
         </section>
 
       </div>

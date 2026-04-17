@@ -6,6 +6,7 @@ import {
     CreateSurveyWalkBodySchema,
     DeleteSurveyWalkResponseSchema,
     JoinQuitSurveyWalkResponseSchema,
+    ListSurveyWalksQuerySchema,
     ListSurveyWalksResponseSchema,
     ReassignLeaderBodySchema,
     ReassignLeaderResponseSchema,
@@ -37,6 +38,7 @@ export const surveyWalkRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
                 description: 'List all survey walks (admin only)',
                 tags: ['RafflesGo'],
                 security: [{ bearerAuth: [] }],
+                querystring: ListSurveyWalksQuerySchema,
                 response: {
                     200: ListSurveyWalksResponseSchema,
                 },
@@ -50,6 +52,7 @@ export const surveyWalkRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
             description: 'List survey walks for periods the current user has joined',
             tags: ['RafflesGo'],
             security: [{ bearerAuth: [] }],
+            querystring: ListSurveyWalksQuerySchema,
             response: {
                 200: ListSurveyWalksResponseSchema,
             },

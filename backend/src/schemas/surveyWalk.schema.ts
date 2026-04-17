@@ -39,6 +39,10 @@ export const SurveyWalkBySurveyPeriodParamsSchema = Type.Object({
     surveyPeriodUid: Type.String(),
 });
 
+export const ListSurveyWalksQuerySchema = Type.Object({
+    limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 500 })),
+});
+
 export const ListSurveyWalksResponseSchema = Type.Object({
     surveyWalks: Type.Array(surveyWalkSchema),
 });

@@ -1,12 +1,16 @@
 import { RafflesGoService } from "@/api";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Box, Grid, Select, Text, createListCollection } from "@chakra-ui/react";
+import { Box, ButtonGroup, Grid, IconButton, Pagination, Select, Text, createListCollection } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import type { User } from "firebase/auth";
 
 import { SurveyWalkCard } from "./SurveyWalkGridCard";
 import type { SurveyWalk } from "./SurveyWalkGrid.types";
 import { useNavigate } from "react-router-dom";
+import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
+
+const SURVEY_WALK_FETCH_LIMIT = 100;
+const SURVEY_WALK_PAGE_SIZE = 12;
 
 export default function SurveyWalkGrid({ user }: { user: User }) {
     const [surveyWalks, setSurveyWalks] = useState<SurveyWalk[]>([]);
@@ -16,6 +20,7 @@ export default function SurveyWalkGrid({ user }: { user: User }) {
     const [role, setRole] = useState<'user' | 'admin'>('user');
     const [activeTab, setActiveTab] = useState<'all' | 'mine'>('all');
     const [adminWalkScope, setAdminWalkScope] = useState<string[]>(["joined"]);
+    const [currentPage, setCurrentPage] = useState(1);
     const { effectiveTheme } = useTheme();
     const selectBg = effectiveTheme === "dark" ? "gray.800" : "white";
     const selectBorder = effectiveTheme === "dark" ? "gray.600" : "gray.200";
@@ -70,16 +75,17 @@ export default function SurveyWalkGrid({ user }: { user: User }) {
         try {
             const useOnlyActive = options?.onlyActive ?? true;
             if (role === "admin" && !useOnlyActive) {
-                const response = await RafflesGoService.listSurveyWalks();
+                const response = await RafflesGoService.listSurveyWalks(SURVEY_WALK_FETCH_LIMIT);
                 response.surveyWalks.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
                 setSurveyWalks(response.surveyWalks);
                 setOnlyActive(false);
             } else {
-                const response = await RafflesGoService.listSurveyWalksForCurrentUser();
+                const response = await RafflesGoService.listSurveyWalksForCurrentUser(SURVEY_WALK_FETCH_LIMIT);
                 response.surveyWalks.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
                 setSurveyWalks(response.surveyWalks);
                 setOnlyActive(true);
             }
+            setCurrentPage(1);
         } catch (error) {
             console.error("Failed to fetch survey walks:", error);
         } finally {
@@ -117,6 +123,15 @@ export default function SurveyWalkGrid({ user }: { user: User }) {
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         return [...upcoming, ...finished];
     }, [surveyWalks, activeTab, role, user.uid]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [activeTab, role, onlyActive]);
+
+    const totalPages = Math.max(1, Math.ceil(displayedWalks.length / SURVEY_WALK_PAGE_SIZE));
+    const currentPageSafe = Math.min(currentPage, totalPages);
+    const pageStart = (currentPageSafe - 1) * SURVEY_WALK_PAGE_SIZE;
+    const pagedWalks = displayedWalks.slice(pageStart, pageStart + SURVEY_WALK_PAGE_SIZE);
 
     return isInitialLoading ? <Text>Loading survey walks...</Text> : surveyWalks.length === 0 ? <Text>No survey walks found.</Text> : (
         <>
@@ -165,6 +180,12 @@ export default function SurveyWalkGrid({ user }: { user: User }) {
                 {isRefreshing && <Text fontSize="sm" color="gray.500">Refreshing...</Text>}
             </Box>
 
+            <Box mt={2} mb={role === "admin" ? 0 : 4}>
+                <Text fontSize="sm" color="gray.500" mb={0}>
+                    Showing {pagedWalks.length} of {displayedWalks.length} walks (loaded up to {SURVEY_WALK_FETCH_LIMIT}).
+                </Text>
+            </Box>
+
             {role === "admin" && (
                 <Select.Root
                     collection={adminWalkScopeCollection}
@@ -204,7 +225,7 @@ export default function SurveyWalkGrid({ user }: { user: User }) {
             )}
 
             <Grid templateColumns="repeat(auto-fill, minmax(320px, 1fr))" gridAutoRows="1fr" gapX={5} gapY={7} mt={3}>
-                {displayedWalks.map((sw) => (
+                {pagedWalks.map((sw) => (
                     <SurveyWalkCard
                         key={sw.uid}
                         sw={sw}
@@ -217,6 +238,29 @@ export default function SurveyWalkGrid({ user }: { user: User }) {
                     />
                 ))}
             </Grid>
+
+            <Box display="flex" alignItems="center" justifyContent="center" mt={6} mb={2}>
+                <Pagination.Root
+                    count={displayedWalks.length}
+                    pageSize={SURVEY_WALK_PAGE_SIZE}
+                    page={currentPageSafe}
+                    onPageChange={(event) => setCurrentPage(event.page)}
+                >
+                    <ButtonGroup gap="2" size="sm" variant="outline">
+                        <Pagination.PrevTrigger asChild>
+                            <IconButton aria-label="Previous page">
+                                <HiChevronLeft />
+                            </IconButton>
+                        </Pagination.PrevTrigger>
+                        <Pagination.PageText />
+                        <Pagination.NextTrigger asChild>
+                            <IconButton aria-label="Next page">
+                                <HiChevronRight />
+                            </IconButton>
+                        </Pagination.NextTrigger>
+                    </ButtonGroup>
+                </Pagination.Root>
+            </Box>
         </>
     );
 }

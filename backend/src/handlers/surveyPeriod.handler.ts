@@ -75,11 +75,15 @@ function parseDateString(value: string, field: 'startDate' | 'endDate'): Date {
 }
 
 export async function listSurveyPeriodsHandler(
-    _request: FastifyRequestTypeBox<typeof ListSurveyPeriodsSchema>,
+    request: FastifyRequestTypeBox<typeof ListSurveyPeriodsSchema>,
     _reply: FastifyReplyTypeBox<typeof ListSurveyPeriodsSchema>
 ) {
     const { surveyPeriodService } = getContainer();
-    const surveyPeriods = await surveyPeriodService.getAllSurveyPeriods();
+    const rawLimit = (request.query as { limit?: number } | undefined)?.limit;
+    const limit = typeof rawLimit === 'number' && Number.isInteger(rawLimit)
+        ? Math.min(Math.max(rawLimit, 1), 500)
+        : undefined;
+    const surveyPeriods = await surveyPeriodService.getAllSurveyPeriods(limit);
     return { surveyPeriods: surveyPeriods.map(toDto) };
 }
 

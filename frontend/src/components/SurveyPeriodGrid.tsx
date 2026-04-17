@@ -1,14 +1,18 @@
 import { RafflesGoService } from "@/api";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toaster } from "@/components/ui/toaster";
-import { Badge, Box, Button, Card, CloseButton, Container, Dialog, Grid, GridItem, IconButton, Image, Portal, Select, Stack, Text, createListCollection } from "@chakra-ui/react";
+import { Badge, Box, Button, ButtonGroup, Card, CloseButton, Container, Dialog, Grid, GridItem, IconButton, Image, Pagination, Portal, Select, Stack, Text, createListCollection } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import { MdDelete, MdModeEdit } from "react-icons/md";
 import { FaCheck } from "react-icons/fa";
+import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
 import type { User } from 'firebase/auth';
 
 type SurveyPeriod = Awaited<ReturnType<typeof RafflesGoService.listSurveyPeriods>>["surveyPeriods"][number];
+
+const SURVEY_PERIOD_FETCH_LIMIT = 100;
+const SURVEY_PERIOD_PAGE_SIZE = 12;
 
 type DeleteSurveyPeriodButtonProps = {
     surveyPeriodId: string;
@@ -92,6 +96,7 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
     const [isSettingActiveUid, setIsSettingActiveUid] = useState<string | null>(null);
     const [activeSelectionUid, setActiveSelectionUid] = useState<string[]>([]);
     const [role, setRole] = useState<string>("user");
+    const [currentPage, setCurrentPage] = useState(1);
     const { effectiveTheme } = useTheme();
     
     const selectItemBg = effectiveTheme === "dark" ? "gray.800" : "white";
@@ -127,10 +132,11 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
     
     const fetchSurveyPeriods = async () => {
         try {
-            const response = await RafflesGoService.listSurveyPeriods();
+            const response = await RafflesGoService.listSurveyPeriods(SURVEY_PERIOD_FETCH_LIMIT);
             setSurveyPeriods(response.surveyPeriods);
             const activePeriod = response.surveyPeriods.find((period) => period.isActive);
             setActiveSelectionUid(activePeriod ? [activePeriod.uid] : []);
+            setCurrentPage(1);
         } catch (error) {
             console.error("Failed to fetch survey periods:", error);
             toaster.create({
@@ -191,6 +197,11 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
         </Container>;
     }
 
+    const totalPages = Math.max(1, Math.ceil(surveyPeriods.length / SURVEY_PERIOD_PAGE_SIZE));
+    const currentPageSafe = Math.min(currentPage, totalPages);
+    const pageStart = (currentPageSafe - 1) * SURVEY_PERIOD_PAGE_SIZE;
+    const pagedSurveyPeriods = surveyPeriods.slice(pageStart, pageStart + SURVEY_PERIOD_PAGE_SIZE);
+
     return (
         <>
             {role === "admin" && (
@@ -246,8 +257,14 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                 </Box>
             )}
 
+            <Box mt={4} mb={2}>
+                <Text fontSize="sm" color={cardSubtleTextColor} mb={0}>
+                    Showing {pagedSurveyPeriods.length} of {surveyPeriods.length} survey periods (loaded up to {SURVEY_PERIOD_FETCH_LIMIT}).
+                </Text>
+            </Box>
+
             <Grid templateColumns="repeat(auto-fill, minmax(320px, 1fr))" gap={4} mt={5}>
-                {surveyPeriods.map((sp) => (
+                {pagedSurveyPeriods.map((sp) => (
                     <GridItem key={sp.uid}>
                         <Card.Root h="100%" p={0} overflow="hidden" display="flex" flexDirection="column" bg={cardBg} borderWidth="1px" borderColor={cardBorder} borderRadius="16px" boxShadow={cardShadow}>
                             <Image
@@ -317,6 +334,29 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                     </GridItem>
                 ))}
             </Grid>
+
+            <Box display="flex" alignItems="center" justifyContent="center" mt={6} mb={2}>
+                <Pagination.Root
+                    count={surveyPeriods.length}
+                    pageSize={SURVEY_PERIOD_PAGE_SIZE}
+                    page={currentPageSafe}
+                    onPageChange={(event) => setCurrentPage(event.page)}
+                >
+                    <ButtonGroup gap="2" size="sm" variant="outline">
+                        <Pagination.PrevTrigger asChild>
+                            <IconButton aria-label="Previous page">
+                                <HiChevronLeft />
+                            </IconButton>
+                        </Pagination.PrevTrigger>
+                        <Pagination.PageText />
+                        <Pagination.NextTrigger asChild>
+                            <IconButton aria-label="Next page">
+                                <HiChevronRight />
+                            </IconButton>
+                        </Pagination.NextTrigger>
+                    </ButtonGroup>
+                </Pagination.Root>
+            </Box>
         </>
     );
 }

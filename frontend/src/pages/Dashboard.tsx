@@ -19,7 +19,8 @@ import {
 import { RafflesGoService, SightingsService } from '../api';
 import { getAllDrafts } from '../services/SightingDraftsService';
 import InvitationNotifications from '../components/InvitationNotifications';
-import { Badge, Box, Container, Skeleton, Text } from '@chakra-ui/react';
+import { Badge, Box, ButtonGroup, Container, IconButton, Pagination, Skeleton, Text } from '@chakra-ui/react';
+import { HiChevronLeft, HiChevronRight } from 'react-icons/hi';
 
 type MySightingsDashboard = Awaited<ReturnType<typeof SightingsService.getMySightingsDashboard>>;
 type JoinedSurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalksForCurrentUser>>['surveyWalks'][number];
@@ -36,6 +37,8 @@ type WeatherApiHourly = {
 };
 
 const SINGAPORE_COORDINATES = { latitude: 1.3521, longitude: 103.8198 };
+const MAX_RECENT_SIGHTINGS_FETCH_LIMIT = 100;
+const RECENT_SIGHTINGS_PAGE_SIZE = 5;
 
 const GREEN = '#4caf72';
 const ORANGE = '#f0a500';
@@ -192,6 +195,7 @@ export default function Dashboard({ user }: { user: User }) {
   const [isLoadingWeather, setIsLoadingWeather] = useState(false);
   const [showSmoothLoading, setShowSmoothLoading] = useState(false);
   const [hasInitialDashboardLoad, setHasInitialDashboardLoad] = useState(false);
+  const [recentSightingsPage, setRecentSightingsPage] = useState(1);
 
   useEffect(() => {
     let isMounted = true;
@@ -205,7 +209,7 @@ export default function Dashboard({ user }: { user: User }) {
 
       const [userResult, sightingsResult, surveyWalksResult, periodResult] = await Promise.allSettled([
         RafflesGoService.getCurrentUser(),
-        SightingsService.getMySightingsDashboard(),
+        SightingsService.getMySightingsDashboard(MAX_RECENT_SIGHTINGS_FETCH_LIMIT),
         RafflesGoService.listSurveyWalksForCurrentUser(),
         RafflesGoService.getActiveSurveyPeriod(),
       ]);
@@ -222,6 +226,7 @@ export default function Dashboard({ user }: { user: User }) {
 
       if (sightingsResult.status === 'fulfilled') {
         setSightingsData(sightingsResult.value);
+        setRecentSightingsPage(1);
       } else {
         console.error('Failed to fetch sightings dashboard:', sightingsResult.reason);
         setSightingsError(true);
@@ -293,6 +298,11 @@ export default function Dashboard({ user }: { user: User }) {
   const nextUpcomingWalk = joinedSurveyWalks
     .filter((walk) => !walk.isFinished && getWalkStartDateTime(walk) >= now)
     .sort((a, b) => getWalkStartDateTime(a).getTime() - getWalkStartDateTime(b).getTime())[0];
+
+  const totalRecentSightingsPages = Math.max(1, Math.ceil(sightings.length / RECENT_SIGHTINGS_PAGE_SIZE));
+  const recentSightingsPageSafe = Math.min(recentSightingsPage, totalRecentSightingsPages);
+  const recentSightingsStart = (recentSightingsPageSafe - 1) * RECENT_SIGHTINGS_PAGE_SIZE;
+  const pagedRecentSightings = sightings.slice(recentSightingsStart, recentSightingsStart + RECENT_SIGHTINGS_PAGE_SIZE);
 
   // Computed chart data
   const chartData = useMemo(() => {
@@ -439,11 +449,11 @@ export default function Dashboard({ user }: { user: User }) {
               <p>You do not have any upcoming survey walks.</p>
             ) : (
               <article style={cardStyle} className="next-walk-card">
-                <h3 style={{ marginBottom: '0.5rem' }}>{nextUpcomingWalk.name}</h3>
-                <p>{formatWalkDate(nextUpcomingWalk.date)}</p>
-                <p>{nextUpcomingWalk.startTime} to {nextUpcomingWalk.endTime}</p>
-                <p>Leader: {nextUpcomingWalk.leader.name}</p>
-                <p>Volunteers: {nextUpcomingWalk.volunteers.map((v) => v.name).join(', ')}</p>
+                <h3 style={{ marginBottom: '1rem' }}>{nextUpcomingWalk.name}</h3>
+                <Text lineHeight={0.75}>{formatWalkDate(nextUpcomingWalk.date)}, {nextUpcomingWalk.startTime} to {nextUpcomingWalk.endTime}</Text>
+                
+                <Text lineHeight={0.75}>Leader: {nextUpcomingWalk.leader.name || 'N/A'}</Text>
+                <Text lineHeight={0.75}>Volunteers: {nextUpcomingWalk.volunteers.map((v) => v.name).join(', ') || 'N/A'}</Text>
                 {isLoadingWeather ? <p style={{ marginTop: '1rem' }}>Checking Singapore weather for this walk...</p> : null}
                 {weatherAssessment ? (
                   <div role="alert" aria-live="polite" style={weatherWarningStyle}>
@@ -675,7 +685,10 @@ export default function Dashboard({ user }: { user: User }) {
 
         {/* My Sightings list */}
         <section id="my-sightings" aria-labelledby="my-sightings-heading" style={sectionStyle}>
-          <h2 id="my-sightings-heading">My Sightings</h2>
+          <h2 id="my-sightings-heading">My Recent Sightings</h2>
+          <p style={{ opacity: 0.6, fontSize: '0.9rem', marginTop: '0.25rem' }}>
+            Showing {pagedRecentSightings.length} per page from up to {MAX_RECENT_SIGHTINGS_FETCH_LIMIT} latest submissions.
+          </p>
           <div style={sightingsContentStyle}>
             {showLoadingPlaceholders && isLoadingSightings ? (
               <div style={loadingBlockStyle}>
@@ -696,7 +709,7 @@ export default function Dashboard({ user }: { user: User }) {
               <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
                 {
                   // @ts-ignore
-                  sightings.map((sighting) => (
+                  pagedRecentSightings.map((sighting) => (
                     <article key={sighting.id} style={cardStyle}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
                         <div>
@@ -723,6 +736,30 @@ export default function Dashboard({ user }: { user: User }) {
               </div>
             )}
           </div>
+          {!showLoadingPlaceholders && !sightingsError && sightings.length > 0 ? (
+            <Box display="flex" alignItems="center" justifyContent="center" mt={6} mb={1}>
+              <Pagination.Root
+                count={sightings.length}
+                pageSize={RECENT_SIGHTINGS_PAGE_SIZE}
+                page={recentSightingsPageSafe}
+                onPageChange={(event) => setRecentSightingsPage(event.page)}
+              >
+                <ButtonGroup gap="2" size="sm" variant="outline">
+                  <Pagination.PrevTrigger asChild>
+                    <IconButton aria-label="Previous page">
+                      <HiChevronLeft />
+                    </IconButton>
+                  </Pagination.PrevTrigger>
+                  <Pagination.PageText />
+                  <Pagination.NextTrigger asChild>
+                    <IconButton aria-label="Next page">
+                      <HiChevronRight />
+                    </IconButton>
+                  </Pagination.NextTrigger>
+                </ButtonGroup>
+              </Pagination.Root>
+            </Box>
+          ) : null}
         </section>
 
       </div>

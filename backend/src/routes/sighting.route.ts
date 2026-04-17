@@ -6,6 +6,7 @@ import {
   CreateSightingResponseSchema,
   DeleteSightingResponseSchema,
   MySightingsResponseSchema,
+  SightingsListQuerySchema,
 } from '../schemas';
 import { requireAdminEmail, verifyToken } from '../middleware/auth.middleware';
 
@@ -19,6 +20,7 @@ export async function sightingRoutes(fastify: FastifyInstance) {
         description: 'Get the authenticated user dashboard for submitted sightings',
         tags: ['Sightings'],
         security: [{ bearerAuth: [] }],
+        querystring: SightingsListQuerySchema,
         response: {
           200: MySightingsResponseSchema,
         },
@@ -53,6 +55,7 @@ export async function sightingRoutes(fastify: FastifyInstance) {
         description: 'List all sightings (admin only)',
         tags: ['Sightings'],
         security: [{ bearerAuth: [] }],
+        querystring: SightingsListQuerySchema,
         response: {
           200: AdminSightingsResponseSchema,
         },
