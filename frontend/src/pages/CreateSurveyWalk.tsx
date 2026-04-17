@@ -1,6 +1,7 @@
 import { RafflesGoService } from "@/api/services/RafflesGoService";
 import { ObservationDatePicker } from "@/components/ObservationDatePicker";
 import { toaster } from "@/components/ui/toaster";
+import { getNetworkErrorMessage } from "@/lib/networkError";
 import { Container, Button, Input, Stack, Field, Select, createListCollection } from "@chakra-ui/react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { IoMdAdd } from "react-icons/io";
@@ -58,7 +59,7 @@ export default function CreateSurveyWalk() {
                 toaster.create({
                     type: "error",
                     title: "Failed to load survey periods",
-                    description: "Unable to load survey periods. Please refresh and try again.",
+                    description: getNetworkErrorMessage(error, "Unable to load survey periods. Please refresh and try again."),
                     closable: true,
                 });
             } finally {
@@ -126,7 +127,7 @@ export default function CreateSurveyWalk() {
             toaster.create({
                 type: "error",
                 title: "Creation failed",
-                description: "Unable to create survey walk. Please try again.",
+                description: getNetworkErrorMessage(error, "Unable to create survey walk. Please try again."),
                 closable: true,
             });
         } finally {

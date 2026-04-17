@@ -3,6 +3,7 @@ import { Button, Dialog, Portal, CloseButton, Input, Text } from "@chakra-ui/rea
 import { MdPersonAdd } from "react-icons/md";
 import { RafflesGoService } from "@/api";
 import { toaster } from "@/components/ui/toaster";
+import { getNetworkErrorMessage } from "@/lib/networkError";
 import { useTheme } from "@/contexts/ThemeContext";
 
 type InviteVolunteerButtonProps = {
@@ -52,7 +53,7 @@ export function InviteVolunteerButton({ surveyWalkId }: InviteVolunteerButtonPro
                 ? "This email already has a pending invitation for this walk."
                 : status === 400
                 ? "Unable to send invitation. The walk may be full or already finished."
-                : "Something went wrong. Please try again.";
+                : getNetworkErrorMessage(error, "Unable to send invitation. Please try again.");
             toaster.create({
                 type: "error",
                 title: "Failed to send invitation",

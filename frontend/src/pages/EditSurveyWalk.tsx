@@ -1,6 +1,7 @@
 import { RafflesGoService } from "@/api/services/RafflesGoService";
 import { ObservationDatePicker } from "@/components/ObservationDatePicker";
 import { toaster } from "@/components/ui/toaster";
+import { getNetworkErrorMessage } from "@/lib/networkError";
 import { Container, Button, Input, Stack, Field, Checkbox, Select, createListCollection, Text } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import { MdSave } from "react-icons/md";
@@ -112,7 +113,7 @@ export default function EditSurveyWalk() {
                 toaster.create({
                     type: "error",
                     title: "Load failed",
-                    description: "Unable to load survey walk details. Please try again.",
+                    description: getNetworkErrorMessage(error, "Unable to load survey walk details. Please try again."),
                     closable: true,
                 });
             } finally {
@@ -200,7 +201,7 @@ export default function EditSurveyWalk() {
             toaster.create({
                 type: "error",
                 title: "Update failed",
-                description: "Unable to update survey walk. Please try again.",
+                description: getNetworkErrorMessage(error, "Unable to update survey walk. Please try again."),
                 closable: true,
             });
         } finally {

@@ -1,5 +1,6 @@
 import { RafflesGoService } from "@/api";
 import { useTheme } from "@/contexts/ThemeContext";
+import { getNetworkErrorMessage } from "@/lib/networkError";
 import { Button, CloseButton, Dialog, Portal, Select, Text, createListCollection } from "@chakra-ui/react";
 import { useState } from "react";
 import { BiTransfer } from "react-icons/bi";
@@ -59,7 +60,7 @@ export function ReassignLeaderButton({ surveyWalkId, leaderUid, volunteers, onDe
                 title: "Leader invitation failed",
                 description: status === 409
                     ? "That volunteer already has a pending leader invitation for this walk."
-                    : "Unable to send the leader invitation. Please try again.",
+                    : getNetworkErrorMessage(error, "Unable to send the leader invitation. Please try again."),
                 closable: true,
             });
         } finally {

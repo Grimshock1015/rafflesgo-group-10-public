@@ -1,4 +1,5 @@
 import { RafflesGoService } from "@/api";
+import { getNetworkErrorMessage } from "@/lib/networkError";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Badge, Box, Button, Card, Collapsible, GridItem, Image, List, Stack, Text } from "@chakra-ui/react";
 import { useState } from "react";
@@ -47,7 +48,7 @@ export function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyW
             toaster.create({
                 type: "error",
                 title: "Join failed",
-                description: "Unable to join. Please try again.",
+                description: getNetworkErrorMessage(error, "Unable to join. Please try again."),
                 closable: true,
             });
         }).finally(() => {
@@ -70,7 +71,7 @@ export function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyW
             toaster.create({
                 type: "error",
                 title: "Quit failed",
-                description: "Unable to quit. Please try again.",
+                description: getNetworkErrorMessage(error, "Unable to quit. Please try again."),
                 closable: true,
             });
         }).finally(() => {

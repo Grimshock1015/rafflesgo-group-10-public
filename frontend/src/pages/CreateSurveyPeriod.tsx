@@ -2,6 +2,7 @@ import { RafflesGoService } from "@/api/services/RafflesGoService";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { toaster } from "@/components/ui/toaster";
 import { toIsoDateTime } from "@/lib/date";
+import { getNetworkErrorMessage } from "@/lib/networkError";
 import { Container, Button, Input, Stack, Field, type DateValue } from "@chakra-ui/react";
 import { useState, type FormEvent } from "react";
 import { IoMdAdd } from "react-icons/io";
@@ -40,7 +41,7 @@ export default function CreateSurveyPeriod() {
             toaster.create({
                 type: "error",
                 title: "Creation failed",
-                description: "Unable to create survey period. Please try again.",
+                description: getNetworkErrorMessage(error, "Unable to create survey period. Please try again."),
                 closable: true,
             })
         } finally {

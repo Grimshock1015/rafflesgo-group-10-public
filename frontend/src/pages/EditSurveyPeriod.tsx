@@ -2,6 +2,7 @@ import { RafflesGoService } from "@/api/services/RafflesGoService";
 import { DateRangePicker } from "@/components/DateRangePicker";
 import { toaster } from "@/components/ui/toaster";
 import { toIsoDateTime } from "@/lib/date";
+import { getNetworkErrorMessage } from "@/lib/networkError";
 import { Box, Button, Checkbox, Container, Field, Input, Stack, Text, type DateValue } from "@chakra-ui/react";
 import { parseDate } from "@internationalized/date";
 import { useEffect, useMemo, useState } from "react";
@@ -89,7 +90,7 @@ export default function EditSurveyPeriod() {
             toaster.create({
                 type: "error",
                 title: "Update failed",
-                description: "Unable to update survey period. Please try again.",
+                description: getNetworkErrorMessage(error, "Unable to update survey period. Please try again."),
                 closable: true,
             });
         } finally {
@@ -193,7 +194,7 @@ export default function EditSurveyPeriod() {
             toaster.create({
                 type: "error",
                 title: "Bulk scheduling failed",
-                description: "Unable to schedule the weekend walks. Please review the slots and try again.",
+                description: getNetworkErrorMessage(error, "Unable to schedule the weekend walks. Please review the slots and try again."),
                 closable: true,
             });
         } finally {
