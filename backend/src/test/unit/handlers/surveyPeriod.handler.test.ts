@@ -5,7 +5,8 @@ import {
     createSurveyPeriodHandler,
     updateSurveyPeriodHandler,
     deleteSurveyPeriodHandler,
-    activateSurveyPeriodHandler
+    activateSurveyPeriodHandler,
+    getActiveSurveyPeriodHandler
 } from '../../../handlers/surveyPeriod.handler';
 import { getContainer } from '../../../container';
 import { SurveyPeriodService } from '../../../services/surveyPeriod.service';
@@ -94,6 +95,36 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             // Assert
             expect(mockSurveyPeriodService.getAllSurveyPeriods).toHaveBeenCalledOnce();
             expect(result).toEqual({ surveyPeriods: [] });
+        });
+
+        it('[TC-SP-HDL-02A] should clamp list query limit to max 500', async () => {
+            const mockRequest = {
+                query: { limit: 999 },
+            } as unknown as Parameters<typeof listSurveyPeriodsHandler>[0];
+
+            mockSurveyPeriodService.getAllSurveyPeriods.mockResolvedValue([]);
+
+            await listSurveyPeriodsHandler(
+                mockRequest,
+                {} as Parameters<typeof listSurveyPeriodsHandler>[1],
+            );
+
+            expect(mockSurveyPeriodService.getAllSurveyPeriods).toHaveBeenCalledWith(500);
+        });
+
+        it('[TC-SP-HDL-02B] should ignore non-integer list query limit', async () => {
+            const mockRequest = {
+                query: { limit: 2.5 },
+            } as unknown as Parameters<typeof listSurveyPeriodsHandler>[0];
+
+            mockSurveyPeriodService.getAllSurveyPeriods.mockResolvedValue([]);
+
+            await listSurveyPeriodsHandler(
+                mockRequest,
+                {} as Parameters<typeof listSurveyPeriodsHandler>[1],
+            );
+
+            expect(mockSurveyPeriodService.getAllSurveyPeriods).toHaveBeenCalledWith(undefined);
         });
     });
 
@@ -354,6 +385,60 @@ describe('SurveyPeriod Handler Unit Tests', () => {
             // Assert: Verify the result DTO format
             expect(result.startDate).toBe(startDateStr);
             expect(result.endDate).toBe(endDateStr);
+        });
+    });
+
+    // ==========================================
+    // Test Block 5A: getActiveSurveyPeriodHandler
+    // ==========================================
+    describe('getActiveSurveyPeriodHandler', () => {
+        const mockRequest = {} as Parameters<typeof getActiveSurveyPeriodHandler>[0];
+        const mockReply = {} as Parameters<typeof getActiveSurveyPeriodHandler>[1];
+
+        it('[TC-SP-HDL-11A] should return null when there is no active unfinished period', async () => {
+            mockSurveyPeriodService.getAllSurveyPeriods.mockResolvedValue([
+                {
+                    uid: 'p1',
+                    name: 'Finished Active',
+                    startDate: new Date('2026-01-01T00:00:00.000Z'),
+                    endDate: new Date('2026-02-01T00:00:00.000Z'),
+                    isFinished: true,
+                    isActive: true,
+                    minWalks: 2,
+                },
+            ]);
+
+            const result = await getActiveSurveyPeriodHandler(mockRequest, mockReply);
+
+            expect(result).toBeNull();
+            expect(mockSurveyPeriodService.getAllSurveyPeriods).toHaveBeenCalledWith();
+        });
+
+        it('[TC-SP-HDL-11B] should return basic info for active unfinished period', async () => {
+            mockSurveyPeriodService.getAllSurveyPeriods.mockResolvedValue([
+                {
+                    uid: 'p1',
+                    name: 'Inactive',
+                    startDate: new Date('2026-01-01T00:00:00.000Z'),
+                    endDate: new Date('2026-02-01T00:00:00.000Z'),
+                    isFinished: false,
+                    isActive: false,
+                    minWalks: 1,
+                },
+                {
+                    uid: 'p2',
+                    name: 'Current Period',
+                    startDate: new Date('2026-02-01T00:00:00.000Z'),
+                    endDate: new Date('2026-03-01T00:00:00.000Z'),
+                    isFinished: false,
+                    isActive: true,
+                    minWalks: 4,
+                },
+            ]);
+
+            const result = await getActiveSurveyPeriodHandler(mockRequest, mockReply);
+
+            expect(result).toEqual({ uid: 'p2', name: 'Current Period', minWalks: 4 });
         });
     });
 
