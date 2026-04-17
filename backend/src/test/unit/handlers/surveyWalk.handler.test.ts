@@ -446,7 +446,7 @@ describe('SurveyWalk Handler Unit Tests', () => {
 			mockSurveyWalkService.reassignLeader.mockResolvedValue({
 				...walk,
 				volunteerUids: ['user-1', 'user-2'],
-				leader: 'user-2',
+				leader: 'user-1',
 			});
 			mockSurveyPeriodRepository.findById.mockResolvedValue({ name: 'Spring 2026' } as never);
 
@@ -463,7 +463,7 @@ describe('SurveyWalk Handler Unit Tests', () => {
 
 			expect(mockSurveyWalkService.reassignLeader).toHaveBeenCalledWith(walk.uid, 'user-1', 'user-2');
 			expect(result.success).toBe(true);
-			expect(result.surveyWalk.leader).toStrictEqual({ uid: 'user-2', name: 'Volunteer Name', photoURL: 'https://example.com/volunteer.png' });
+			expect(result.surveyWalk.leader).toStrictEqual({ uid: 'user-1', name: 'Volunteer Name', photoURL: 'https://example.com/volunteer.png' });
 		});
 	});
 

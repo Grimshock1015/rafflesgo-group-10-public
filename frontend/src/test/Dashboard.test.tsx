@@ -46,6 +46,8 @@ const mockUser: Partial<User> = {
 describe('Dashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date('2026-04-15T12:00:00.000Z'));
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
@@ -154,6 +156,7 @@ describe('Dashboard', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 

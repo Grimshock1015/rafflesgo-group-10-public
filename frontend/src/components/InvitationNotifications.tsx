@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { RafflesGoService } from '@/api';
 
-type Invitation = Awaited<ReturnType<typeof RafflesGoService.listMyInvitations>>['invitations'][number];
+type Invitation = Awaited<ReturnType<typeof RafflesGoService.listMyInvitations>>['invitations'][number] & {
+    type?: 'walk_invitation' | 'leader_invitation';
+};
 
 const sectionStyle: CSSProperties = {
     background: 'var(--bg-card)',
@@ -108,7 +110,9 @@ export default function InvitationNotifications({ userEmail }: InvitationNotific
                     <div>
                         <strong>{inv.surveyWalkName || 'A survey walk'}</strong>
                         <p style={{ margin: '0.25rem 0 0', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                            Invited by {inv.inviterName || 'a volunteer'}
+                            {inv.type === 'leader_invitation'
+                                ? `Leadership invitation from ${inv.inviterName || 'a volunteer'}`
+                                : `Invited by ${inv.inviterName || 'a volunteer'}`}
                         </p>
                     </div>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>

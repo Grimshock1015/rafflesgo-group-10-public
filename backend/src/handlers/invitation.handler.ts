@@ -43,6 +43,8 @@ function toDto(invitation: InvitationEntity) {
         inviterUid: invitation.inviterUid,
         inviterName: '',
         inviteeEmail: invitation.inviteeEmail,
+        type: invitation.type,
+        proposedLeaderUid: invitation.proposedLeaderUid,
         status: invitation.status,
         createdAt: invitation.createdAt.toISOString(),
     };

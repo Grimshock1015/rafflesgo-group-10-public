@@ -7,6 +7,11 @@ export const invitationSchema = Type.Object({
     inviterUid: Type.String(),
     inviterName: Type.String(),
     inviteeEmail: Type.String({ format: 'email' }),
+    type: Type.Union([
+        Type.Literal('walk_invitation'),
+        Type.Literal('leader_invitation'),
+    ]),
+    proposedLeaderUid: Type.Optional(Type.String()),
     status: Type.Union([
         Type.Literal('pending'),
         Type.Literal('accepted'),

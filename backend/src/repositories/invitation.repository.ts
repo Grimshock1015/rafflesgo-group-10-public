@@ -66,6 +66,8 @@ export class InvitationRepository {
             surveyWalkUid: String(data.surveyWalkUid ?? ''),
             inviterUid: String(data.inviterUid ?? ''),
             inviteeEmail: String(data.inviteeEmail ?? ''),
+            type: (data.type as InvitationEntity['type']) ?? 'walk_invitation',
+            proposedLeaderUid: data.proposedLeaderUid ? String(data.proposedLeaderUid) : undefined,
             status: (data.status as InvitationEntity['status']) ?? 'pending',
             createdAt: this.toDate(data.createdAt),
         };

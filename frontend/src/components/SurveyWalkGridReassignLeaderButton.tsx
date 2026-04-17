@@ -47,16 +47,19 @@ export function ReassignLeaderButton({ surveyWalkId, leaderUid, volunteers, onDe
             await onDeleted();
             toaster.create({
                 type: "success",
-                title: "Leader reassigned successfully!",
-                description: "The survey walk leader has been reassigned.",
+                title: "Leader invitation sent",
+                description: "An email invitation has been sent to the selected volunteer. Leadership will change after they accept.",
                 closable: true,
             });
         } catch (error) {
             console.error("Failed to reassign survey walk leader:", error);
+            const status = (error as { status?: number })?.status;
             toaster.create({
                 type: "error",
-                title: "Reassignment failed",
-                description: "Unable to reassign survey walk leader. Please try again.",
+                title: "Leader invitation failed",
+                description: status === 409
+                    ? "That volunteer already has a pending leader invitation for this walk."
+                    : "Unable to send the leader invitation. Please try again.",
                 closable: true,
             });
         } finally {
@@ -81,10 +84,10 @@ export function ReassignLeaderButton({ surveyWalkId, leaderUid, volunteers, onDe
                 <Dialog.Positioner position="fixed" inset={0} display="flex" alignItems="center" justifyContent="center">
                     <Dialog.Content p={5} bg={dialogBg} borderWidth="1px" borderColor={dialogBorder} color={dialogTextColor}>
                         <Dialog.Header>
-                            <Dialog.Title>Reassign Leader</Dialog.Title>
+                            <Dialog.Title>Invite New Leader</Dialog.Title>
                         </Dialog.Header>
                         <Dialog.Body color={"fg"}>
-                            <Text mb={3} color={cardSubtleTextColor}>Assign a new leader for this survey walk.</Text>
+                            <Text mb={3} color={cardSubtleTextColor}>Send an email invitation to ask a volunteer to become the new leader for this survey walk.</Text>
                             <Select.Root collection={volunteersCollection} value={selectedParticipantUid} onValueChange={(event) => setSelectedParticipantUid(event.value)} size="sm" mb={5}>
                                 <Select.HiddenSelect />
                                 {/* <Select.Label color={cardSubtleTextColor}>Select participant</Select.Label> */}
@@ -117,7 +120,7 @@ export function ReassignLeaderButton({ surveyWalkId, leaderUid, volunteers, onDe
                                 </Button>
                             </Dialog.ActionTrigger>
                             <Button variant="plain" className="btn btn-primary btn-compact" onClick={handleReassign} loading={isDeleting} disabled={!selectedParticipantUid.length}>
-                                Reassign Leader
+                                Send Leader Invite
                             </Button>
                         </Dialog.Footer>
                         <Dialog.CloseTrigger asChild>

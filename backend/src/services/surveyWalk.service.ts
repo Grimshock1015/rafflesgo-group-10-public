@@ -2,6 +2,7 @@ import { SurveyWalkEntity } from "../entities/surveyWalk.entity";
 import { BadRequestError, NotFoundError } from "../lib/errors";
 import { SurveyPeriodRepository } from "../repositories/surveyPeriod.repository";
 import { SurveyWalkRepository } from "../repositories/surveyWalk.repository";
+import { InvitationService } from "./invitation.service";
 import { WalkCompletionService } from "./walkCompletion.service";
 
 export type CreateSurveyWalkInput = Omit<SurveyWalkEntity, 'uid'>;
@@ -12,6 +13,7 @@ export class SurveyWalkService {
         private surveyWalkRepository: SurveyWalkRepository,
         private surveyPeriodRepository: SurveyPeriodRepository,
         private walkCompletionService: WalkCompletionService,
+        private invitationService: InvitationService,
     ) { }
     
     async getAllSurveyWalks(): Promise<SurveyWalkEntity[]> {
@@ -212,25 +214,8 @@ export class SurveyWalkService {
     }
 
     async reassignLeader(uid: string, requesterUid: string, newLeaderUid: string): Promise<SurveyWalkEntity> {
-        const surveyWalk = await this.getSurveyWalk(uid);
-
-        if (surveyWalk.leader !== requesterUid) {
-            throw new BadRequestError('Only the current leader can reassign the leader');
-        }
-
-        if (!surveyWalk.volunteerUids.includes(newLeaderUid)) {
-            throw new BadRequestError('newLeaderUid must be a volunteer in this survey walk');
-        }
-
-        const updated = await this.surveyWalkRepository.update(uid, {
-            leader: newLeaderUid,
-        });
-
-        if (!updated) {
-            throw new NotFoundError('Survey walk', uid);
-        }
-
-        return updated;
+        await this.invitationService.sendLeaderInvitation(uid, requesterUid, newLeaderUid);
+        return this.getSurveyWalk(uid);
     }
 
     private async validateSurveyPeriodDate(surveyPeriodUid: string, date: Date): Promise<void> {

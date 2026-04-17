@@ -39,14 +39,14 @@ export function createContainer(): Container {
   const userService = new UserService(userRepository);
   const surveyPeriodService = new SurveyPeriodService(surveyPeriodRepository);
   const emailService = new EmailService();
-  const walkCompletionService = new WalkCompletionService(surveyWalkRepository, emailService);
-  const surveyWalkService = new SurveyWalkService(surveyWalkRepository, surveyPeriodRepository, walkCompletionService);
   const invitationService = new InvitationService(
     invitationRepository,
     surveyWalkRepository,
     surveyPeriodRepository,
     emailService,
   );
+  const walkCompletionService = new WalkCompletionService(surveyWalkRepository, emailService);
+  const surveyWalkService = new SurveyWalkService(surveyWalkRepository, surveyPeriodRepository, walkCompletionService, invitationService);
   const weatherService = new WeatherService();
   const walkReminderService = new WalkReminderService(surveyWalkRepository, emailService, weatherService);
   const walkEndReminderService = new WalkEndReminderService(surveyWalkRepository, emailService);
