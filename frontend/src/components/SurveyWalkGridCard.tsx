@@ -2,7 +2,7 @@ import { RafflesGoService } from "@/api";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Badge, Box, Button, Card, Collapsible, GridItem, Image, List, Stack, Text } from "@chakra-ui/react";
 import { useState } from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaClipboardCheck, FaClock, FaEye, FaEyeSlash, FaHardHat } from "react-icons/fa";
 import { MdGroupAdd, MdGroupRemove, MdModeEdit } from "react-icons/md";
 import type { User } from "firebase/auth";
 
@@ -14,6 +14,7 @@ import { MarkCompleteButton } from "./SurveyWalkGridMarkCompleteButton";
 import { ReassignLeaderButton } from "./SurveyWalkGridReassignLeaderButton";
 import { SurveyWalkSightingsButton } from "./SurveyWalkGridSightingsButton";
 import { toaster } from "./ui/toaster";
+import { IoPeople } from "react-icons/io5";
 
 export function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyWalk; onJoin: () => void; user: User; role: string; onEdit: (uid: string) => void }) {
     const [open, setOpen] = useState(false);
@@ -117,16 +118,20 @@ export function SurveyWalkCard({ sw, onJoin, user, role, onEdit }: { sw: SurveyW
                             <Stack gap={2}>
                                 <Box bg={sectionInsetBg} borderWidth="1px" borderColor={sectionInsetBorder} borderRadius="14px" px={4} py={5}>
                                     <Stack gap={5}>
-                                        <Text lineHeight={descriptionLineHeight} color={cardSubtleTextColor} mb={0}>
-                                            Time: {new Date(sw.date).toLocaleDateString("en-SG", { timeZone: "UTC" })}, {sw.startTime} - {sw.endTime}
+                                        <Text lineHeight={1.2} color={cardSubtleTextColor} mb={0} display="flex" alignItems="center" gap={2}>
+                                            <Box as={FaClock} flexShrink={0} fontSize="1rem" aria-hidden="true" />
+                                            <Box as="span">Time: {new Date(sw.date).toLocaleDateString("en-SG", { timeZone: "UTC" })}, {sw.startTime} - {sw.endTime}</Box>
                                         </Text>
-                                        <Text lineHeight={descriptionLineHeight} color={cardSubtleTextColor} mb={0}>
-                                            Volunteer no.: {sw.volunteers.length} / {sw.capacity}
+                                        <Text lineHeight={1.2} color={cardSubtleTextColor} mb={0} display="flex" alignItems="center" gap={2}>
+                                            <Box as={IoPeople} flexShrink={0} fontSize="1rem" aria-hidden="true" />
+                                            <Box as="span">Volunteer no.: {sw.volunteers.length} / {sw.capacity}</Box>
                                         </Text>
-                                        <Text lineHeight={descriptionLineHeight} color={cardSubtleTextColor} mb={0}>
-                                            Contributes to: {sw.surveyPeriodName}
+                                        <Text lineHeight={1.2} color={cardSubtleTextColor} mb={0} display="flex" alignItems="center" gap={2}>
+                                            <Box as={FaClipboardCheck} flexShrink={0} fontSize="1rem" aria-hidden="true" />
+                                            <Box as="span">Contributes to: {sw.surveyPeriodName}</Box>
                                         </Text>
                                         <Box color={cardSubtleTextColor} display="flex" alignItems="center" gap={2} height={"12px"} mb={1}>
+                                            <FaHardHat />
                                             <Text as="span" lineHeight={descriptionLineHeight} color={cardSubtleTextColor}>Leader:</Text>
                                             {(sw.leader.name || sw.leader.uid) ? <PersonAvatar person={sw.leader} size="24px" /> : null}
                                             <Text as="span" lineHeight={descriptionLineHeight} color={cardSubtleTextColor}>{sw.leader.name || sw.leader.uid || "N/A"} {isLeader && "(You)"}</Text>

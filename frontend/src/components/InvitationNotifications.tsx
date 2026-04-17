@@ -38,7 +38,12 @@ export default function InvitationNotifications({ userEmail }: InvitationNotific
     const [error, setError] = useState(false);
 
     const fetchInvitations = async () => {
-        if (!userEmail) return;
+        if (!userEmail) {
+            setIsLoading(false);
+            return;
+        }
+
+        setIsLoading(true);
         try {
             const response = await RafflesGoService.listMyInvitations();
             setInvitations(response.invitations);
@@ -79,8 +84,8 @@ export default function InvitationNotifications({ userEmail }: InvitationNotific
         }
     };
 
-    // Don't render the section if there are no pending invitations
-    if (!isLoading && !error && invitations.length === 0) return null;
+    // Don't render the section if there are no pending invitations or while loading.
+    if (isLoading || (!error && invitations.length === 0)) return null;
 
     return (
         <section style={sectionStyle}>
@@ -102,7 +107,6 @@ export default function InvitationNotifications({ userEmail }: InvitationNotific
                 )}
             </h2>
 
-            {isLoading && <p>Loading invitations...</p>}
             {error && <p className="text-error">Could not load invitations right now.</p>}
 
             {invitations.map((inv) => (

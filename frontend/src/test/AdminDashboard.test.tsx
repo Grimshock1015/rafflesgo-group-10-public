@@ -170,7 +170,7 @@ describe('AdminDashboard', () => {
       </BrowserRouter>,
     );
 
-    await user.click(await screen.findByRole('button', { name: /export to google sheets/i }));
+    await user.click(await screen.findByRole('button', { name: /export to excel file/i }));
 
     await waitFor(() => {
       expect(exportAdminDataToGoogleSheets).toHaveBeenCalledWith(expect.objectContaining({

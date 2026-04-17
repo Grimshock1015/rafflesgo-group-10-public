@@ -6,17 +6,19 @@ import { listAllAdminSightings } from '../lib/adminSightings';
 import { exportAdminDataToGoogleSheets } from '../utils/googleSheetsExport';
 import { Box, ButtonGroup, Container, IconButton, Pagination, Skeleton } from '@chakra-ui/react';
 import { HiChevronLeft, HiChevronRight } from 'react-icons/hi';
+import { FaCalendar, FaHardHat } from 'react-icons/fa';
+import { FaPersonWalking } from 'react-icons/fa6';
 import { PersonAvatar } from '../components/SurveyWalkGridPeople';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type AdminUser = Awaited<ReturnType<typeof RafflesGoService.listUsers>>['users'][number];
 type AdminSighting = Awaited<ReturnType<typeof listAllAdminSightings>>['sightings'][number];
 type AdminSurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalks>>['surveyWalks'][number];
 
-const ADMIN_DASHBOARD_USERS_LIMIT = 100;
-const ADMIN_DASHBOARD_WALKS_LIMIT = 100;
-const ADMIN_DASHBOARD_SIGHTINGS_LIMIT = 100;
-const ADMIN_USERS_PAGE_SIZE = 10;
-const ADMIN_COMPLETED_WALKS_PAGE_SIZE = 10;
+const ADMIN_DASHBOARD_WALKS_LIMIT = 20;
+const ADMIN_DASHBOARD_SIGHTINGS_LIMIT = 10;
+const ADMIN_USERS_PAGE_SIZE = 5;
+const ADMIN_COMPLETED_WALKS_PAGE_SIZE = 5;
 
 const sectionStyle: CSSProperties = {
   background: 'var(--bg-card)',
@@ -65,6 +67,16 @@ const usersContentStyle: CSSProperties = {
   minHeight: '260px',
 };
 
+const compactUserTextStyle: CSSProperties = {
+  lineHeight: 1.5,
+  margin: 0,
+};
+
+const compactUserStackStyle: CSSProperties = {
+  display: 'grid',
+  gap: '0.15rem',
+};
+
 function formatDate(value?: string) {
   if (!value) return 'Unknown';
   return new Intl.DateTimeFormat('en-SG', {
@@ -74,6 +86,7 @@ function formatDate(value?: string) {
 }
 
 export default function AdminDashboard() {
+  const { effectiveTheme } = useTheme();
   const [isCheckingAccess, setIsCheckingAccess] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,6 +100,10 @@ export default function AdminDashboard() {
   const [hasInitialAdminLoad, setHasInitialAdminLoad] = useState(false);
   const [usersPage, setUsersPage] = useState(1);
   const [completedWalksPage, setCompletedWalksPage] = useState(1);
+  const paginationButtonBg = effectiveTheme === 'dark' ? 'whiteAlpha.100' : 'white';
+  const paginationButtonBorder = effectiveTheme === 'dark' ? 'whiteAlpha.300' : 'gray.300';
+  const paginationButtonText = effectiveTheme === 'dark' ? 'whiteAlpha.900' : 'gray.700';
+  const paginationButtonHoverBg = effectiveTheme === 'dark' ? 'whiteAlpha.200' : 'gray.100';
 
   const loadAdminData = async () => {
     setError(null);
@@ -94,7 +111,7 @@ export default function AdminDashboard() {
 
     try {
       const [usersResponse, surveyWalksResponse, sightingsResponse] = await Promise.all([
-        RafflesGoService.listUsers(ADMIN_DASHBOARD_USERS_LIMIT),
+        RafflesGoService.listUsers(),
         RafflesGoService.listSurveyWalks(ADMIN_DASHBOARD_WALKS_LIMIT),
         listAllAdminSightings({ limit: ADMIN_DASHBOARD_SIGHTINGS_LIMIT }),
       ]);
@@ -301,7 +318,7 @@ export default function AdminDashboard() {
             <Link to="/survey-periods" className="btn btn-secondary">Manage Survey Periods</Link>
             <Link to="/survey-walks" className="btn btn-secondary">Manage Survey Walks</Link>
             <button className="btn btn-secondary" type="button" onClick={handleExportGoogleSheets} disabled={isLoading || isExporting}>
-              {isExporting ? 'Exporting…' : 'Export to Google Sheets'}
+              {isExporting ? 'Exporting…' : 'Export to Excel File'}
             </button>
             <Link to="/dashboard" className="btn btn-secondary">Back to Dashboard</Link>
           </div>
@@ -309,7 +326,7 @@ export default function AdminDashboard() {
 
         <section style={sectionStyle}>
           <h2>Attendance Tracking</h2>
-          <p>Completed survey walks keep the attendance list so repeated no-shows are visible to admins. Showing up to the latest {ADMIN_DASHBOARD_WALKS_LIMIT} walks.</p>
+          <p>Showing up to the latest {ADMIN_DASHBOARD_WALKS_LIMIT} walks.</p>
           <div style={attendanceContentStyle}>
             {showLoadingPlaceholders ? (
               <div style={loadingBlockStyle}>
@@ -332,12 +349,24 @@ export default function AdminDashboard() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
                           <div>
                             <h3 style={{ marginBottom: '0.35rem' }}>{walk.name}</h3>
-                            <p style={{ margin: 0 }}>Leader: {walk.leader.name || 'Unassigned'}</p>
-                            <p style={{ margin: 0 }}>Completed: {formatDate(walk.completedAt ?? walk.date)}</p>
+                            <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <Box as={FaHardHat} flexShrink={0} fontSize="0.95rem" aria-hidden="true" />
+                              <Box as="span">Leader: {walk.leader.name || 'Unassigned'}</Box>
+                            </p>
+                            <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <Box as={FaCalendar} flexShrink={0} fontSize="0.95rem" aria-hidden="true" />
+                              <Box as="span">Completed: {formatDate(walk.completedAt ?? walk.date)}</Box>
+                            </p>
                           </div>
                           <div style={{ minWidth: '220px' }}>
-                            <p style={{ margin: 0 }}>Attended: {walk.attendees.map((user) => user.name || user.uid).join(', ') || 'None recorded'}</p>
-                            <p style={{ margin: 0 }}>No-show: {walk.noShows.map((user) => user.name || user.uid).join(', ') || 'None'}</p>
+                            <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <Box as={FaPersonWalking} flexShrink={0} fontSize="0.95rem" aria-hidden="true" />
+                              <Box as="span">Attended: {walk.attendees.map((user) => user.name || user.uid).join(', ') || 'None recorded'}</Box>
+                            </p>
+                            <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <Box as={FaPersonWalking} flexShrink={0} fontSize="0.95rem" aria-hidden="true" />
+                              <Box as="span">No-show: {walk.noShows.map((user) => user.name || user.uid).join(', ') || 'None'}</Box>
+                            </p>
                           </div>
                         </div>
                       </article>
@@ -356,13 +385,29 @@ export default function AdminDashboard() {
               >
                 <ButtonGroup gap="2" size="sm" variant="outline">
                   <Pagination.PrevTrigger asChild>
-                    <IconButton aria-label="Previous page">
+                    <IconButton
+                      aria-label="Previous page"
+                      bg={paginationButtonBg}
+                      borderWidth="1px"
+                      borderColor={paginationButtonBorder}
+                      color={paginationButtonText}
+                      _hover={{ bg: paginationButtonHoverBg }}
+                      _disabled={{ opacity: 0.35, cursor: 'not-allowed' }}
+                    >
                       <HiChevronLeft />
                     </IconButton>
                   </Pagination.PrevTrigger>
-                  <Pagination.PageText />
+                  <Pagination.PageText style={{ color: effectiveTheme === 'dark' ? 'var(--text-primary)' : 'var(--text-secondary)' }} />
                   <Pagination.NextTrigger asChild>
-                    <IconButton aria-label="Next page">
+                    <IconButton
+                      aria-label="Next page"
+                      bg={paginationButtonBg}
+                      borderWidth="1px"
+                      borderColor={paginationButtonBorder}
+                      color={paginationButtonText}
+                      _hover={{ bg: paginationButtonHoverBg }}
+                      _disabled={{ opacity: 0.35, cursor: 'not-allowed' }}
+                    >
                       <HiChevronRight />
                     </IconButton>
                   </Pagination.NextTrigger>
@@ -374,7 +419,7 @@ export default function AdminDashboard() {
 
         <section style={sectionStyle}>
           <h2>User Management</h2>
-          <p>Change roles and disable or re-enable accounts without leaving the dashboard. Showing up to {ADMIN_DASHBOARD_USERS_LIMIT} users.</p>
+          <p>Manage user's roles and account status.</p>
           {error ? <p className="text-error">{error}</p> : null}
           <div style={usersContentStyle}>
             {showLoadingPlaceholders ? (
@@ -408,15 +453,15 @@ export default function AdminDashboard() {
                             }}
                             size="56px"
                           />
-                          <div>
-                            <h3 style={{ marginBottom: '0.35rem' }}>{managedUser.displayName || managedUser.email || managedUser.uid}</h3>
-                            <p>{managedUser.email || managedUser.uid}</p>
-                            <p>Created: {formatDate(managedUser.createdAt)}</p>
+                          <div style={compactUserStackStyle}>
+                            <h3 style={{ margin: 0, lineHeight: 1.15 }}>{managedUser.displayName || managedUser.email || managedUser.uid}</h3>
+                            <p style={compactUserTextStyle}>{managedUser.email || managedUser.uid}</p>
+                            <p style={compactUserTextStyle}>Created: {formatDate(managedUser.createdAt)}</p>
                           </div>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                          <p>Role: {managedUser.role}</p>
-                          <p>Status: {managedUser.disabled ? 'Disabled' : 'Active'}</p>
+                          <p style={compactUserTextStyle}>Role: {managedUser.role === 'admin' ? 'Admin' : 'Volunteer'}</p>
+                          <p style={compactUserTextStyle}>Status: {managedUser.disabled ? 'Disabled' : 'Active'}</p>
                         </div>
                       </div>
 
@@ -454,13 +499,29 @@ export default function AdminDashboard() {
               >
                 <ButtonGroup gap="2" size="sm" variant="outline">
                   <Pagination.PrevTrigger asChild>
-                    <IconButton aria-label="Previous page">
+                    <IconButton
+                      aria-label="Previous page"
+                      bg={paginationButtonBg}
+                      borderWidth="1px"
+                      borderColor={paginationButtonBorder}
+                      color={paginationButtonText}
+                      _hover={{ bg: paginationButtonHoverBg }}
+                      _disabled={{ opacity: 0.35, cursor: 'not-allowed' }}
+                    >
                       <HiChevronLeft />
                     </IconButton>
                   </Pagination.PrevTrigger>
-                  <Pagination.PageText />
+                  <Pagination.PageText style={{ color: effectiveTheme === 'dark' ? 'var(--text-primary)' : 'var(--text-secondary)' }} />
                   <Pagination.NextTrigger asChild>
-                    <IconButton aria-label="Next page">
+                    <IconButton
+                      aria-label="Next page"
+                      bg={paginationButtonBg}
+                      borderWidth="1px"
+                      borderColor={paginationButtonBorder}
+                      color={paginationButtonText}
+                      _hover={{ bg: paginationButtonHoverBg }}
+                      _disabled={{ opacity: 0.35, cursor: 'not-allowed' }}
+                    >
                       <HiChevronRight />
                     </IconButton>
                   </Pagination.NextTrigger>

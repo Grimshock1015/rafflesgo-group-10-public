@@ -2,17 +2,18 @@ import { RafflesGoService } from "@/api";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toaster } from "@/components/ui/toaster";
 import { Badge, Box, Button, ButtonGroup, Card, CloseButton, Container, Dialog, Grid, GridItem, IconButton, Image, Pagination, Portal, Select, Stack, Text, createListCollection } from "@chakra-ui/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MdDelete, MdModeEdit } from "react-icons/md";
 import { FaCheck } from "react-icons/fa";
 import { HiChevronLeft, HiChevronRight } from "react-icons/hi";
 import { useNavigate } from "react-router-dom";
+import { FaPersonWalking } from "react-icons/fa6";
+import { FaCalendar } from "react-icons/fa";
 import type { User } from 'firebase/auth';
 
 type SurveyPeriod = Awaited<ReturnType<typeof RafflesGoService.listSurveyPeriods>>["surveyPeriods"][number];
 
-const SURVEY_PERIOD_FETCH_LIMIT = 100;
-const SURVEY_PERIOD_PAGE_SIZE = 12;
+const SURVEY_PERIOD_PAGE_SIZE = 6;
 
 type DeleteSurveyPeriodButtonProps = {
     surveyPeriodId: string;
@@ -97,6 +98,8 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
     const [activeSelectionUid, setActiveSelectionUid] = useState<string[]>([]);
     const [role, setRole] = useState<string>("user");
     const [currentPage, setCurrentPage] = useState(1);
+    const [cardsVisible, setCardsVisible] = useState(true);
+    const cardsTransitionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const { effectiveTheme } = useTheme();
     
     const selectItemBg = effectiveTheme === "dark" ? "gray.800" : "white";
@@ -104,6 +107,10 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
     const selectText = effectiveTheme === "dark" ? "whiteAlpha.900" : "gray.800";
     const selectPlaceholder = effectiveTheme === "dark" ? "whiteAlpha.700" : "gray.500";
     const selectItemHoverBg = effectiveTheme === "dark" ? "gray.700" : "gray.50";
+    const paginationButtonBg = effectiveTheme === 'dark' ? 'whiteAlpha.100' : 'white';
+    const paginationButtonBorder = effectiveTheme === 'dark' ? 'whiteAlpha.300' : 'gray.300';
+    const paginationButtonText = effectiveTheme === 'dark' ? 'whiteAlpha.900' : 'gray.700';
+    const paginationButtonHoverBg = effectiveTheme === 'dark' ? 'whiteAlpha.200' : 'gray.100';
     const cardBg = "var(--bg-card)";
     const cardBorder = "var(--border-color)";
     const cardShadow = effectiveTheme === "dark" ? "0 12px 28px rgba(0, 0, 0, 0.38)" : "sm";
@@ -132,11 +139,12 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
     
     const fetchSurveyPeriods = async () => {
         try {
-            const response = await RafflesGoService.listSurveyPeriods(SURVEY_PERIOD_FETCH_LIMIT);
+            const response = await RafflesGoService.listSurveyPeriods();
             setSurveyPeriods(response.surveyPeriods);
             const activePeriod = response.surveyPeriods.find((period) => period.isActive);
             setActiveSelectionUid(activePeriod ? [activePeriod.uid] : []);
             setCurrentPage(1);
+            setCardsVisible(true);
         } catch (error) {
             console.error("Failed to fetch survey periods:", error);
             toaster.create({
@@ -183,6 +191,14 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
 
     useEffect(() => {
         fetchSurveyPeriods();
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            if (cardsTransitionTimerRef.current) {
+                clearTimeout(cardsTransitionTimerRef.current);
+            }
+        };
     }, []);
 
     if (isLoading) {
@@ -259,14 +275,19 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
 
             <Box mt={4} mb={2}>
                 <Text fontSize="sm" color={cardSubtleTextColor} mb={0}>
-                    Showing {pagedSurveyPeriods.length} of {surveyPeriods.length} survey periods (loaded up to {SURVEY_PERIOD_FETCH_LIMIT}).
+                    Showing {pagedSurveyPeriods.length} of {surveyPeriods.length} survey periods.
                 </Text>
             </Box>
 
+            <Box
+                        opacity={cardsVisible ? 1 : 0}
+                        transform={cardsVisible ? 'translateY(0)' : 'translateY(8px)'}
+                        transition="opacity 180ms ease, transform 180ms ease"
+                    >
             <Grid templateColumns="repeat(auto-fill, minmax(320px, 1fr))" gap={4} mt={5}>
-                {pagedSurveyPeriods.map((sp) => (
-                    <GridItem key={sp.uid}>
-                        <Card.Root h="100%" p={0} overflow="hidden" display="flex" flexDirection="column" bg={cardBg} borderWidth="1px" borderColor={cardBorder} borderRadius="16px" boxShadow={cardShadow}>
+                        {pagedSurveyPeriods.map((sp) => (
+                            <GridItem key={sp.uid}>
+                                <Card.Root h="100%" p={0} overflow="hidden" display="flex" flexDirection="column" bg={cardBg} borderWidth="1px" borderColor={cardBorder} borderRadius="16px" boxShadow={cardShadow}>
                             <Image
                                 src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1874&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                                 alt="Survey walk cover"
@@ -304,14 +325,15 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
 
                                     <Box bg={sectionInsetBg} borderWidth="1px" borderColor={sectionInsetBorder} borderRadius="14px" px={4} py={5}>
                                         <Stack gap={5}>
-                                            <Text lineHeight={0.75} color={cardSubtleTextColor} mb={0}>
-                                                Start: {new Date(sp.startDate).toLocaleDateString("en-SG", { timeZone: "UTC" })}
+                                            <Text lineHeight={1.2} color={cardSubtleTextColor} mb={0} display="flex" alignItems="center" gap={2}>
+                                                <Box as={FaCalendar} flexShrink={0} fontSize="1rem" aria-hidden="true" />
+                                                <Box as="span">
+                                                    Range: {new Date(sp.startDate).toLocaleDateString("en-SG", { timeZone: "UTC" })} - {new Date(sp.endDate).toLocaleDateString("en-SG", { timeZone: "UTC" })}
+                                                </Box>
                                             </Text>
-                                            <Text lineHeight={0.75} color={cardSubtleTextColor} mb={0}>
-                                                End: {new Date(sp.endDate).toLocaleDateString("en-SG", { timeZone: "UTC" })}
-                                            </Text>
-                                            <Text lineHeight={0.75} color={cardSubtleTextColor} mb={0}>
-                                                Min. walks: {sp.minWalks}
+                                            <Text lineHeight={1.2} color={cardSubtleTextColor} mb={0} display="flex" alignItems="center" gap={2}>
+                                                <Box as={FaPersonWalking} flexShrink={0} fontSize="1rem" aria-hidden="true" />
+                                                <Box as="span">Min. no. of walks: {sp.minWalks}</Box>
                                             </Text>
                                         </Stack>
                                     </Box>
@@ -334,23 +356,53 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
                     </GridItem>
                 ))}
             </Grid>
+            </Box>
 
             <Box display="flex" alignItems="center" justifyContent="center" mt={6} mb={2}>
                 <Pagination.Root
                     count={surveyPeriods.length}
                     pageSize={SURVEY_PERIOD_PAGE_SIZE}
                     page={currentPageSafe}
-                    onPageChange={(event) => setCurrentPage(event.page)}
+                    onPageChange={(event) => {
+                        if (event.page === currentPageSafe) return;
+
+                        if (cardsTransitionTimerRef.current) {
+                            clearTimeout(cardsTransitionTimerRef.current);
+                        }
+
+                        setCardsVisible(false);
+                        cardsTransitionTimerRef.current = setTimeout(() => {
+                            setCurrentPage(event.page);
+                            setCardsVisible(true);
+                            cardsTransitionTimerRef.current = null;
+                        }, 140);
+                    }}
                 >
                     <ButtonGroup gap="2" size="sm" variant="outline">
                         <Pagination.PrevTrigger asChild>
-                            <IconButton aria-label="Previous page">
+                            <IconButton
+                                aria-label="Previous page"
+                                bg={paginationButtonBg}
+                                borderWidth="1px"
+                                borderColor={paginationButtonBorder}
+                                color={paginationButtonText}
+                                _hover={{ bg: paginationButtonHoverBg }}
+                                _disabled={{ opacity: 0.35, cursor: 'not-allowed' }}
+                            >
                                 <HiChevronLeft />
                             </IconButton>
                         </Pagination.PrevTrigger>
-                        <Pagination.PageText />
+                        <Pagination.PageText style={{ color: effectiveTheme === 'dark' ? 'var(--text-primary)' : 'var(--text-secondary)' }} />
                         <Pagination.NextTrigger asChild>
-                            <IconButton aria-label="Next page">
+                            <IconButton
+                                aria-label="Next page"
+                                bg={paginationButtonBg}
+                                borderWidth="1px"
+                                borderColor={paginationButtonBorder}
+                                color={paginationButtonText}
+                                _hover={{ bg: paginationButtonHoverBg }}
+                                _disabled={{ opacity: 0.35, cursor: 'not-allowed' }}
+                            >
                                 <HiChevronRight />
                             </IconButton>
                         </Pagination.NextTrigger>
