@@ -40,11 +40,15 @@ const ListUsersSchema = {
 };
 
 export async function listUsersHandler(
-  _request: FastifyRequestTypeBox<typeof ListUsersSchema>,
+  request: FastifyRequestTypeBox<typeof ListUsersSchema>,
   _reply: FastifyReplyTypeBox<typeof ListUsersSchema>
 ) {
   const { userService } = getContainer();
-  const users = await userService.getAllUsers();
+  const rawLimit = (request.query as { limit?: number } | undefined)?.limit;
+  const limit = typeof rawLimit === 'number' && Number.isInteger(rawLimit)
+    ? Math.min(Math.max(rawLimit, 1), 500)
+    : undefined;
+  const users = await userService.getAllUsers(limit);
   return { users };
 }
 

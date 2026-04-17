@@ -45,11 +45,11 @@ function AppBootLoader({ message }: { message: string }) {
       >
         <div className="loading-spinner" aria-hidden="true" />
         <p style={{ textAlign: 'center', marginTop: '0.85rem' }}>{message}</p>
-        <div style={{ marginTop: '1.1rem', display: 'grid', gap: '0.55rem' }}>
+        {/* <div style={{ marginTop: '1.1rem', display: 'grid', gap: '0.55rem' }}>
           <div style={{ height: 10, borderRadius: 999, background: 'var(--bg-secondary, #eef3eb)' }} />
           <div style={{ height: 10, width: '82%', borderRadius: 999, background: 'var(--bg-secondary, #eef3eb)' }} />
           <div style={{ height: 10, width: '70%', borderRadius: 999, background: 'var(--bg-secondary, #eef3eb)' }} />
-        </div>
+        </div> */}
       </section>
     </main>
   )

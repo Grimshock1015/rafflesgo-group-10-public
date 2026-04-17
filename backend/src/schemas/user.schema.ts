@@ -15,6 +15,10 @@ export const ListUsersResponseSchema = Type.Object({
   users: Type.Array(UserSchema),
 });
 
+export const ListUsersQuerySchema = Type.Object({
+  limit: Type.Optional(Type.Integer({ minimum: 1, maximum: 500 })),
+});
+
 export const ChangeRoleBodySchema = Type.Object({
   email: Type.String(),
   role: RoleSchema,
@@ -44,6 +48,7 @@ export const MeResponseSchema = Type.Object({
 
 export type User = Static<typeof UserSchema>;
 export type ListUsersResponse = Static<typeof ListUsersResponseSchema>;
+export type ListUsersQuery = Static<typeof ListUsersQuerySchema>;
 export type ChangeRoleBody = Static<typeof ChangeRoleBodySchema>;
 export type ChangeRoleResponse = Static<typeof ChangeRoleResponseSchema>;
 export type UpdateUserStatusBody = Static<typeof UpdateUserStatusBodySchema>;

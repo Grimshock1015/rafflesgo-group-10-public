@@ -49,7 +49,7 @@ describe('SurveyPeriodService Unit Tests', () => {
             const result = await service.getAllSurveyPeriods();
 
             // Assert: Verify the return value and database interaction
-            expect(result).toEqual(mockData);
+            expect(result).toEqual([mockData[1], mockData[0]]);
             expect(mockRepository.findAll).toHaveBeenCalledOnce();
         });
 

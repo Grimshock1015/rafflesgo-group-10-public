@@ -2,6 +2,13 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import { getContainer } from '../container';
 import { createSighting, deleteSighting, getAllSightings, getMySightingsDashboard } from '../services/sighting.service';
 
+function parseOptionalLimit(limit: unknown): number | undefined {
+  if (typeof limit !== 'number' || !Number.isInteger(limit)) {
+    return undefined;
+  }
+  return Math.min(Math.max(limit, 1), 500);
+}
+
 export async function createSightingHandler(
   request: FastifyRequest,
   reply: FastifyReply,
@@ -78,7 +85,8 @@ export async function getMySightingsHandler(
       });
     }
 
-    const dashboard = await getMySightingsDashboard(request.user.uid);
+    const limit = parseOptionalLimit((request.query as { limit?: number } | undefined)?.limit);
+    const dashboard = await getMySightingsDashboard(request.user.uid, { limit });
     return reply.code(200).send(dashboard);
   } catch (error) {
     request.log.error(error);
@@ -93,7 +101,8 @@ export async function getAllSightingsHandler(
   reply: FastifyReply,
 ) {
   try {
-    const sightings = await getAllSightings();
+    const limit = parseOptionalLimit((request.query as { limit?: number } | undefined)?.limit);
+    const sightings = await getAllSightings({ limit });
     return reply.code(200).send({ sightings });
   } catch (error) {
     request.log.error(error);

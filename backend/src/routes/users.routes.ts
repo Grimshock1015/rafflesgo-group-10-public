@@ -2,6 +2,7 @@ import { FastifyPluginAsyncTypebox } from '@fastify/type-provider-typebox';
 import {
   MeResponseSchema,
   ListUsersResponseSchema,
+  ListUsersQuerySchema,
   ChangeRoleBodySchema,
   ChangeRoleResponseSchema,
   UpdateUserStatusBodySchema,
@@ -33,6 +34,7 @@ export const usersRoutes: FastifyPluginAsyncTypebox = async (fastify) => {
       description: 'List all users (admin only)',
       tags: ['RafflesGo'],
       security: [{ bearerAuth: [] }],
+      querystring: ListUsersQuerySchema,
       response: {
         200: ListUsersResponseSchema,
       },

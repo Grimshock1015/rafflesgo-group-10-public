@@ -5,8 +5,8 @@ import { Role } from '../config';
 export class UserService {
   constructor(private userRepository: UserRepository) {}
 
-  async getAllUsers(): Promise<User[]> {
-    return this.userRepository.findAll();
+  async getAllUsers(limit?: number): Promise<User[]> {
+    return this.userRepository.findAll(limit);
   }
 
   async changeRole(email: string, role: Role): Promise<ChangeRoleResponse> {

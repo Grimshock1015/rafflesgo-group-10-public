@@ -9,8 +9,17 @@ export type UpdateSurveyPeriodInput = Partial<CreateSurveyPeriodInput>;
 export class SurveyPeriodService {
     constructor(private surveyPeriodRepository: SurveyPeriodRepository) { }
 
-    async getAllSurveyPeriods(): Promise<SurveyPeriodEntity[]> {
-        return this.surveyPeriodRepository.findAll();
+    async getAllSurveyPeriods(limit?: number): Promise<SurveyPeriodEntity[]> {
+        const surveyPeriods = await this.surveyPeriodRepository.findAll();
+        const sorted = surveyPeriods
+            .slice()
+            .sort((left, right) => right.startDate.getTime() - left.startDate.getTime());
+
+        if (!limit) {
+            return sorted;
+        }
+
+        return sorted.slice(0, limit);
     }
 
     async getSurveyPeriod(uid: string): Promise<SurveyPeriodEntity> {

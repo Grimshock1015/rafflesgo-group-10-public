@@ -82,28 +82,37 @@ export async function createSighting(input: CreateSightingInput) {
   return sighting;
 }
 
-export async function getMySightingsDashboard(submittedBy: string): Promise<MySightingsDashboard> {
+export async function getMySightingsDashboard(
+  submittedBy: string,
+  options?: { limit?: number },
+): Promise<MySightingsDashboard> {
   const snapshot = await db
     .collection(FIRESTORE_COLLECTIONS.SIGHTINGS)
     .where('submittedBy', '==', submittedBy)
     .get();
 
   const sightings = snapshot.docs.map((doc) => doc.data() as StoredSighting);
-  return buildSightingsDashboard(sightings);
+  return buildSightingsDashboard(sightings, options?.limit);
 }
 
-export async function getAllSightings(): Promise<StoredSighting[]> {
+export async function getAllSightings(options?: { limit?: number }): Promise<StoredSighting[]> {
   const snapshot = await db.collection(FIRESTORE_COLLECTIONS.SIGHTINGS).get();
-  return snapshot.docs
+  const sortedSightings = snapshot.docs
     .map((doc) => doc.data() as StoredSighting)
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
+
+  if (!options?.limit) {
+    return sortedSightings;
+  }
+
+  return sortedSightings.slice(0, options.limit);
 }
 
 export async function deleteSighting(id: string): Promise<void> {
   await db.collection(FIRESTORE_COLLECTIONS.SIGHTINGS).doc(id).delete();
 }
 
-function buildSightingsDashboard(sightingsInput: StoredSighting[]): MySightingsDashboard {
+function buildSightingsDashboard(sightingsInput: StoredSighting[], listLimit?: number): MySightingsDashboard {
   const sightings = [...sightingsInput].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   const speciesCounts = new Map<string, number>();
   let sightedCount = 0;
@@ -139,6 +148,6 @@ function buildSightingsDashboard(sightingsInput: StoredSighting[]): MySightingsD
         .map(([species, count]) => ({ species, count }))
         .sort((left, right) => right.count - left.count || left.species.localeCompare(right.species)),
     },
-    sightings,
+    sightings: listLimit ? sightings.slice(0, listLimit) : sightings,
   };
 }

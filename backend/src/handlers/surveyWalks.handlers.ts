@@ -175,11 +175,15 @@ async function getSurveyPeriodName(surveyPeriodUid: string): Promise<string> {
 }
 
 export async function listSurveyWalksHandler(
-    _request: FastifyRequestTypeBox<typeof ListSurveyWalksSchema>,
+    request: FastifyRequestTypeBox<typeof ListSurveyWalksSchema>,
     _reply: FastifyReplyTypeBox<typeof ListSurveyWalksSchema>
 ) {
     const { surveyWalkService } = getContainer();
-    const surveyWalks = await surveyWalkService.getAllSurveyWalks();
+    const rawLimit = (request.query as { limit?: number } | undefined)?.limit;
+    const limit = typeof rawLimit === 'number' && Number.isInteger(rawLimit)
+        ? Math.min(Math.max(rawLimit, 1), 500)
+        : undefined;
+    const surveyWalks = await surveyWalkService.getAllSurveyWalks(limit);
     const enrichedWalks = await Promise.all(
         surveyWalks.map(async (walk) => {
             const periodName = await getSurveyPeriodName(walk.surveyPeriodUid);
@@ -229,7 +233,11 @@ export async function listSurveyWalksForCurrentUserHandler(
     }
 
     const { surveyWalkService } = getContainer();
-    const surveyWalks = await surveyWalkService.getSurveyWalksForJoinedPeriods();
+    const rawLimit = (request.query as { limit?: number } | undefined)?.limit;
+    const limit = typeof rawLimit === 'number' && Number.isInteger(rawLimit)
+        ? Math.min(Math.max(rawLimit, 1), 500)
+        : undefined;
+    const surveyWalks = await surveyWalkService.getSurveyWalksForJoinedPeriods(limit);
     const enrichedWalks = await Promise.all(
         surveyWalks.map(async (walk) => {
             const [periodName, volunteersData] = await Promise.all([

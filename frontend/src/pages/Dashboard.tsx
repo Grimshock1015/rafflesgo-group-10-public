@@ -19,7 +19,11 @@ import {
 import { RafflesGoService, SightingsService } from '../api';
 import { getAllDrafts } from '../services/SightingDraftsService';
 import InvitationNotifications from '../components/InvitationNotifications';
-import { Badge, Box, Container, Skeleton, Text } from '@chakra-ui/react';
+import { Badge, Box, ButtonGroup, Container, IconButton, Pagination, Skeleton, Text } from '@chakra-ui/react';
+import { HiChevronLeft, HiChevronRight } from 'react-icons/hi';
+import { FaCalendar, FaHardHat } from 'react-icons/fa';
+import { FaPersonWalking } from 'react-icons/fa6';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type MySightingsDashboard = Awaited<ReturnType<typeof SightingsService.getMySightingsDashboard>>;
 type JoinedSurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalksForCurrentUser>>['surveyWalks'][number];
@@ -36,6 +40,8 @@ type WeatherApiHourly = {
 };
 
 const SINGAPORE_COORDINATES = { latitude: 1.3521, longitude: 103.8198 };
+const MAX_RECENT_SIGHTINGS_FETCH_LIMIT = 20;
+const RECENT_SIGHTINGS_PAGE_SIZE = 5;
 
 const GREEN = '#4caf72';
 const ORANGE = '#f0a500';
@@ -64,6 +70,11 @@ const cardStyle: CSSProperties = {
   border: '1px solid var(--border-color)',
   borderRadius: '14px',
   padding: '1rem 1.25rem',
+};
+
+const compactSightingsCardStyle: CSSProperties = {
+  ...cardStyle,
+  padding: '0.85rem 1rem',
 };
 
 const weatherWarningStyle: CSSProperties = {
@@ -176,6 +187,7 @@ function DonutLabel({ cx, cy, pct, label }: { cx: number; cy: number; pct: numbe
 }
 
 export default function Dashboard({ user }: { user: User }) {
+  const { effectiveTheme } = useTheme();
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [draftCount, setDraftCount] = useState(0);
@@ -192,6 +204,11 @@ export default function Dashboard({ user }: { user: User }) {
   const [isLoadingWeather, setIsLoadingWeather] = useState(false);
   const [showSmoothLoading, setShowSmoothLoading] = useState(false);
   const [hasInitialDashboardLoad, setHasInitialDashboardLoad] = useState(false);
+  const [recentSightingsPage, setRecentSightingsPage] = useState(1);
+  const paginationButtonBg = effectiveTheme === 'dark' ? 'whiteAlpha.100' : 'white';
+  const paginationButtonBorder = effectiveTheme === 'dark' ? 'whiteAlpha.300' : 'gray.300';
+  const paginationButtonText = effectiveTheme === 'dark' ? 'whiteAlpha.900' : 'gray.700';
+  const paginationButtonHoverBg = effectiveTheme === 'dark' ? 'whiteAlpha.200' : 'gray.100';
 
   useEffect(() => {
     let isMounted = true;
@@ -205,7 +222,7 @@ export default function Dashboard({ user }: { user: User }) {
 
       const [userResult, sightingsResult, surveyWalksResult, periodResult] = await Promise.allSettled([
         RafflesGoService.getCurrentUser(),
-        SightingsService.getMySightingsDashboard(),
+        SightingsService.getMySightingsDashboard(MAX_RECENT_SIGHTINGS_FETCH_LIMIT),
         RafflesGoService.listSurveyWalksForCurrentUser(),
         RafflesGoService.getActiveSurveyPeriod(),
       ]);
@@ -222,6 +239,7 @@ export default function Dashboard({ user }: { user: User }) {
 
       if (sightingsResult.status === 'fulfilled') {
         setSightingsData(sightingsResult.value);
+        setRecentSightingsPage(1);
       } else {
         console.error('Failed to fetch sightings dashboard:', sightingsResult.reason);
         setSightingsError(true);
@@ -293,6 +311,11 @@ export default function Dashboard({ user }: { user: User }) {
   const nextUpcomingWalk = joinedSurveyWalks
     .filter((walk) => !walk.isFinished && getWalkStartDateTime(walk) >= now)
     .sort((a, b) => getWalkStartDateTime(a).getTime() - getWalkStartDateTime(b).getTime())[0];
+
+  const totalRecentSightingsPages = Math.max(1, Math.ceil(sightings.length / RECENT_SIGHTINGS_PAGE_SIZE));
+  const recentSightingsPageSafe = Math.min(recentSightingsPage, totalRecentSightingsPages);
+  const recentSightingsStart = (recentSightingsPageSafe - 1) * RECENT_SIGHTINGS_PAGE_SIZE;
+  const pagedRecentSightings = sightings.slice(recentSightingsStart, recentSightingsStart + RECENT_SIGHTINGS_PAGE_SIZE);
 
   // Computed chart data
   const chartData = useMemo(() => {
@@ -439,11 +462,20 @@ export default function Dashboard({ user }: { user: User }) {
               <p>You do not have any upcoming survey walks.</p>
             ) : (
               <article style={cardStyle} className="next-walk-card">
-                <h3 style={{ marginBottom: '0.5rem' }}>{nextUpcomingWalk.name}</h3>
-                <p>{formatWalkDate(nextUpcomingWalk.date)}</p>
-                <p>{nextUpcomingWalk.startTime} to {nextUpcomingWalk.endTime}</p>
-                <p>Leader: {nextUpcomingWalk.leader.name}</p>
-                <p>Volunteers: {nextUpcomingWalk.volunteers.map((v) => v.name).join(', ')}</p>
+                <h3 style={{ marginBottom: '1rem' }}>{nextUpcomingWalk.name}</h3>
+                <Text lineHeight={1.2} display="flex" alignItems="center" gap={2} mb={1}>
+                  <Box as={FaCalendar} flexShrink={0} fontSize="1rem" aria-hidden="true" />
+                  <Box as="span">{formatWalkDate(nextUpcomingWalk.date)}, {nextUpcomingWalk.startTime} to {nextUpcomingWalk.endTime}</Box>
+                </Text>
+
+                <Text lineHeight={1.2} display="flex" alignItems="center" gap={2} mb={1}>
+                  <Box as={FaHardHat} flexShrink={0} fontSize="1rem" aria-hidden="true" />
+                  <Box as="span">Leader: {nextUpcomingWalk.leader.name || 'N/A'}</Box>
+                </Text>
+                <Text lineHeight={1.2} display="flex" alignItems="center" gap={2}>
+                  <Box as={FaPersonWalking} flexShrink={0} fontSize="1rem" aria-hidden="true" />
+                  <Box as="span">Volunteers: {nextUpcomingWalk.volunteers.map((v) => v.name).join(', ') || 'N/A'}</Box>
+                </Text>
                 {isLoadingWeather ? <p style={{ marginTop: '1rem' }}>Checking Singapore weather for this walk...</p> : null}
                 {weatherAssessment ? (
                   <div role="alert" aria-live="polite" style={weatherWarningStyle}>
@@ -675,7 +707,10 @@ export default function Dashboard({ user }: { user: User }) {
 
         {/* My Sightings list */}
         <section id="my-sightings" aria-labelledby="my-sightings-heading" style={sectionStyle}>
-          <h2 id="my-sightings-heading">My Sightings</h2>
+          <h2 id="my-sightings-heading">My Recent Sightings</h2>
+          <p style={{ opacity: 0.6, fontSize: '0.9rem', marginTop: '0.25rem' }}>
+            Showing {pagedRecentSightings.length} per page from up to {MAX_RECENT_SIGHTINGS_FETCH_LIMIT} latest submissions.
+          </p>
           <div style={sightingsContentStyle}>
             {showLoadingPlaceholders && isLoadingSightings ? (
               <div style={loadingBlockStyle}>
@@ -693,28 +728,29 @@ export default function Dashboard({ user }: { user: User }) {
             ) : sightings.length === 0 ? (
               <p>You have not submitted any sightings yet.</p>
             ) : (
-              <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
+              <div style={{ display: 'grid', gap: '0.75rem', marginTop: '0.75rem' }}>
                 {
-                  // @ts-ignore
-                  sightings.map((sighting) => (
-                    <article key={sighting.id} style={cardStyle}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-                        <div>
-                          <h3 style={{ marginBottom: '0.35rem' }}>
+                  pagedRecentSightings.map((sighting) => (
+                    <article key={sighting.id} style={compactSightingsCardStyle}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
+                        <div style={{ minWidth: 0, flex: '1 1 240px' }}>
+                          <h3 style={{ marginBottom: '0.2rem', fontSize: '1rem', lineHeight: 1.25 }}>
                             {sighting.result === 'sighted' ? (sighting.species || 'Sighting recorded') : 'Zero-sighting walk'}
                           </h3>
-                          <p>{sighting.location}</p>
+                          <p style={{ margin: 0, fontSize: '0.88rem', opacity: 0.85 }}>{sighting.location}</p>
                         </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <p>{sighting.date} at {sighting.time}</p>
-                          <p>{formatTimestamp(sighting.createdAt)}</p>
+                        <div style={{ textAlign: 'right', minWidth: '140px' }}>
+                          <p style={{ margin: 0, fontSize: '0.82rem', opacity: 0.8 }}>{sighting.date} at {sighting.time}</p>
+                          <p style={{ margin: '0.1rem 0 0', fontSize: '0.78rem', opacity: 0.65 }}>{formatTimestamp(sighting.createdAt)}</p>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-                        <span>Result: {sighting.result === 'sighted' ? 'Sighted' : 'Not sighted'}</span>
-                        {typeof sighting.adults === 'number' ? <span>Adults: {sighting.adults}</span> : null}
-                        {typeof sighting.juveniles === 'number' ? <span>Juveniles: {sighting.juveniles}</span> : null}
-                        {sighting.behaviour ? <span>Behaviour: {sighting.behaviour}</span> : null}
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.6rem' }}>
+                        <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.55rem', borderRadius: '999px', background: sighting.result === 'sighted' ? 'rgba(76, 175, 114, 0.14)' : 'rgba(128, 128, 128, 0.14)', color: sighting.result === 'sighted' ? 'var(--text-primary)' : 'var(--text-secondary)', border: '1px solid var(--border-color-light)' }}>
+                          Result: {sighting.result === 'sighted' ? 'Sighted' : 'Not sighted'}
+                        </span>
+                        {typeof sighting.adults === 'number' ? <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.55rem', borderRadius: '999px', background: 'var(--bg-card)', border: '1px solid var(--border-color-light)' }}>Adults: {sighting.adults}</span> : null}
+                        {typeof sighting.juveniles === 'number' ? <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.55rem', borderRadius: '999px', background: 'var(--bg-card)', border: '1px solid var(--border-color-light)' }}>Juveniles: {sighting.juveniles}</span> : null}
+                        {sighting.behaviour ? <span style={{ fontSize: '0.75rem', padding: '0.2rem 0.55rem', borderRadius: '999px', background: 'var(--bg-card)', border: '1px solid var(--border-color-light)' }}>Behaviour: {sighting.behaviour}</span> : null}
                       </div>
                       {sighting.notes ? <p style={{ marginTop: '0.75rem' }}><strong>Notes:</strong> {sighting.notes}</p> : null}
                     </article>
@@ -723,6 +759,46 @@ export default function Dashboard({ user }: { user: User }) {
               </div>
             )}
           </div>
+          {!showLoadingPlaceholders && !sightingsError && sightings.length > 0 ? (
+            <Box display="flex" alignItems="center" justifyContent="center" mt={6} mb={1}>
+              <Pagination.Root
+                count={sightings.length}
+                pageSize={RECENT_SIGHTINGS_PAGE_SIZE}
+                page={recentSightingsPageSafe}
+                onPageChange={(event) => setRecentSightingsPage(event.page)}
+              >
+                <ButtonGroup gap="2" size="sm" variant="outline">
+                  <Pagination.PrevTrigger asChild>
+                    <IconButton
+                      aria-label="Previous page"
+                      bg={paginationButtonBg}
+                      borderWidth="1px"
+                      borderColor={paginationButtonBorder}
+                      color={paginationButtonText}
+                      _hover={{ bg: paginationButtonHoverBg }}
+                      _disabled={{ opacity: 0.35, cursor: 'not-allowed' }}
+                    >
+                      <HiChevronLeft />
+                    </IconButton>
+                  </Pagination.PrevTrigger>
+                  <Pagination.PageText style={{ color: effectiveTheme === 'dark' ? 'var(--text-primary)' : 'var(--text-secondary)' }} />
+                  <Pagination.NextTrigger asChild>
+                    <IconButton
+                      aria-label="Next page"
+                      bg={paginationButtonBg}
+                      borderWidth="1px"
+                      borderColor={paginationButtonBorder}
+                      color={paginationButtonText}
+                      _hover={{ bg: paginationButtonHoverBg }}
+                      _disabled={{ opacity: 0.35, cursor: 'not-allowed' }}
+                    >
+                      <HiChevronRight />
+                    </IconButton>
+                  </Pagination.NextTrigger>
+                </ButtonGroup>
+              </Pagination.Root>
+            </Box>
+          ) : null}
         </section>
 
       </div>

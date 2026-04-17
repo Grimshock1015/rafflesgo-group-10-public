@@ -138,7 +138,7 @@ describe('Sighting Handler', () => {
 
             await getMySightingsHandler(mockRequest, mockReply);
 
-            expect(SightingService.getMySightingsDashboard).toHaveBeenCalledWith('leader-uid');
+            expect(SightingService.getMySightingsDashboard).toHaveBeenCalledWith('leader-uid', { limit: undefined });
             expect(mockCode).toHaveBeenCalledWith(200);
             expect(mockSend).toHaveBeenCalledWith(dashboard);
         });

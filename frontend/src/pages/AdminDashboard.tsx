@@ -4,12 +4,21 @@ import { Link, Navigate } from 'react-router-dom';
 import { RafflesGoService } from '../api';
 import { listAllAdminSightings } from '../lib/adminSightings';
 import { exportAdminDataToGoogleSheets } from '../utils/googleSheetsExport';
-import { Container, Skeleton } from '@chakra-ui/react';
+import { Box, ButtonGroup, Container, IconButton, Pagination, Skeleton } from '@chakra-ui/react';
+import { HiChevronLeft, HiChevronRight } from 'react-icons/hi';
+import { FaCalendar, FaHardHat } from 'react-icons/fa';
+import { FaPersonWalking } from 'react-icons/fa6';
 import { PersonAvatar } from '../components/SurveyWalkGridPeople';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type AdminUser = Awaited<ReturnType<typeof RafflesGoService.listUsers>>['users'][number];
 type AdminSighting = Awaited<ReturnType<typeof listAllAdminSightings>>['sightings'][number];
 type AdminSurveyWalk = Awaited<ReturnType<typeof RafflesGoService.listSurveyWalks>>['surveyWalks'][number];
+
+const ADMIN_DASHBOARD_WALKS_LIMIT = 20;
+const ADMIN_DASHBOARD_SIGHTINGS_LIMIT = 10;
+const ADMIN_USERS_PAGE_SIZE = 5;
+const ADMIN_COMPLETED_WALKS_PAGE_SIZE = 5;
 
 const sectionStyle: CSSProperties = {
   background: 'var(--bg-card)',
@@ -58,6 +67,16 @@ const usersContentStyle: CSSProperties = {
   minHeight: '260px',
 };
 
+const compactUserTextStyle: CSSProperties = {
+  lineHeight: 1.5,
+  margin: 0,
+};
+
+const compactUserStackStyle: CSSProperties = {
+  display: 'grid',
+  gap: '0.15rem',
+};
+
 function formatDate(value?: string) {
   if (!value) return 'Unknown';
   return new Intl.DateTimeFormat('en-SG', {
@@ -67,6 +86,7 @@ function formatDate(value?: string) {
 }
 
 export default function AdminDashboard() {
+  const { effectiveTheme } = useTheme();
   const [isCheckingAccess, setIsCheckingAccess] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -78,6 +98,12 @@ export default function AdminDashboard() {
   const [isExporting, setIsExporting] = useState(false);
   const [showSmoothLoading, setShowSmoothLoading] = useState(false);
   const [hasInitialAdminLoad, setHasInitialAdminLoad] = useState(false);
+  const [usersPage, setUsersPage] = useState(1);
+  const [completedWalksPage, setCompletedWalksPage] = useState(1);
+  const paginationButtonBg = effectiveTheme === 'dark' ? 'whiteAlpha.100' : 'white';
+  const paginationButtonBorder = effectiveTheme === 'dark' ? 'whiteAlpha.300' : 'gray.300';
+  const paginationButtonText = effectiveTheme === 'dark' ? 'whiteAlpha.900' : 'gray.700';
+  const paginationButtonHoverBg = effectiveTheme === 'dark' ? 'whiteAlpha.200' : 'gray.100';
 
   const loadAdminData = async () => {
     setError(null);
@@ -86,13 +112,15 @@ export default function AdminDashboard() {
     try {
       const [usersResponse, surveyWalksResponse, sightingsResponse] = await Promise.all([
         RafflesGoService.listUsers(),
-        RafflesGoService.listSurveyWalks(),
-        listAllAdminSightings(),
+        RafflesGoService.listSurveyWalks(ADMIN_DASHBOARD_WALKS_LIMIT),
+        listAllAdminSightings({ limit: ADMIN_DASHBOARD_SIGHTINGS_LIMIT }),
       ]);
 
       setUsers(usersResponse.users);
       setSurveyWalks(surveyWalksResponse.surveyWalks);
       setSightings(sightingsResponse.sightings);
+      setUsersPage(1);
+      setCompletedWalksPage(1);
     } catch (loadError) {
       console.error('Failed to load admin data:', loadError);
       setError('Unable to load admin data right now.');
@@ -224,6 +252,17 @@ export default function AdminDashboard() {
   const completedWalks = surveyWalks.filter((walk) => walk.isFinished);
   const noShowCount = completedWalks.reduce((count, walk) => count + walk.noShows.length, 0);
   const showLoadingPlaceholders = !hasInitialAdminLoad || (isLoading && showSmoothLoading);
+  const sortedCompletedWalks = completedWalks
+    .slice()
+    .sort((a, b) => new Date(b.completedAt ?? b.date).getTime() - new Date(a.completedAt ?? a.date).getTime());
+  const totalCompletedWalkPages = Math.max(1, Math.ceil(sortedCompletedWalks.length / ADMIN_COMPLETED_WALKS_PAGE_SIZE));
+  const completedWalksPageSafe = Math.min(completedWalksPage, totalCompletedWalkPages);
+  const completedWalksStart = (completedWalksPageSafe - 1) * ADMIN_COMPLETED_WALKS_PAGE_SIZE;
+  const pagedCompletedWalks = sortedCompletedWalks.slice(completedWalksStart, completedWalksStart + ADMIN_COMPLETED_WALKS_PAGE_SIZE);
+  const totalUsersPages = Math.max(1, Math.ceil(users.length / ADMIN_USERS_PAGE_SIZE));
+  const usersPageSafe = Math.min(usersPage, totalUsersPages);
+  const usersStart = (usersPageSafe - 1) * ADMIN_USERS_PAGE_SIZE;
+  const pagedUsers = users.slice(usersStart, usersStart + ADMIN_USERS_PAGE_SIZE);
 
   return (
     <main className="main-content">
@@ -279,7 +318,7 @@ export default function AdminDashboard() {
             <Link to="/survey-periods" className="btn btn-secondary">Manage Survey Periods</Link>
             <Link to="/survey-walks" className="btn btn-secondary">Manage Survey Walks</Link>
             <button className="btn btn-secondary" type="button" onClick={handleExportGoogleSheets} disabled={isLoading || isExporting}>
-              {isExporting ? 'Exporting…' : 'Export to Google Sheets'}
+              {isExporting ? 'Exporting…' : 'Export to Excel File'}
             </button>
             <Link to="/dashboard" className="btn btn-secondary">Back to Dashboard</Link>
           </div>
@@ -287,7 +326,7 @@ export default function AdminDashboard() {
 
         <section style={sectionStyle}>
           <h2>Attendance Tracking</h2>
-          <p>Completed survey walks keep the attendance list so repeated no-shows are visible to admins.</p>
+          <p>Showing up to the latest {ADMIN_DASHBOARD_WALKS_LIMIT} walks.</p>
           <div style={attendanceContentStyle}>
             {showLoadingPlaceholders ? (
               <div style={loadingBlockStyle}>
@@ -305,20 +344,29 @@ export default function AdminDashboard() {
                 {completedWalks.length === 0 ? (
                   <p>No completed survey walks yet.</p>
                 ) : (
-                  completedWalks
-                    .slice()
-                    .sort((a, b) => new Date(b.completedAt ?? b.date).getTime() - new Date(a.completedAt ?? a.date).getTime())
-                    .map((walk) => (
+                  pagedCompletedWalks.map((walk) => (
                       <article key={walk.uid} style={cardStyle}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
                           <div>
                             <h3 style={{ marginBottom: '0.35rem' }}>{walk.name}</h3>
-                            <p style={{ margin: 0 }}>Leader: {walk.leader.name || 'Unassigned'}</p>
-                            <p style={{ margin: 0 }}>Completed: {formatDate(walk.completedAt ?? walk.date)}</p>
+                            <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <Box as={FaHardHat} flexShrink={0} fontSize="0.95rem" aria-hidden="true" />
+                              <Box as="span">Leader: {walk.leader.name || 'Unassigned'}</Box>
+                            </p>
+                            <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <Box as={FaCalendar} flexShrink={0} fontSize="0.95rem" aria-hidden="true" />
+                              <Box as="span">Completed: {formatDate(walk.completedAt ?? walk.date)}</Box>
+                            </p>
                           </div>
                           <div style={{ minWidth: '220px' }}>
-                            <p style={{ margin: 0 }}>Attended: {walk.attendees.map((user) => user.name || user.uid).join(', ') || 'None recorded'}</p>
-                            <p style={{ margin: 0 }}>No-show: {walk.noShows.map((user) => user.name || user.uid).join(', ') || 'None'}</p>
+                            <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <Box as={FaPersonWalking} flexShrink={0} fontSize="0.95rem" aria-hidden="true" />
+                              <Box as="span">Attended: {walk.attendees.map((user) => user.name || user.uid).join(', ') || 'None recorded'}</Box>
+                            </p>
+                            <p style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              <Box as={FaPersonWalking} flexShrink={0} fontSize="0.95rem" aria-hidden="true" />
+                              <Box as="span">No-show: {walk.noShows.map((user) => user.name || user.uid).join(', ') || 'None'}</Box>
+                            </p>
                           </div>
                         </div>
                       </article>
@@ -327,11 +375,51 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+          {!showLoadingPlaceholders && completedWalks.length > 0 ? (
+            <Box display="flex" alignItems="center" justifyContent="center" mt={6} mb={1}>
+              <Pagination.Root
+                count={sortedCompletedWalks.length}
+                pageSize={ADMIN_COMPLETED_WALKS_PAGE_SIZE}
+                page={completedWalksPageSafe}
+                onPageChange={(event) => setCompletedWalksPage(event.page)}
+              >
+                <ButtonGroup gap="2" size="sm" variant="outline">
+                  <Pagination.PrevTrigger asChild>
+                    <IconButton
+                      aria-label="Previous page"
+                      bg={paginationButtonBg}
+                      borderWidth="1px"
+                      borderColor={paginationButtonBorder}
+                      color={paginationButtonText}
+                      _hover={{ bg: paginationButtonHoverBg }}
+                      _disabled={{ opacity: 0.35, cursor: 'not-allowed' }}
+                    >
+                      <HiChevronLeft />
+                    </IconButton>
+                  </Pagination.PrevTrigger>
+                  <Pagination.PageText style={{ color: effectiveTheme === 'dark' ? 'var(--text-primary)' : 'var(--text-secondary)' }} />
+                  <Pagination.NextTrigger asChild>
+                    <IconButton
+                      aria-label="Next page"
+                      bg={paginationButtonBg}
+                      borderWidth="1px"
+                      borderColor={paginationButtonBorder}
+                      color={paginationButtonText}
+                      _hover={{ bg: paginationButtonHoverBg }}
+                      _disabled={{ opacity: 0.35, cursor: 'not-allowed' }}
+                    >
+                      <HiChevronRight />
+                    </IconButton>
+                  </Pagination.NextTrigger>
+                </ButtonGroup>
+              </Pagination.Root>
+            </Box>
+          ) : null}
         </section>
 
         <section style={sectionStyle}>
           <h2>User Management</h2>
-          <p>Change roles and disable or re-enable accounts without leaving the dashboard.</p>
+          <p>Manage user's roles and account status.</p>
           {error ? <p className="text-error">{error}</p> : null}
           <div style={usersContentStyle}>
             {showLoadingPlaceholders ? (
@@ -350,7 +438,7 @@ export default function AdminDashboard() {
               </div>
             ) : (
               <div style={{ display: 'grid', gap: '1rem', marginTop: '1rem' }}>
-                {users.map((managedUser) => {
+                {pagedUsers.map((managedUser) => {
                   const isBusy = busyUserId === managedUser.uid || busyUserId === managedUser.email;
 
                   return (
@@ -365,15 +453,15 @@ export default function AdminDashboard() {
                             }}
                             size="56px"
                           />
-                          <div>
-                            <h3 style={{ marginBottom: '0.35rem' }}>{managedUser.displayName || managedUser.email || managedUser.uid}</h3>
-                            <p>{managedUser.email || managedUser.uid}</p>
-                            <p>Created: {formatDate(managedUser.createdAt)}</p>
+                          <div style={compactUserStackStyle}>
+                            <h3 style={{ margin: 0, lineHeight: 1.15 }}>{managedUser.displayName || managedUser.email || managedUser.uid}</h3>
+                            <p style={compactUserTextStyle}>{managedUser.email || managedUser.uid}</p>
+                            <p style={compactUserTextStyle}>Created: {formatDate(managedUser.createdAt)}</p>
                           </div>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                          <p>Role: {managedUser.role}</p>
-                          <p>Status: {managedUser.disabled ? 'Disabled' : 'Active'}</p>
+                          <p style={compactUserTextStyle}>Role: {managedUser.role === 'admin' ? 'Admin' : 'Volunteer'}</p>
+                          <p style={compactUserTextStyle}>Status: {managedUser.disabled ? 'Disabled' : 'Active'}</p>
                         </div>
                       </div>
 
@@ -401,6 +489,46 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+          {!showLoadingPlaceholders && users.length > 0 ? (
+            <Box display="flex" alignItems="center" justifyContent="center" mt={6} mb={1}>
+              <Pagination.Root
+                count={users.length}
+                pageSize={ADMIN_USERS_PAGE_SIZE}
+                page={usersPageSafe}
+                onPageChange={(event) => setUsersPage(event.page)}
+              >
+                <ButtonGroup gap="2" size="sm" variant="outline">
+                  <Pagination.PrevTrigger asChild>
+                    <IconButton
+                      aria-label="Previous page"
+                      bg={paginationButtonBg}
+                      borderWidth="1px"
+                      borderColor={paginationButtonBorder}
+                      color={paginationButtonText}
+                      _hover={{ bg: paginationButtonHoverBg }}
+                      _disabled={{ opacity: 0.35, cursor: 'not-allowed' }}
+                    >
+                      <HiChevronLeft />
+                    </IconButton>
+                  </Pagination.PrevTrigger>
+                  <Pagination.PageText style={{ color: effectiveTheme === 'dark' ? 'var(--text-primary)' : 'var(--text-secondary)' }} />
+                  <Pagination.NextTrigger asChild>
+                    <IconButton
+                      aria-label="Next page"
+                      bg={paginationButtonBg}
+                      borderWidth="1px"
+                      borderColor={paginationButtonBorder}
+                      color={paginationButtonText}
+                      _hover={{ bg: paginationButtonHoverBg }}
+                      _disabled={{ opacity: 0.35, cursor: 'not-allowed' }}
+                    >
+                      <HiChevronRight />
+                    </IconButton>
+                  </Pagination.NextTrigger>
+                </ButtonGroup>
+              </Pagination.Root>
+            </Box>
+          ) : null}
         </section>
 
       </div>

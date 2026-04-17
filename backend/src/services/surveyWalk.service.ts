@@ -39,8 +39,17 @@ export class SurveyWalkService {
         private invitationService: InvitationService,
     ) { }
     
-    async getAllSurveyWalks(): Promise<SurveyWalkEntity[]> {
-        return this.surveyWalkRepository.findAll();
+    async getAllSurveyWalks(limit?: number): Promise<SurveyWalkEntity[]> {
+        const surveyWalks = await this.surveyWalkRepository.findAll();
+        const sorted = surveyWalks
+            .slice()
+            .sort((left, right) => right.date.getTime() - left.date.getTime());
+
+        if (!limit) {
+            return sorted;
+        }
+
+        return sorted.slice(0, limit);
     }
 
     async getSurveyWalksBySurveyPeriodUid(surveyPeriodUid: string): Promise<SurveyWalkEntity[]> {
@@ -52,7 +61,7 @@ export class SurveyWalkService {
         return this.surveyWalkRepository.findBySurveyPeriodUid(surveyPeriodUid);
     }
 
-    async getSurveyWalksForJoinedPeriods(): Promise<SurveyWalkEntity[]> {
+    async getSurveyWalksForJoinedPeriods(limit?: number): Promise<SurveyWalkEntity[]> {
         const allPeriods = await this.surveyPeriodRepository.findAll();
         const activePeriodsUids = allPeriods.filter((period) => period.isActive).map((period) => period.uid);
 
@@ -60,7 +69,16 @@ export class SurveyWalkService {
             return [];
         }
 
-        return this.surveyWalkRepository.findBySurveyPeriodUids(activePeriodsUids);
+        const surveyWalks = await this.surveyWalkRepository.findBySurveyPeriodUids(activePeriodsUids);
+        const sorted = surveyWalks
+            .slice()
+            .sort((left, right) => left.date.getTime() - right.date.getTime());
+
+        if (!limit) {
+            return sorted;
+        }
+
+        return sorted.slice(0, limit);
     }
 
     async getSurveyWalk(uid: string): Promise<SurveyWalkEntity> {

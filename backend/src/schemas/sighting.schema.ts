@@ -172,6 +172,14 @@ export const AdminSightingsResponseSchema = {
   },
 } as const;
 
+export const SightingsListQuerySchema = {
+  $id: 'SightingsListQuery',
+  type: 'object',
+  properties: {
+    limit: { type: 'integer', minimum: 1, maximum: 500 },
+  },
+} as const;
+
 export const DeleteSightingResponseSchema = {
   $id: 'DeleteSightingResponse',
   type: 'object',
