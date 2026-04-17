@@ -128,6 +128,10 @@ export class InvitationService {
         return this.invitationRepository.findBySurveyWalkUid(surveyWalkUid);
     }
 
+    async deleteInvitationsForWalk(surveyWalkUid: string): Promise<number> {
+        return this.invitationRepository.deleteBySurveyWalkUid(surveyWalkUid);
+    }
+
     async acceptInvitation(
         invitationUid: string,
         userUid: string,

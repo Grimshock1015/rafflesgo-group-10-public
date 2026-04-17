@@ -1,11 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { FastifyRequest, FastifyReply } from 'fastify';
-import { createSightingHandler, getMySightingsHandler } from '../../../handlers/sighting.handler';
+import {
+    createSightingHandler,
+    deleteSightingHandler,
+    getAllSightingsHandler,
+    getMySightingsHandler,
+} from '../../../handlers/sighting.handler';
 import * as SightingService from '../../../services/sighting.service';
 import { getContainer } from '../../../container';
 
 vi.mock('../../../services/sighting.service', () => ({
     createSighting: vi.fn(),
+    deleteSighting: vi.fn(),
+    getAllSightings: vi.fn(),
     getMySightingsDashboard: vi.fn(),
 }));
 
@@ -166,6 +173,82 @@ describe('Sighting Handler', () => {
             expect(mockSend).toHaveBeenCalledWith({
                 message: 'Failed to fetch your sightings',
             });
+        });
+
+        it('should clamp query limit to 500 when limit is too large', async () => {
+            const dashboard = { stats: {}, sightings: [] };
+            vi.mocked(SightingService.getMySightingsDashboard).mockResolvedValue(
+                dashboard as unknown as Awaited<ReturnType<typeof SightingService.getMySightingsDashboard>>
+            );
+
+            mockRequest.query = { limit: 999 } as unknown as FastifyRequest['query'];
+            await getMySightingsHandler(mockRequest, mockReply);
+
+            expect(SightingService.getMySightingsDashboard).toHaveBeenCalledWith('leader-uid', { limit: 500 });
+            expect(mockCode).toHaveBeenCalledWith(200);
+        });
+    });
+
+    describe('getAllSightingsHandler', () => {
+        it('should return all sightings with parsed limit', async () => {
+            const allSightings = [{ id: 's-1' }, { id: 's-2' }];
+            vi.mocked(SightingService.getAllSightings).mockResolvedValue(
+                allSightings as Awaited<ReturnType<typeof SightingService.getAllSightings>>
+            );
+
+            mockRequest.query = { limit: 10 } as unknown as FastifyRequest['query'];
+            await getAllSightingsHandler(mockRequest, mockReply);
+
+            expect(SightingService.getAllSightings).toHaveBeenCalledWith({ limit: 10 });
+            expect(mockCode).toHaveBeenCalledWith(200);
+            expect(mockSend).toHaveBeenCalledWith({ sightings: allSightings });
+        });
+
+        it('should ignore non-integer limit values', async () => {
+            vi.mocked(SightingService.getAllSightings).mockResolvedValue([]);
+
+            mockRequest.query = { limit: 1.5 } as unknown as FastifyRequest['query'];
+            await getAllSightingsHandler(mockRequest, mockReply);
+
+            expect(SightingService.getAllSightings).toHaveBeenCalledWith({ limit: undefined });
+        });
+
+        it('should return 500 when listing sightings fails', async () => {
+            const listError = new Error('query failed');
+            vi.mocked(SightingService.getAllSightings).mockRejectedValue(listError);
+
+            await getAllSightingsHandler(mockRequest, mockReply);
+
+            expect(mockRequest.log?.error).toHaveBeenCalledWith(listError);
+            expect(mockCode).toHaveBeenCalledWith(500);
+            expect(mockSend).toHaveBeenCalledWith({
+                message: 'Failed to fetch sightings',
+            });
+        });
+    });
+
+    describe('deleteSightingHandler', () => {
+        it('should delete a sighting and return success payload', async () => {
+            vi.mocked(SightingService.deleteSighting).mockResolvedValue(undefined);
+
+            mockRequest.params = { id: 'sighting-1' } as unknown as FastifyRequest['params'];
+            await deleteSightingHandler(mockRequest, mockReply);
+
+            expect(SightingService.deleteSighting).toHaveBeenCalledWith('sighting-1');
+            expect(mockCode).toHaveBeenCalledWith(200);
+            expect(mockSend).toHaveBeenCalledWith({ success: true, id: 'sighting-1' });
+        });
+
+        it('should return 500 when deleting sighting fails', async () => {
+            const deleteError = new Error('delete failed');
+            vi.mocked(SightingService.deleteSighting).mockRejectedValue(deleteError);
+
+            mockRequest.params = { id: 'sighting-2' } as unknown as FastifyRequest['params'];
+            await deleteSightingHandler(mockRequest, mockReply);
+
+            expect(mockRequest.log?.error).toHaveBeenCalledWith(deleteError);
+            expect(mockCode).toHaveBeenCalledWith(500);
+            expect(mockSend).toHaveBeenCalledWith({ message: 'Failed to delete sighting' });
         });
     });
 });

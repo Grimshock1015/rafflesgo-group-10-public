@@ -112,6 +112,15 @@ export async function deleteSighting(id: string): Promise<void> {
   await db.collection(FIRESTORE_COLLECTIONS.SIGHTINGS).doc(id).delete();
 }
 
+export async function countSightingsBySurveyWalkUid(surveyWalkUid: string): Promise<number> {
+  const snapshot = await db
+    .collection(FIRESTORE_COLLECTIONS.SIGHTINGS)
+    .where('surveyWalkUid', '==', surveyWalkUid)
+    .get();
+
+  return snapshot.size;
+}
+
 function buildSightingsDashboard(sightingsInput: StoredSighting[], listLimit?: number): MySightingsDashboard {
   const sightings = [...sightingsInput].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   const speciesCounts = new Map<string, number>();

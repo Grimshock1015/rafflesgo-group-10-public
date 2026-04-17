@@ -1,4 +1,5 @@
 import { RafflesGoService } from "@/api";
+import { getNetworkErrorMessage } from "@/lib/networkError";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button, CloseButton, Dialog, Portal } from "@chakra-ui/react";
 import { useState } from "react";
@@ -36,7 +37,7 @@ export function DeleteSurveyWalkButton({ surveyWalkId, onDeleted }: DeleteSurvey
             toaster.create({
                 type: "error",
                 title: "Delete failed",
-                description: "Unable to delete survey walk. Please try again.",
+                description: getNetworkErrorMessage(error, "Unable to delete survey walk. Please try again."),
                 closable: true,
             });
         } finally {

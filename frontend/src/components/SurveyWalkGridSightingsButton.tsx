@@ -1,6 +1,7 @@
 import { SightingsService } from "@/api";
 import { useTheme } from "@/contexts/ThemeContext";
 import { buildAdminSightingStats, listAdminSightingsForSurveyWalk, type AdminSighting } from "@/lib/adminSightings";
+import { getNetworkErrorMessage } from "@/lib/networkError";
 import { Box, Button, Card, CloseButton, Collapsible, Dialog, Grid, Image, Portal, Stack, Text } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 import { MdDelete, MdPhotoLibrary } from "react-icons/md";
@@ -101,11 +102,11 @@ export function SurveyWalkSightingsButton({ surveyWalk }: { surveyWalk: SurveyWa
             });
         } catch (deleteError) {
             console.error("Failed to delete sighting:", deleteError);
-            setError("Unable to delete sighting.");
+            setError(getNetworkErrorMessage(deleteError, "Unable to delete sighting."));
             toaster.create({
                 type: "error",
                 title: "Delete failed",
-                description: "Unable to delete sighting. Please try again.",
+                description: getNetworkErrorMessage(deleteError, "Unable to delete sighting. Please try again."),
                 closable: true,
             });
         } finally {

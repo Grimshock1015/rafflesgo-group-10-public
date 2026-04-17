@@ -60,6 +60,24 @@ export class InvitationRepository {
         return this.toEntity(updated.id, updated.data() ?? {});
     }
 
+    async deleteBySurveyWalkUid(surveyWalkUid: string): Promise<number> {
+        const snapshot = await this.collection()
+            .where('surveyWalkUid', '==', surveyWalkUid)
+            .get();
+
+        if (snapshot.empty) {
+            return 0;
+        }
+
+        const batch = db.batch();
+        snapshot.docs.forEach((doc) => {
+            batch.delete(doc.ref);
+        });
+        await batch.commit();
+
+        return snapshot.size;
+    }
+
     private toEntity(uid: string, data: Record<string, unknown>): InvitationEntity {
         return {
             uid,

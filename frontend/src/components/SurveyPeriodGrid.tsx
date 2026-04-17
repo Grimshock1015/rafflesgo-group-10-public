@@ -1,6 +1,7 @@
 import { RafflesGoService } from "@/api";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toaster } from "@/components/ui/toaster";
+import { getNetworkErrorMessage } from "@/lib/networkError";
 import { Badge, Box, Button, ButtonGroup, Card, CloseButton, Container, Dialog, Grid, GridItem, IconButton, Image, Pagination, Portal, Select, Stack, Text, createListCollection } from "@chakra-ui/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MdDelete, MdModeEdit } from "react-icons/md";
@@ -45,7 +46,7 @@ function DeleteSurveyPeriodButton({ surveyPeriodId, onDeleted }: DeleteSurveyPer
             toaster.create({
                 type: "error",
                 title: "Delete failed",
-                description: "Unable to delete survey period. Please try again.",
+                description: getNetworkErrorMessage(error, "Unable to delete survey period. Please try again."),
                 closable: true,
             });
         } finally {
@@ -150,7 +151,7 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
             toaster.create({
                 type: "error",
                 title: "Fetch failed",
-                description: "Unable to fetch survey periods. Please try again.",
+                description: getNetworkErrorMessage(error, "Unable to fetch survey periods. Please try again."),
                 closable: true,
             });
         } finally {
@@ -181,7 +182,7 @@ export default function SurveyPeriodGrid({ user }: { user: User }) {
             toaster.create({
                 type: "error",
                 title: "Update failed",
-                description: "Unable to set active survey period. Please try again.",
+                description: getNetworkErrorMessage(error, "Unable to set active survey period. Please try again."),
                 closable: true,
             });
         } finally {

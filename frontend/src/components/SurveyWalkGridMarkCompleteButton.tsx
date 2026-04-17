@@ -1,5 +1,6 @@
 import { RafflesGoService } from "@/api";
 import { useTheme } from "@/contexts/ThemeContext";
+import { getNetworkErrorMessage } from "@/lib/networkError";
 import { Button, Checkbox, CloseButton, Dialog, Portal, Stack, Text } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { MdDoneAll } from "react-icons/md";
@@ -55,7 +56,7 @@ export function MarkCompleteButton({ surveyWalk, onJoin, isFinished }: MarkCompl
             toaster.create({
                 type: "error",
                 title: "Unable to save attendance",
-                description: "Please try again.",
+                description: getNetworkErrorMessage(error, "Unable to save attendance. Please try again."),
                 closable: true,
             });
         } finally {
