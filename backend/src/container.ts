@@ -37,7 +37,7 @@ export function createContainer(): Container {
 
   // Services
   const userService = new UserService(userRepository);
-  const surveyPeriodService = new SurveyPeriodService(surveyPeriodRepository);
+  const surveyPeriodService = new SurveyPeriodService(surveyPeriodRepository, surveyWalkRepository);
   const emailService = new EmailService();
   const invitationService = new InvitationService(
     invitationRepository,

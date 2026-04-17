@@ -1,12 +1,14 @@
 import { describe, it, expect, vi, beforeEach, Mocked } from 'vitest';
 import { SurveyPeriodService } from '../../../services/surveyPeriod.service';
 import { SurveyPeriodRepository } from '../../../repositories/surveyPeriod.repository';
+import { SurveyWalkRepository } from '../../../repositories/surveyWalk.repository';
 import { SurveyPeriodEntity } from '../../../entities/surveyPeriod.entity';
-import { NotFoundError, BadRequestError } from '../../../lib/errors';
+import { NotFoundError, BadRequestError, ConflictError } from '../../../lib/errors';
 
 describe('SurveyPeriodService Unit Tests', () => {
     let service: SurveyPeriodService;
     let mockRepository: Mocked<SurveyPeriodRepository>;
+    let mockSurveyWalkRepository: Mocked<SurveyWalkRepository>;
 
     beforeEach(() => {
         // Setup: Mock all necessary repository methods as vitest functions
@@ -21,8 +23,19 @@ describe('SurveyPeriodService Unit Tests', () => {
             unjoin: vi.fn(),
         } as unknown as Mocked<SurveyPeriodRepository>;
 
+        mockSurveyWalkRepository = {
+            findAll: vi.fn(),
+            findById: vi.fn(),
+            findBySurveyPeriodUid: vi.fn(),
+            findBySurveyPeriodUids: vi.fn(),
+            findByDate: vi.fn(),
+            create: vi.fn(),
+            update: vi.fn(),
+            delete: vi.fn(),
+        } as unknown as Mocked<SurveyWalkRepository>;
+
         // Setup: Inject the mocked repository into the service instance
-        service = new SurveyPeriodService(mockRepository);
+        service = new SurveyPeriodService(mockRepository, mockSurveyWalkRepository);
     });
 
     // ==========================================
@@ -354,19 +367,61 @@ describe('SurveyPeriodService Unit Tests', () => {
         // Failure Path: repository returns false
         it('[TC-SP-SRV-16] should throw NotFoundError when the survey period to delete does not exist', async () => {
             // Arrange
-            mockRepository.delete.mockResolvedValue(false);
+            mockRepository.findById.mockResolvedValue(null);
 
             // Act & Assert
             await expect(service.deleteSurveyPeriod(mockUid)).rejects.toThrow(NotFoundError);
             
             // Assert
-            expect(mockRepository.delete).toHaveBeenCalledWith(mockUid);
-            expect(mockRepository.delete).toHaveBeenCalledOnce();
+            expect(mockRepository.delete).not.toHaveBeenCalled();
+            expect(mockSurveyWalkRepository.findBySurveyPeriodUid).not.toHaveBeenCalled();
+        });
+
+        it('[TC-SP-SRV-16A] should throw ConflictError when survey walks still reference the survey period', async () => {
+            mockRepository.findById.mockResolvedValue({
+                uid: mockUid,
+                name: 'P1',
+                startDate: new Date('2026-01-01T00:00:00.000Z'),
+                endDate: new Date('2026-01-31T00:00:00.000Z'),
+                isFinished: false,
+                isActive: false,
+                minWalks: 1,
+            });
+            mockSurveyWalkRepository.findBySurveyPeriodUid.mockResolvedValue([
+                {
+                    uid: 'walk-1',
+                    surveyPeriodUid: mockUid,
+                    name: 'W1',
+                    date: new Date('2026-01-05T00:00:00.000Z'),
+                    startTime: '08:00',
+                    endTime: '09:00',
+                    capacity: 5,
+                    isFinished: false,
+                    volunteerUids: [],
+                    attendeeUids: [],
+                    completedAt: null,
+                    leader: '',
+                },
+            ]);
+
+            await expect(service.deleteSurveyPeriod(mockUid)).rejects.toThrow(ConflictError);
+
+            expect(mockRepository.delete).not.toHaveBeenCalled();
         });
 
         // Success Path: repository returns true
         it('[TC-SP-SRV-17] should return a success object when the survey period is successfully deleted', async () => {
             // Arrange
+            mockRepository.findById.mockResolvedValue({
+                uid: mockUid,
+                name: 'P1',
+                startDate: new Date('2026-01-01T00:00:00.000Z'),
+                endDate: new Date('2026-01-31T00:00:00.000Z'),
+                isFinished: false,
+                isActive: false,
+                minWalks: 1,
+            });
+            mockSurveyWalkRepository.findBySurveyPeriodUid.mockResolvedValue([]);
             mockRepository.delete.mockResolvedValue(true);
 
             // Act

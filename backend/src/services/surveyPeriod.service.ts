@@ -1,5 +1,6 @@
-import { BadRequestError, NotFoundError } from '../lib/errors';
+import { BadRequestError, ConflictError, NotFoundError } from '../lib/errors';
 import { SurveyPeriodRepository } from '../repositories/surveyPeriod.repository';
+import { SurveyWalkRepository } from '../repositories/surveyWalk.repository';
 import { SurveyPeriodEntity } from '../entities/surveyPeriod.entity';
 
 export type CreateSurveyPeriodInput = Omit<SurveyPeriodEntity, 'uid'>;
@@ -7,7 +8,10 @@ export type CreateSurveyPeriodInput = Omit<SurveyPeriodEntity, 'uid'>;
 export type UpdateSurveyPeriodInput = Partial<CreateSurveyPeriodInput>;
 
 export class SurveyPeriodService {
-    constructor(private surveyPeriodRepository: SurveyPeriodRepository) { }
+    constructor(
+        private surveyPeriodRepository: SurveyPeriodRepository,
+        private surveyWalkRepository: SurveyWalkRepository,
+    ) { }
 
     async getAllSurveyPeriods(limit?: number): Promise<SurveyPeriodEntity[]> {
         const surveyPeriods = await this.surveyPeriodRepository.findAll();
@@ -62,6 +66,16 @@ export class SurveyPeriodService {
     }
 
     async deleteSurveyPeriod(uid: string): Promise<{ success: true; uid: string }> {
+        const existing = await this.surveyPeriodRepository.findById(uid);
+        if (!existing) {
+            throw new NotFoundError('Survey period', uid);
+        }
+
+        const referencingWalks = await this.surveyWalkRepository.findBySurveyPeriodUid(uid);
+        if (referencingWalks.length > 0) {
+            throw new ConflictError('Cannot delete survey period while survey walks reference it');
+        }
+
         const deleted = await this.surveyPeriodRepository.delete(uid);
         if (!deleted) {
             throw new NotFoundError('Survey period', uid);

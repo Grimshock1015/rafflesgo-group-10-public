@@ -6,7 +6,16 @@ import { WalkCompletionService } from '../../../services/walkCompletion.service'
 import { InvitationService } from '../../../services/invitation.service';
 import { SurveyWalkEntity } from '../../../entities/surveyWalk.entity';
 import { SurveyPeriodEntity } from '../../../entities/surveyPeriod.entity';
-import { BadRequestError, NotFoundError } from '../../../lib/errors';
+import { BadRequestError, ConflictError, NotFoundError } from '../../../lib/errors';
+import * as SightingService from '../../../services/sighting.service';
+
+vi.mock('../../../services/sighting.service', async () => {
+	const actual = await vi.importActual<typeof import('../../../services/sighting.service')>('../../../services/sighting.service');
+	return {
+		...actual,
+		countSightingsBySurveyWalkUid: vi.fn(),
+	};
+});
 
 describe('SurveyWalkService Unit Tests', () => {
 	let service: SurveyWalkService;
@@ -79,7 +88,10 @@ describe('SurveyWalkService Unit Tests', () => {
 				status: 'pending',
 				createdAt: new Date('2026-04-01T00:00:00.000Z'),
 			}),
+			deleteInvitationsForWalk: vi.fn().mockResolvedValue(0),
 		} as unknown as Mocked<InvitationService>;
+
+		vi.mocked(SightingService.countSightingsBySurveyWalkUid).mockResolvedValue(0);
 
 		service = new SurveyWalkService(mockSurveyWalkRepository, mockSurveyPeriodRepository, mockWalkCompletionService, mockInvitationService);
 	});
@@ -218,6 +230,8 @@ describe('SurveyWalkService Unit Tests', () => {
 				isFinished: walk.isFinished,
 				volunteerUids: walk.volunteerUids,
 				leader: walk.leader,
+				attendeeUids: walk.attendeeUids,
+				completedAt: walk.completedAt,
 			};
 			mockSurveyPeriodRepository.findById.mockResolvedValue(period);
 			mockSurveyWalkRepository.create.mockResolvedValue(walk);
@@ -448,15 +462,38 @@ describe('SurveyWalkService Unit Tests', () => {
 
 	describe('deleteSurveyWalk', () => {
 		it('should return success object when delete succeeds', async () => {
+			mockSurveyWalkRepository.findById.mockResolvedValue(walk);
+			vi.mocked(SightingService.countSightingsBySurveyWalkUid).mockResolvedValue(0);
 			mockSurveyWalkRepository.delete.mockResolvedValue(true);
 
 			const result = await service.deleteSurveyWalk(walk.uid);
 
 			expect(result).toEqual({ success: true, uid: walk.uid });
+			expect(SightingService.countSightingsBySurveyWalkUid).toHaveBeenCalledWith(walk.uid);
+			expect(mockInvitationService.deleteInvitationsForWalk).toHaveBeenCalledWith(walk.uid);
 			expect(mockSurveyWalkRepository.delete).toHaveBeenCalledWith(walk.uid);
 		});
 
-		it('should throw NotFoundError when delete fails', async () => {
+		it('should throw NotFoundError when walk does not exist', async () => {
+			mockSurveyWalkRepository.findById.mockResolvedValue(null);
+
+			await expect(service.deleteSurveyWalk(walk.uid)).rejects.toThrow(NotFoundError);
+			expect(mockSurveyWalkRepository.delete).not.toHaveBeenCalled();
+			expect(mockInvitationService.deleteInvitationsForWalk).not.toHaveBeenCalled();
+		});
+
+		it('should throw ConflictError when sightings still reference the walk', async () => {
+			mockSurveyWalkRepository.findById.mockResolvedValue(walk);
+			vi.mocked(SightingService.countSightingsBySurveyWalkUid).mockResolvedValue(1);
+
+			await expect(service.deleteSurveyWalk(walk.uid)).rejects.toThrow(ConflictError);
+			expect(mockSurveyWalkRepository.delete).not.toHaveBeenCalled();
+			expect(mockInvitationService.deleteInvitationsForWalk).not.toHaveBeenCalled();
+		});
+
+		it('should throw NotFoundError when delete fails after checks', async () => {
+			mockSurveyWalkRepository.findById.mockResolvedValue(walk);
+			vi.mocked(SightingService.countSightingsBySurveyWalkUid).mockResolvedValue(0);
 			mockSurveyWalkRepository.delete.mockResolvedValue(false);
 
 			await expect(service.deleteSurveyWalk(walk.uid)).rejects.toThrow(NotFoundError);

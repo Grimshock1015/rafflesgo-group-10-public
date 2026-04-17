@@ -1,8 +1,9 @@
 import { SurveyWalkEntity } from "../entities/surveyWalk.entity";
-import { BadRequestError, NotFoundError } from "../lib/errors";
+import { BadRequestError, ConflictError, NotFoundError } from "../lib/errors";
 import { SurveyPeriodRepository } from "../repositories/surveyPeriod.repository";
 import { SurveyWalkRepository } from "../repositories/surveyWalk.repository";
 import { InvitationService } from "./invitation.service";
+import { countSightingsBySurveyWalkUid } from './sighting.service';
 import { WalkCompletionService } from "./walkCompletion.service";
 
 export type CreateSurveyWalkInput = Omit<SurveyWalkEntity, 'uid'>;
@@ -226,6 +227,18 @@ export class SurveyWalkService {
     }
 
     async deleteSurveyWalk(uid: string): Promise<{ success: true; uid: string }> {
+        const existing = await this.surveyWalkRepository.findById(uid);
+        if (!existing) {
+            throw new NotFoundError('Survey walk', uid);
+        }
+
+        const sightingsCount = await countSightingsBySurveyWalkUid(uid);
+        if (sightingsCount > 0) {
+            throw new ConflictError('Cannot delete survey walk while sightings reference it');
+        }
+
+        await this.invitationService.deleteInvitationsForWalk(uid);
+
         const deleted = await this.surveyWalkRepository.delete(uid);
         if (!deleted) {
             throw new NotFoundError('Survey walk', uid);
