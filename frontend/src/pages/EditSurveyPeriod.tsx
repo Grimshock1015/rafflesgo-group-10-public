@@ -398,7 +398,7 @@ export default function EditSurveyPeriod() {
                                                 <Field.Root minW={{ base: "100%", sm: "160px" }} mb={0}>
                                                     <Field.Label>Start time</Field.Label>
                                                     <Input
-                                                        className="sighting-control"
+                                                        className="sighting-control sighting-text-input"
                                                         type="time"
                                                         value={state.startTime}
                                                         onChange={(e) => setState({ ...state, startTime: e.target.value })}
@@ -411,7 +411,7 @@ export default function EditSurveyPeriod() {
                                                 <Field.Root minW={{ base: "100%", sm: "160px" }} mb={0}>
                                                     <Field.Label>End time</Field.Label>
                                                     <Input
-                                                        className="sighting-control"
+                                                        className="sighting-control sighting-text-input"
                                                         type="time"
                                                         value={state.endTime}
                                                         onChange={(e) => setState({ ...state, endTime: e.target.value })}
