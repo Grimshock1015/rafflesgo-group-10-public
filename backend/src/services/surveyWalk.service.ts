@@ -7,6 +7,29 @@ import { WalkCompletionService } from "./walkCompletion.service";
 
 export type CreateSurveyWalkInput = Omit<SurveyWalkEntity, 'uid'>;
 export type UpdateSurveyWalkInput = Partial<CreateSurveyWalkInput>;
+export type BulkCreateSurveyWalksInput = {
+    surveyPeriodUid: string;
+    namePrefix: string;
+    weekdays: number[];
+    timeSlots: Array<{
+        label?: string;
+        startTime: string;
+        endTime: string;
+    }>;
+    capacity: number;
+    skipExisting?: boolean;
+};
+
+export type BulkCreateSurveyWalksResult = {
+    created: SurveyWalkEntity[];
+    skipped: Array<{
+        date: Date;
+        startTime: string;
+        endTime: string;
+        reason: string;
+        name: string;
+    }>;
+};
 
 export class SurveyWalkService {
     constructor(
@@ -53,6 +76,97 @@ export class SurveyWalkService {
         this.validateTimeRange(input.startTime, input.endTime);
         await this.validateSurveyPeriodDate(input.surveyPeriodUid, input.date);
         return this.surveyWalkRepository.create(input);
+    }
+
+    async bulkCreateSurveyWalks(input: BulkCreateSurveyWalksInput): Promise<BulkCreateSurveyWalksResult> {
+        const surveyPeriod = await this.surveyPeriodRepository.findById(input.surveyPeriodUid);
+        if (!surveyPeriod) {
+            throw new NotFoundError('Survey period', input.surveyPeriodUid);
+        }
+
+        const weekdays = [...new Set(input.weekdays)];
+        if (weekdays.length === 0) {
+            throw new BadRequestError('At least one weekday must be selected');
+        }
+
+        weekdays.forEach((weekday) => {
+            if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) {
+                throw new BadRequestError('weekdays must be integers between 0 and 6');
+            }
+        });
+
+        const trimmedNamePrefix = input.namePrefix.trim();
+        if (!trimmedNamePrefix) {
+            throw new BadRequestError('namePrefix must not be empty');
+        }
+
+        if (!Number.isInteger(input.capacity) || input.capacity < 1) {
+            throw new BadRequestError('capacity must be a positive integer');
+        }
+
+        if (input.timeSlots.length === 0) {
+            throw new BadRequestError('At least one time slot must be provided');
+        }
+
+        const normalizedSlots = input.timeSlots.map((slot) => {
+            this.validateTimeRange(slot.startTime, slot.endTime);
+            return {
+                label: slot.label?.trim() || undefined,
+                startTime: slot.startTime,
+                endTime: slot.endTime,
+            };
+        });
+
+        const existingWalks = await this.surveyWalkRepository.findBySurveyPeriodUid(input.surveyPeriodUid);
+        const existingKeys = new Set(
+            existingWalks.map((walk) => this.toWalkSlotKey(walk.date, walk.startTime, walk.endTime)),
+        );
+
+        const created: SurveyWalkEntity[] = [];
+        const skipped: BulkCreateSurveyWalksResult['skipped'] = [];
+        const cursor = this.toUtcMidnight(surveyPeriod.startDate);
+        const end = this.toUtcMidnight(surveyPeriod.endDate);
+
+        while (cursor.getTime() <= end.getTime()) {
+            if (weekdays.includes(cursor.getUTCDay())) {
+                for (const slot of normalizedSlots) {
+                    const walkDate = new Date(cursor);
+                    const name = this.buildBulkWalkName(trimmedNamePrefix, walkDate, slot.label, slot.startTime);
+                    const key = this.toWalkSlotKey(walkDate, slot.startTime, slot.endTime);
+
+                    if ((input.skipExisting ?? true) && existingKeys.has(key)) {
+                        skipped.push({
+                            date: walkDate,
+                            startTime: slot.startTime,
+                            endTime: slot.endTime,
+                            reason: 'A walk already exists for this date and time',
+                            name,
+                        });
+                        continue;
+                    }
+
+                    const createdWalk = await this.surveyWalkRepository.create({
+                        surveyPeriodUid: input.surveyPeriodUid,
+                        name,
+                        date: walkDate,
+                        startTime: slot.startTime,
+                        endTime: slot.endTime,
+                        capacity: input.capacity,
+                        isFinished: false,
+                        volunteerUids: [],
+                        attendeeUids: [],
+                        completedAt: null,
+                        leader: '',
+                    });
+                    created.push(createdWalk);
+                    existingKeys.add(key);
+                }
+            }
+
+            cursor.setUTCDate(cursor.getUTCDate() + 1);
+        }
+
+        return { created, skipped };
     }
 
     async updateSurveyWalk(uid: string, input: UpdateSurveyWalkInput): Promise<SurveyWalkEntity> {
@@ -291,5 +405,26 @@ export class SurveyWalkService {
             attendeeUids: nextAttendeeUids,
             completedAt: completedAt ?? existing.completedAt ?? new Date(),
         };
+    }
+
+    private toUtcMidnight(value: Date): Date {
+        return new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()));
+    }
+
+    private toWalkSlotKey(date: Date, startTime: string, endTime: string): string {
+        return `${this.toUtcMidnight(date).toISOString()}|${startTime}|${endTime}`;
+    }
+
+    private buildBulkWalkName(namePrefix: string, date: Date, label: string | undefined, startTime: string): string {
+        const formattedDate = date.toLocaleDateString('en-SG', {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short',
+            timeZone: 'UTC',
+        });
+
+        return label
+            ? `${namePrefix} - ${formattedDate} ${label}`
+            : `${namePrefix} - ${formattedDate} ${startTime}`;
     }
 }

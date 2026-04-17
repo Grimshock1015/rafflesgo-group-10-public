@@ -124,6 +124,59 @@ describe('Survey Walks Integration', () => {
         expect(snapshot.docs).toHaveLength(0);
     });
 
+    it('POST /api/surveyPeriods/:surveyPeriodUid/bulk-surveyWalks should create weekend walks and skip duplicates', async () => {
+        mockAdminUser();
+        const periodRef = await db.collection(FIRESTORE_COLLECTIONS.SURVEYPERIODS).add({
+            name: 'April Sprint',
+            startDate: new Date('2026-04-03T00:00:00.000Z'),
+            endDate: new Date('2026-04-12T00:00:00.000Z'),
+            isFinished: false,
+            isActive: false,
+            minWalks: 2,
+            volunteerUids: [],
+        });
+        const surveyPeriodUid = periodRef.id;
+
+        await db.collection(FIRESTORE_COLLECTIONS.SURVEYWALKS).add({
+            surveyPeriodUid,
+            name: 'Existing Sunday Walk',
+            date: new Date('2026-04-12T00:00:00.000Z'),
+            startTime: '08:00',
+            endTime: '10:00',
+            capacity: 4,
+            isFinished: false,
+            volunteerUids: [],
+            attendeeUids: [],
+            completedAt: null,
+            leader: '',
+        });
+
+        const response = await app.inject({
+            method: 'POST',
+            url: `/api/surveyPeriods/${surveyPeriodUid}/bulk-surveyWalks`,
+            headers: { authorization: 'Bearer fake-token' },
+            payload: {
+                namePrefix: 'Spring 2026 Weekend Walk',
+                weekdays: [6, 0],
+                timeSlots: [
+                    { label: 'Morning', startTime: '08:00', endTime: '10:00' },
+                    { label: 'Afternoon', startTime: '16:00', endTime: '18:00' },
+                ],
+                capacity: 4,
+                skipExisting: true,
+            },
+        });
+
+        expect(response.statusCode).toBe(201);
+        const data = response.json();
+        expect(data.success).toBe(true);
+        expect(data.createdCount).toBe(7);
+        expect(data.skippedCount).toBe(1);
+
+        const snapshot = await db.collection(FIRESTORE_COLLECTIONS.SURVEYWALKS).get();
+        expect(snapshot.docs).toHaveLength(8);
+    });
+
     it('PUT /api/surveyWalks/:uid should return 400 when updated times are out-of-order', async () => {
         mockAdminUser();
         const surveyPeriodUid = await createSurveyPeriod();

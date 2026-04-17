@@ -20,6 +20,7 @@ vi.mock('@/api/services/RafflesGoService', () => ({
     RafflesGoService: {
         getSurveyPeriod: vi.fn(),
         updateSurveyPeriod: vi.fn(),
+        bulkCreateSurveyWalksForSurveyPeriod: vi.fn(),
     },
 }));
 
@@ -45,6 +46,8 @@ vi.mock('../../lib/date', () => ({
 }));
 
 describe('EditSurveyPeriod', () => {
+    const getPeriodNameInput = () => screen.getByPlaceholderText('Enter a name for the survey period') as HTMLInputElement;
+
     beforeEach(() => {
         vi.clearAllMocks();
     });
@@ -68,7 +71,7 @@ describe('EditSurveyPeriod', () => {
 
         // Initial loading might be brief, wait for inputs to be populated
         await waitFor(() => {
-            const nameInput = screen.getByLabelText(/name/i) as HTMLInputElement;
+            const nameInput = getPeriodNameInput();
             const minWalksInput = screen.getByLabelText(/min\. no\. of walks/i) as HTMLInputElement;
             expect(nameInput.value).toBe('Existing SP');
             expect(minWalksInput.value).toBe('10');
@@ -104,11 +107,11 @@ describe('EditSurveyPeriod', () => {
         );
 
         await waitFor(() => {
-            const nameInput = screen.getByLabelText(/name/i) as HTMLInputElement;
+            const nameInput = getPeriodNameInput();
             expect(nameInput.value).toBe('Existing SP');
         });
 
-        const nameInput = screen.getByLabelText(/name/i);
+        const nameInput = getPeriodNameInput();
         const minWalksInput = screen.getByLabelText(/min\. no\. of walks/i);
         fireEvent.change(nameInput, { target: { value: 'Updated SP' } });
         fireEvent.change(minWalksInput, { target: { value: '15' } });
@@ -151,7 +154,7 @@ describe('EditSurveyPeriod', () => {
         );
 
         await waitFor(() => {
-            const nameInput = screen.getByLabelText(/name/i) as HTMLInputElement;
+            const nameInput = getPeriodNameInput();
             expect(nameInput.value).toBe('Existing SP');
         });
 
@@ -161,5 +164,48 @@ describe('EditSurveyPeriod', () => {
             expect(toaster.create).toHaveBeenCalledWith(expect.objectContaining({ type: 'error' }));
         });
         expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('bulk schedules weekend walks for the current survey period', async () => {
+        vi.mocked(RafflesGoService.getSurveyPeriod).mockResolvedValue({
+            uid: 'test-id',
+            name: 'Existing SP',
+            minWalks: 10,
+            startDate: '2026-04-01T00:00:00Z',
+            endDate: '2026-04-30T00:00:00Z',
+            isFinished: false,
+            volunteerUids: [],
+        } as never);
+        vi.mocked(RafflesGoService.bulkCreateSurveyWalksForSurveyPeriod).mockResolvedValue({
+            success: true,
+            createdCount: 8,
+            skippedCount: 1,
+            surveyWalks: [],
+            skipped: [],
+        } as never);
+
+        render(
+            <BrowserRouter>
+                <EditSurveyPeriod />
+            </BrowserRouter>
+        );
+
+        await waitFor(() => {
+            expect(getPeriodNameInput().value).toBe('Existing SP');
+        });
+
+        fireEvent.click(screen.getByRole('button', { name: /schedule weekend walks/i }));
+
+        await waitFor(() => {
+            expect(RafflesGoService.bulkCreateSurveyWalksForSurveyPeriod).toHaveBeenCalledWith('test-id', expect.objectContaining({
+                namePrefix: 'Existing SP',
+                weekdays: [6, 0],
+                capacity: 4,
+            }));
+            expect(toaster.create).toHaveBeenCalledWith(expect.objectContaining({
+                type: 'success',
+                title: 'Walks scheduled',
+            }));
+        });
     });
 });

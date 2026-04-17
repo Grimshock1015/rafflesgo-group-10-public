@@ -54,6 +54,34 @@ export const CreateSurveyWalkBodySchema = Type.Object({
     leader: Type.Optional(Type.String()),
 });
 
+export const BulkSurveyWalkTimeSlotSchema = Type.Object({
+    label: Type.Optional(Type.String({ minLength: 1 })),
+    startTime: Type.String({ pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]$' }),
+    endTime: Type.String({ pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]$' }),
+});
+
+export const BulkCreateSurveyWalksBodySchema = Type.Object({
+    namePrefix: Type.String({ minLength: 1 }),
+    weekdays: Type.Array(Type.Integer({ minimum: 0, maximum: 6 }), { minItems: 1 }),
+    timeSlots: Type.Array(BulkSurveyWalkTimeSlotSchema, { minItems: 1 }),
+    capacity: Type.Integer({ minimum: 1 }),
+    skipExisting: Type.Optional(Type.Boolean()),
+});
+
+export const BulkCreateSurveyWalksResponseSchema = Type.Object({
+    success: Type.Boolean(),
+    createdCount: Type.Integer({ minimum: 0 }),
+    skippedCount: Type.Integer({ minimum: 0 }),
+    surveyWalks: Type.Array(surveyWalkSchema),
+    skipped: Type.Array(Type.Object({
+        date: Type.String({ format: 'date-time' }),
+        startTime: Type.String({ pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]$' }),
+        endTime: Type.String({ pattern: '^([0-1][0-9]|2[0-3]):[0-5][0-9]$' }),
+        reason: Type.String(),
+        name: Type.String(),
+    })),
+});
+
 export const UpdateSurveyWalkBodySchema = Type.Partial(CreateSurveyWalkBodySchema);
 export const AdminUpdateSurveyWalkBodySchema = Type.Partial(Type.Object({
     surveyPeriodUid: Type.String({ minLength: 1 }),
@@ -101,8 +129,11 @@ export type SurveyWalk = Static<typeof surveyWalkSchema>;
 export type SurveyWalkParams = Static<typeof SurveyWalkParamsSchema>;
 export type SurveyWalkBySurveyPeriodParams = Static<typeof SurveyWalkBySurveyPeriodParamsSchema>;
 export type CreateSurveyWalkBody = Static<typeof CreateSurveyWalkBodySchema>;
+export type BulkSurveyWalkTimeSlot = Static<typeof BulkSurveyWalkTimeSlotSchema>;
+export type BulkCreateSurveyWalksBody = Static<typeof BulkCreateSurveyWalksBodySchema>;
 export type UpdateSurveyWalkBody = Static<typeof UpdateSurveyWalkBodySchema>;
 export type ListSurveyWalksResponse = Static<typeof ListSurveyWalksResponseSchema>;
+export type BulkCreateSurveyWalksResponse = Static<typeof BulkCreateSurveyWalksResponseSchema>;
 export type DeleteSurveyWalkResponse = Static<typeof DeleteSurveyWalkResponseSchema>;
 export type JoinQuitSurveyWalkResponse = Static<typeof JoinQuitSurveyWalkResponseSchema>;
 export type ReassignLeaderBody = Static<typeof ReassignLeaderBodySchema>;

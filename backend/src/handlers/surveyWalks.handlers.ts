@@ -3,6 +3,8 @@ import { SurveyWalkEntity } from "../entities/surveyWalk.entity";
 import { BadRequestError } from "../lib/errors";
 import { auth } from "../lib/firebase-admin";
 import {
+    BulkCreateSurveyWalksBodySchema,
+    BulkCreateSurveyWalksResponseSchema,
     CompleteSurveyWalkBodySchema,
     CompleteSurveyWalkResponseSchema,
     CreateSurveyWalkBodySchema,
@@ -42,6 +44,14 @@ const CreateSurveyWalkSchema = {
     body: CreateSurveyWalkBodySchema,
     response: {
         201: surveyWalkSchema,
+    },
+};
+
+const BulkCreateSurveyWalksSchema = {
+    params: SurveyWalkBySurveyPeriodParamsSchema,
+    body: BulkCreateSurveyWalksBodySchema,
+    response: {
+        201: BulkCreateSurveyWalksResponseSchema,
     },
 };
 
@@ -262,6 +272,37 @@ export async function createSurveyWalkHandler(
     const volunteersData = await getVolunteersData(created.volunteerUids);
     const leaderData = await getLeaderData(created.leader);
     return reply.code(201).send(toDto(created, periodName, volunteersData, leaderData));
+}
+
+export async function bulkCreateSurveyWalksHandler(
+    request: FastifyRequestTypeBox<typeof BulkCreateSurveyWalksSchema>,
+    reply: FastifyReplyTypeBox<typeof BulkCreateSurveyWalksSchema>
+) {
+    const { surveyWalkService } = getContainer();
+    const result = await surveyWalkService.bulkCreateSurveyWalks({
+        surveyPeriodUid: request.params.surveyPeriodUid,
+        namePrefix: request.body.namePrefix,
+        weekdays: request.body.weekdays,
+        timeSlots: request.body.timeSlots,
+        capacity: request.body.capacity,
+        skipExisting: request.body.skipExisting,
+    });
+
+    const periodName = await getSurveyPeriodName(request.params.surveyPeriodUid);
+
+    return reply.code(201).send({
+        success: true,
+        createdCount: result.created.length,
+        skippedCount: result.skipped.length,
+        surveyWalks: result.created.map((walk) => toDto(walk, periodName, [], undefined)),
+        skipped: result.skipped.map((item) => ({
+            date: item.date.toISOString(),
+            startTime: item.startTime,
+            endTime: item.endTime,
+            reason: item.reason,
+            name: item.name,
+        })),
+    });
 }
 
 export async function updateSurveyWalkHandler(

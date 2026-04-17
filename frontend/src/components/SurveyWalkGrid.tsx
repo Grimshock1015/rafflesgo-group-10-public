@@ -158,6 +158,9 @@ export default function SurveyWalkGrid({ user }: { user: User }) {
             )}
 
             <Box display="flex" alignItems="center" justifyContent="space-between" mb={0}>
+                <Text mb={0}>{role === "admin" && "You can bulk create walks by editing a survey period!"}</Text>
+            </Box>
+            <Box display="flex" alignItems="center" justifyContent="space-between" mb={0}>
                 <Text mb={0}>{role === "admin" && !onlyActive ? "Displaying all survey walks:" : "Displaying survey walks for registered survey periods:"}</Text>
                 {isRefreshing && <Text fontSize="sm" color="gray.500">Refreshing...</Text>}
             </Box>

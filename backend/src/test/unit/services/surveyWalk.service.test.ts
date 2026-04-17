@@ -229,6 +229,69 @@ describe('SurveyWalkService Unit Tests', () => {
 		});
 	});
 
+	describe('bulkCreateSurveyWalks', () => {
+		it('should create walks for selected weekend days and skip duplicate slots', async () => {
+			mockSurveyPeriodRepository.findById.mockResolvedValue({
+				...period,
+				startDate: new Date('2026-04-03T00:00:00.000Z'),
+				endDate: new Date('2026-04-12T00:00:00.000Z'),
+			});
+			mockSurveyWalkRepository.findBySurveyPeriodUid.mockResolvedValue([
+				{
+					...walk,
+					date: new Date('2026-04-05T00:00:00.000Z'),
+					startTime: '08:00',
+					endTime: '10:00',
+				},
+			]);
+			let createIndex = 0;
+			mockSurveyWalkRepository.create.mockImplementation(async (payload) => ({
+				uid: `walk-${++createIndex}`,
+				...payload,
+			}));
+
+			const result = await service.bulkCreateSurveyWalks({
+				surveyPeriodUid: period.uid,
+				namePrefix: 'Spring 2026',
+				weekdays: [6, 0],
+				timeSlots: [
+					{ label: 'Morning', startTime: '08:00', endTime: '10:00' },
+					{ label: 'Afternoon', startTime: '16:00', endTime: '18:00' },
+				],
+				capacity: 4,
+			});
+
+			expect(result.created).toHaveLength(7);
+			expect(result.skipped).toEqual([
+				expect.objectContaining({
+					date: new Date('2026-04-05T00:00:00.000Z'),
+					startTime: '08:00',
+					endTime: '10:00',
+					reason: 'A walk already exists for this date and time',
+				}),
+			]);
+			expect(mockSurveyWalkRepository.create).toHaveBeenCalledWith(expect.objectContaining({
+				surveyPeriodUid: period.uid,
+				capacity: 4,
+				name: expect.stringContaining('Morning'),
+			}));
+		});
+
+		it('should reject empty weekday selections', async () => {
+			mockSurveyPeriodRepository.findById.mockResolvedValue(period);
+
+			await expect(service.bulkCreateSurveyWalks({
+				surveyPeriodUid: period.uid,
+				namePrefix: 'Spring 2026',
+				weekdays: [],
+				timeSlots: [{ startTime: '08:00', endTime: '10:00' }],
+				capacity: 4,
+			})).rejects.toThrow(BadRequestError);
+
+			expect(mockSurveyWalkRepository.create).not.toHaveBeenCalled();
+		});
+	});
+
 	describe('updateSurveyWalk', () => {
 		it('should throw NotFoundError when target walk does not exist', async () => {
 			mockSurveyWalkRepository.findById.mockResolvedValue(null);
